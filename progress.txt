@@ -48,3 +48,42 @@
 - Using bun:sqlite for runtime (per CLAUDE.md), @libsql/client only for drizzle-kit tooling
 - Database stored at data/ytscribe.db (can override with DATABASE_URL env var)
 - Schema exports User and NewUser types for type-safe operations
+
+---
+
+### 2026-02-01 - Videos Table Schema
+
+**Completed:** Add videos table schema with foreign key to users
+
+**What was done:**
+- Added videos table to src/db/schema.ts with all required fields:
+  - id (primary key, auto-increment)
+  - userId (foreign key to users.id)
+  - youtubeUrl, youtubeId (required text fields)
+  - title, duration, thumbnailUrl (optional fields)
+  - status (enum: pending/processing/completed/failed, defaults to 'pending')
+  - createdAt, updatedAt (timestamps with default functions)
+- Created videoStatusEnum as const array for type-safe status values
+- Exported Video and NewVideo types for type-safe operations
+- Ran `bun run db:push` to apply schema changes to database
+- Created tests/db/schema.test.ts with comprehensive tests:
+  - User insert and retrieve test
+  - Video insert and retrieve test with all fields
+  - Foreign key constraint enforcement test (with PRAGMA foreign_keys = ON)
+  - All video status values test
+
+**Technical notes:**
+- bun-sqlite's Drizzle driver is synchronous; use `.all()`, `.get()`, `.run()` methods
+- Foreign keys not enforced by default in SQLite; need `PRAGMA foreign_keys = ON`
+- Created assertDefined helper for TypeScript strict null checks in tests
+- Tests use in-memory SQLite database for isolation
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (5 tests)
+
+**Notes for next task:**
+- Next priority: Add transcripts table schema linked to videos
+- The videos table references users.id with a foreign key constraint
+- Status transitions: pending → processing → completed/failed

@@ -28,5 +28,16 @@
 			"Run `bun run typecheck` to verify schema types"
 		],
 		"completed_at": "2026-02-01"
+	},
+	{
+		"category": "functional",
+		"description": "Add videos table schema with foreign key to users",
+		"steps": [
+			"Add videos table to schema: id, userId, youtubeUrl, youtubeId, title, duration, thumbnailUrl, status (pending/processing/completed/failed), createdAt, updatedAt",
+			"Run `bun run db:push` to apply changes",
+			"Write test in tests/db/schema.test.ts verifying table creation",
+			"Run `bun test` and verify test passes"
+		],
+		"completed_at": "2026-02-01"
 	}
 ]

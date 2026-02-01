@@ -8,17 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add videos table schema with foreign key to users",
-			"steps": [
-				"Add videos table to schema: id, userId, youtubeUrl, youtubeId, title, duration, thumbnailUrl, status (pending/processing/completed/failed), createdAt, updatedAt",
-				"Run `bun run db:push` to apply changes",
-				"Write test in tests/db/schema.test.ts verifying table creation",
-				"Run `bun test` and verify test passes"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add transcripts table schema linked to videos",
 			"steps": [
 				"Add transcripts table: id, videoId, content (full text), segments (JSON array with start/end timestamps and text), language, createdAt",
