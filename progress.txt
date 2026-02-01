@@ -87,3 +87,40 @@
 - Next priority: Add transcripts table schema linked to videos
 - The videos table references users.id with a foreign key constraint
 - Status transitions: pending → processing → completed/failed
+
+---
+
+### 2026-02-01 - Transcripts Table Schema
+
+**Completed:** Add transcripts table schema linked to videos
+
+**What was done:**
+- Added transcripts table to src/db/schema.ts with all required fields:
+  - id (primary key, auto-increment)
+  - videoId (foreign key to videos.id)
+  - content (full transcript text, required)
+  - segments (JSON array with start/end timestamps and text, typed as TranscriptSegment[])
+  - language (text, defaults to 'en')
+  - createdAt (timestamp with default function)
+- Created TranscriptSegment interface for type-safe segment structure
+- Exported Transcript and NewTranscript types for type-safe operations
+- Ran `bun run db:push` to apply schema changes to database
+- Added comprehensive tests for transcripts table:
+  - Insert and retrieve transcript linked to video test
+  - Foreign key constraint enforcement test
+  - Multiple language support test
+
+**Technical notes:**
+- Used Drizzle's text column with mode: "json" and $type<T>() for type-safe JSON handling
+- TranscriptSegment interface defines: start (number), end (number), text (string)
+- Foreign key constraint references videos.id (which in turn references users.id)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (8 tests)
+
+**Notes for next task:**
+- Next priority: Add chat_sessions and messages tables for conversation history
+- The transcripts table references videos.id with a foreign key constraint
+- Segments are stored as JSON but fully typed via TranscriptSegment interface

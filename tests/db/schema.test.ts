@@ -41,6 +41,15 @@ describe("database schema", () => {
 				created_at INTEGER NOT NULL,
 				updated_at INTEGER NOT NULL
 			);
+
+			CREATE TABLE transcripts (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				video_id INTEGER NOT NULL REFERENCES videos(id),
+				content TEXT NOT NULL,
+				segments TEXT NOT NULL,
+				language TEXT NOT NULL DEFAULT 'en',
+				created_at INTEGER NOT NULL
+			);
 		`);
 	});
 
@@ -142,6 +151,89 @@ describe("database schema", () => {
 				const inserted = result[0];
 				assertDefined(inserted);
 				expect(inserted.status).toBe(status);
+			}
+		});
+	});
+
+	describe("transcripts table", () => {
+		it("should insert and retrieve a transcript linked to video", () => {
+			const videoResult = db.select().from(schema.videos).limit(1).all();
+			expect(videoResult).toHaveLength(1);
+			const video = videoResult[0];
+			assertDefined(video);
+
+			const segments: schema.TranscriptSegment[] = [
+				{ start: 0, end: 5.2, text: "Hello and welcome" },
+				{ start: 5.2, end: 10.5, text: "to this video" },
+				{ start: 10.5, end: 15.8, text: "about testing transcripts" },
+			];
+
+			const newTranscript: schema.NewTranscript = {
+				videoId: video.id,
+				content: "Hello and welcome to this video about testing transcripts",
+				segments,
+				language: "en",
+			};
+
+			const result = db
+				.insert(schema.transcripts)
+				.values(newTranscript)
+				.returning()
+				.all();
+			expect(result).toHaveLength(1);
+			const inserted = result[0];
+			assertDefined(inserted);
+
+			expect(inserted.id).toBeDefined();
+			expect(inserted.videoId).toBe(video.id);
+			expect(inserted.content).toBe(
+				"Hello and welcome to this video about testing transcripts",
+			);
+			expect(inserted.segments).toEqual(segments);
+			expect(inserted.language).toBe("en");
+			expect(inserted.createdAt).toBeInstanceOf(Date);
+		});
+
+		it("should enforce foreign key to videos", () => {
+			const invalidTranscript: schema.NewTranscript = {
+				videoId: 99999,
+				content: "Test content",
+				segments: [],
+				language: "en",
+			};
+
+			expect(() => {
+				db.insert(schema.transcripts)
+					.values(invalidTranscript)
+					.returning()
+					.all();
+			}).toThrow();
+		});
+
+		it("should support different languages", () => {
+			const videoResult = db.select().from(schema.videos).limit(1).all();
+			const video = videoResult[0];
+			assertDefined(video);
+
+			const languages = ["en", "es", "fr", "de", "ja"];
+
+			for (const language of languages) {
+				const transcript: schema.NewTranscript = {
+					videoId: video.id,
+					content: `Content in ${language}`,
+					segments: [{ start: 0, end: 1, text: `Text in ${language}` }],
+					language,
+				};
+
+				const result = db
+					.insert(schema.transcripts)
+					.values(transcript)
+					.returning()
+					.all();
+				expect(result).toHaveLength(1);
+				const inserted = result[0];
+				assertDefined(inserted);
+				expect(inserted.language).toBe(language);
 			}
 		});
 	});

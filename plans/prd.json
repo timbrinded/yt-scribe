@@ -8,17 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add transcripts table schema linked to videos",
-			"steps": [
-				"Add transcripts table: id, videoId, content (full text), segments (JSON array with start/end timestamps and text), language, createdAt",
-				"Run `bun run db:push` to apply changes",
-				"Write test verifying transcript can reference video",
-				"Run `bun test` and verify test passes"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add chat_sessions and messages tables for conversation history",
 			"steps": [
 				"Add chat_sessions table: id, videoId, userId, title, createdAt, updatedAt",

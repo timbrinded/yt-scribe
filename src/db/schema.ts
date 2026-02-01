@@ -44,3 +44,27 @@ export const videos = sqliteTable("videos", {
 
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
+
+export interface TranscriptSegment {
+	start: number;
+	end: number;
+	text: string;
+}
+
+export const transcripts = sqliteTable("transcripts", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	videoId: integer("video_id")
+		.notNull()
+		.references(() => videos.id),
+	content: text("content").notNull(),
+	segments: text("segments", { mode: "json" })
+		.notNull()
+		.$type<TranscriptSegment[]>(),
+	language: text("language").notNull().default("en"),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
+export type Transcript = typeof transcripts.$inferSelect;
+export type NewTranscript = typeof transcripts.$inferInsert;

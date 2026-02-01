@@ -39,5 +39,16 @@
 			"Run `bun test` and verify test passes"
 		],
 		"completed_at": "2026-02-01"
+	},
+	{
+		"category": "functional",
+		"description": "Add transcripts table schema linked to videos",
+		"steps": [
+			"Add transcripts table: id, videoId, content (full text), segments (JSON array with start/end timestamps and text), language, createdAt",
+			"Run `bun run db:push` to apply changes",
+			"Write test verifying transcript can reference video",
+			"Run `bun test` and verify test passes"
+		],
+		"completed_at": "2026-02-01"
 	}
 ]
