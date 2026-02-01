@@ -146,5 +146,19 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-01"
+	},
+	{
+		"category": "functional",
+		"description": "Implement audio transcription using OpenAI Whisper API",
+		"steps": [
+			"Install OpenAI SDK: `bun add openai`",
+			"Create src/services/transcription.ts",
+			"Add function transcribeAudio(filePath) that calls OpenAI Whisper API",
+			"Parse response into segments with timestamps",
+			"Handle API errors gracefully with typed error responses",
+			"Write test with a short audio file verifying transcript returned",
+			"Run `bun test`"
+		],
+		"completed_at": "2026-02-01"
 	}
 ]

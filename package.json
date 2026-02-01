@@ -26,6 +26,7 @@
 		"@elysiajs/cors": "^1.4.1",
 		"arctic": "^3.7.0",
 		"drizzle-orm": "^0.45.1",
-		"elysia": "^1.4.22"
+		"elysia": "^1.4.22",
+		"openai": "^6.17.0"
 	}
 }

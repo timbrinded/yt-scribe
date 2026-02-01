@@ -427,3 +427,50 @@ const app = new Elysia()
 - The downloadAudio() function is now available for the processing pipeline
 - Downloaded files should be cleaned up after successful transcription to save disk space
 - Consider adding progress reporting for large video downloads
+
+---
+
+### 2026-02-01 - Audio Transcription with OpenAI Whisper
+
+**Completed:** Implement audio transcription using OpenAI Whisper API
+
+**What was done:**
+- Installed OpenAI SDK: `bun add openai`
+- Created src/services/transcription.ts with:
+  - `transcribeAudio(filePath)` - main transcription function using Whisper API
+  - `TranscriptionResult` interface with text, segments, language, and duration
+  - `TranscriptionError` class with typed error codes for different failure modes
+- Uses OpenAI Whisper API with `verbose_json` response format for timestamps
+- Parses response into TranscriptSegment[] matching the database schema
+- Validates input files before API call:
+  - Checks file exists (FILE_NOT_FOUND error)
+  - Checks file size <= 25 MB (FILE_TOO_LARGE error)
+  - Checks file extension is supported (INVALID_AUDIO_FORMAT error)
+- Handles OpenAI API errors with typed error codes:
+  - AUTHENTICATION_ERROR (401)
+  - RATE_LIMIT (429)
+  - API_ERROR (general API failures)
+- Created comprehensive tests in tests/services/transcription.test.ts:
+  - File not found error handling
+  - Invalid audio format rejection
+  - Acceptance of all supported formats (.mp3, .m4a, .wav, .webm, etc.)
+  - TranscriptionError class verification
+  - Integration test with real Whisper API (skipped if no OPENAI_API_KEY)
+
+**Technical notes:**
+- OpenAI SDK v6.17.0 installed
+- Uses Bun.file() for file operations (as recommended in CLAUDE.md)
+- TranscriptSegment interface (start, end, text) already defined in src/db/schema.ts
+- Segments are trimmed to remove leading/trailing whitespace
+- Integration test downloads a real video and transcribes it (runs only with API key)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (75 tests)
+
+**Notes for next task:**
+- Next priority: Create video processing pipeline orchestrating download → transcribe → save
+- The transcribeAudio() function is ready to be used in the pipeline
+- Pipeline should handle status updates: pending → processing → completed/failed
+- Consider cleaning up audio files after successful transcription
