@@ -8,23 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add POST /api/videos endpoint to queue new video for processing",
-			"steps": [
-				"Create src/routes/videos.ts Elysia plugin",
-				"POST /api/videos accepts { url } body",
-				"Validate URL format, extract YouTube ID",
-				"Check for duplicate (same youtubeId + userId)",
-				"Create video record with status 'pending'",
-				"Trigger pipeline processing (fire and forget for now)",
-				"Return video record with 201 status",
-				"Write test verifying video creation",
-				"Write test verifying duplicate rejection",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add GET /api/videos endpoint to list user's video library",
 			"steps": [
 				"Add GET /api/videos to videos router",

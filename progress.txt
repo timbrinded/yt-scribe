@@ -524,3 +524,41 @@ const app = new Elysia()
 - The processVideo() function is ready to be called from API routes
 - Pipeline can be triggered fire-and-forget: `processVideo(videoId).catch(console.error)`
 - Consider adding a job queue for better processing management in production
+
+---
+
+### 2026-02-01 - POST /api/videos Endpoint
+
+**Completed:** Add POST /api/videos endpoint to queue new video for processing
+
+**What was done:**
+- Created src/routes/videos.ts Elysia plugin with POST /api/videos endpoint
+- Integrated authMiddleware for protected route authentication
+- URL validation using isValidYouTubeUrl() and extractVideoId() from youtube service
+- Duplicate detection: checks for existing video with same youtubeId + userId (returns 409 Conflict)
+- Creates video record with status 'pending' in database
+- Triggers pipeline processing fire-and-forget with processVideo()
+- Returns video record with 201 status including id, youtubeUrl, youtubeId, status, createdAt
+- Updated src/server.ts to include videoRoutes
+- Created comprehensive tests in tests/routes/videos.test.ts:
+  - Authentication tests (401 without session)
+  - URL validation tests (400 for invalid URLs, accepts all YouTube formats)
+  - Video creation tests (201 with pending status, correct userId)
+  - Duplicate detection tests (409 for same video, different URL formats still detected)
+  - User isolation tests (same video allowed for different users)
+
+**Technical notes:**
+- Uses Elysia's macro pattern for auth via `{ auth: true }` option
+- Returns `existingVideoId` in 409 response to help client redirect to existing video
+- Pipeline errors are logged but don't affect the API response (fire-and-forget)
+- Tests use in-memory SQLite with test-specific auth middleware to avoid importing real db
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (98 tests, 12 new)
+
+**Notes for next task:**
+- Next priority: Add GET /api/videos endpoint to list user's video library
+- The videos router is ready for additional endpoints
+- Consider adding pagination for large video libraries
