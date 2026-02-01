@@ -1,0 +1,24 @@
+## Progress Log
+
+### 2026-02-01 - Project Initialization
+
+**Completed:** Task 1 - Initialize Bun project with TypeScript, Biome linting, and Vitest testing
+
+**What was done:**
+- Initialized Bun project with `bun init`
+- Installed dev dependencies: typescript, vitest, @biomejs/biome
+- Created tsconfig.json with strict mode and additional strict flags (noUnusedLocals, noUnusedParameters)
+- Created biome.json with recommended rules (uses tabs for indentation)
+- Created vitest.config.ts with node environment
+- Added scripts to package.json: typecheck, test, test:watch, lint, format
+- Created tests/setup.test.ts as a placeholder test
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (1 test)
+
+**Notes for next task:**
+- Next priority: Task 2 - Set up Drizzle ORM with SQLite and create initial schema for users table
+- The project uses tabs for indentation (biome default)
+- All files formatted with `bun run format` before committing

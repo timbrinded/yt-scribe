@@ -1,0 +1,17 @@
+[
+	{
+		"category": "functional",
+		"description": "Initialize Bun project with TypeScript, Biome linting, and Vitest testing",
+		"steps": [
+			"Run `bun init` in project root",
+			"Install dev dependencies: `bun add -d typescript @types/bun vitest @biomejs/biome`",
+			"Create tsconfig.json with strict mode enabled",
+			"Create biome.json with recommended rules",
+			"Create vitest.config.ts",
+			"Add scripts to package.json: typecheck, test, lint, format",
+			"Run `bun run typecheck` and verify it passes",
+			"Run `bun run lint` and verify it passes"
+		],
+		"completed_at": "2026-02-01"
+	}
+]

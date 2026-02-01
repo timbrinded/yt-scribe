@@ -1,0 +1,660 @@
+{
+	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
+	"quality_gates": [
+		"bun run typecheck (tsc --noEmit)",
+		"bun test",
+		"bun run lint (biome check)"
+	],
+	"tasks": [
+		{
+			"category": "functional",
+			"description": "Set up Drizzle ORM with SQLite and create initial schema for users table",
+			"steps": [
+				"Install Drizzle: `bun add drizzle-orm better-sqlite3` and `bun add -d drizzle-kit @types/better-sqlite3`",
+				"Create src/db/schema.ts with users table (id, email, name, avatarUrl, createdAt)",
+				"Create src/db/index.ts to initialize SQLite connection",
+				"Create drizzle.config.ts pointing to schema",
+				"Add db:push and db:generate scripts to package.json",
+				"Run `bun run db:push` to create database",
+				"Verify data/ytscribe.db file is created",
+				"Run `bun run typecheck` to verify schema types"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add videos table schema with foreign key to users",
+			"steps": [
+				"Add videos table to schema: id, userId, youtubeUrl, youtubeId, title, duration, thumbnailUrl, status (pending/processing/completed/failed), createdAt, updatedAt",
+				"Run `bun run db:push` to apply changes",
+				"Write test in tests/db/schema.test.ts verifying table creation",
+				"Run `bun test` and verify test passes"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add transcripts table schema linked to videos",
+			"steps": [
+				"Add transcripts table: id, videoId, content (full text), segments (JSON array with start/end timestamps and text), language, createdAt",
+				"Run `bun run db:push` to apply changes",
+				"Write test verifying transcript can reference video",
+				"Run `bun test` and verify test passes"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add chat_sessions and messages tables for conversation history",
+			"steps": [
+				"Add chat_sessions table: id, videoId, userId, title, createdAt, updatedAt",
+				"Add messages table: id, sessionId, role (user/assistant), content, createdAt",
+				"Run `bun run db:push`",
+				"Write test verifying message chain integrity",
+				"Run `bun test` and verify passes"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Set up Elysia server with health check endpoint",
+			"steps": [
+				"Install Elysia: `bun add elysia @elysiajs/cors`",
+				"Create src/server.ts with Elysia app",
+				"Add GET /health endpoint returning { status: 'ok', timestamp }",
+				"Add start script to package.json",
+				"Run `bun run start` in background",
+				"Run `curl http://localhost:3000/health` and verify JSON response",
+				"Stop server and verify clean shutdown"
+			],
+			"passes": false
+		},
+		{
+			"category": "security",
+			"description": "Implement OAuth with Google provider using arctic library",
+			"steps": [
+				"Install arctic: `bun add arctic`",
+				"Create src/auth/google.ts with Google OAuth client setup",
+				"Add GET /auth/google endpoint that redirects to Google consent",
+				"Add GET /auth/google/callback that exchanges code for tokens",
+				"Create or update user in database from Google profile",
+				"Generate session token and set httpOnly cookie",
+				"Verify redirect to Google works (manual test with real credentials)",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "security",
+			"description": "Add session management with secure cookies",
+			"steps": [
+				"Add sessions table: id, userId, token, expiresAt, createdAt",
+				"Create src/auth/session.ts with createSession, validateSession, deleteSession",
+				"Add GET /auth/me endpoint returning current user or 401",
+				"Add POST /auth/logout endpoint clearing session",
+				"Write tests for session creation and validation",
+				"Run `bun test` and verify passes"
+			],
+			"passes": false
+		},
+		{
+			"category": "security",
+			"description": "Create auth middleware for protected routes",
+			"steps": [
+				"Create src/middleware/auth.ts Elysia plugin",
+				"Middleware should extract session token from cookie",
+				"Validate session and attach user to context",
+				"Return 401 for invalid/missing sessions",
+				"Write test with mock request verifying 401 without auth",
+				"Write test with valid session verifying user attached",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create YouTube URL validation and metadata extraction service",
+			"steps": [
+				"Create src/services/youtube.ts",
+				"Add function to validate YouTube URL formats (youtu.be, youtube.com/watch, etc)",
+				"Add function to extract video ID from URL",
+				"Shell out to yt-dlp with --dump-json to get metadata (title, duration, thumbnail)",
+				"Write tests for URL validation with various formats",
+				"Write test for metadata extraction with a real public video",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement video download service using yt-dlp",
+			"steps": [
+				"Add function downloadAudio(youtubeUrl, outputPath) to youtube service",
+				"Use yt-dlp to download audio-only in m4a/mp3 format",
+				"Store in data/downloads/{videoId}.m4a",
+				"Return file path on success, throw on failure",
+				"Write test downloading a short public video",
+				"Verify file exists and has audio content",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement audio transcription using OpenAI Whisper API",
+			"steps": [
+				"Install OpenAI SDK: `bun add openai`",
+				"Create src/services/transcription.ts",
+				"Add function transcribeAudio(filePath) that calls OpenAI Whisper API",
+				"Parse response into segments with timestamps",
+				"Handle API errors gracefully with typed error responses",
+				"Write test with a short audio file verifying transcript returned",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create video processing pipeline orchestrating download → transcribe → save",
+			"steps": [
+				"Create src/services/pipeline.ts",
+				"Add processVideo(videoId) function that: fetches video record, downloads audio, transcribes, saves transcript to DB, updates video status",
+				"Handle errors by setting status to 'failed'",
+				"Clean up temp audio file after processing",
+				"Write integration test with mocked OpenAI",
+				"Verify database state after successful processing",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add POST /api/videos endpoint to queue new video for processing",
+			"steps": [
+				"Create src/routes/videos.ts Elysia plugin",
+				"POST /api/videos accepts { url } body",
+				"Validate URL format, extract YouTube ID",
+				"Check for duplicate (same youtubeId + userId)",
+				"Create video record with status 'pending'",
+				"Trigger pipeline processing (fire and forget for now)",
+				"Return video record with 201 status",
+				"Write test verifying video creation",
+				"Write test verifying duplicate rejection",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add GET /api/videos endpoint to list user's video library",
+			"steps": [
+				"Add GET /api/videos to videos router",
+				"Return array of user's videos with status and metadata",
+				"Include pagination (limit, offset query params)",
+				"Order by createdAt descending (newest first)",
+				"Write test verifying list returns only current user's videos",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add GET /api/videos/:id endpoint with transcript",
+			"steps": [
+				"Add GET /api/videos/:id",
+				"Return video with full transcript if completed",
+				"Return 404 for non-existent or other user's video",
+				"Return 403 if video belongs to different user",
+				"Write tests for success, 404, and 403 cases",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add POST /api/videos/:id/retry endpoint for failed transcriptions",
+			"steps": [
+				"Add POST /api/videos/:id/retry",
+				"Only allow if status is 'failed'",
+				"Reset status to 'pending' and re-trigger pipeline",
+				"Return 400 if video not in failed state",
+				"Write test for successful retry trigger",
+				"Write test for rejection of non-failed video",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement chat service with OpenAI GPT-4o",
+			"steps": [
+				"Create src/services/chat.ts",
+				"Add function chat(transcript, messages, userMessage) returning assistant response",
+				"Build system prompt including transcript content",
+				"Use OpenAI chat completions API with gpt-4o model",
+				"Stream response for better UX (return async iterator)",
+				"Write test with mocked OpenAI verifying message construction",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add POST /api/videos/:id/chat endpoint for conversations",
+			"steps": [
+				"Create src/routes/chat.ts",
+				"POST /api/videos/:id/chat accepts { sessionId?, message }",
+				"If no sessionId, create new chat_session",
+				"Load transcript for the video",
+				"Load previous messages if existing session",
+				"Call chat service and save both user and assistant messages",
+				"Return { sessionId, response } (or stream)",
+				"Write test for new session creation",
+				"Write test for continuing existing session",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add GET /api/videos/:id/sessions endpoint to list chat history",
+			"steps": [
+				"Add GET /api/videos/:id/sessions",
+				"Return list of chat sessions for the video",
+				"Include session title and message count",
+				"Add GET /api/sessions/:id/messages to get full conversation",
+				"Write test verifying session list",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create CLI entry point with CAC for command parsing",
+			"steps": [
+				"Install CAC: `bun add cac`",
+				"Create src/cli/index.ts as CLI entry point",
+				"Add bin field to package.json pointing to cli",
+				"Implement `ytscribe --help` showing available commands",
+				"Run `bun run src/cli/index.ts --help` and verify output",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement CLI 'add' command to queue video via API",
+			"steps": [
+				"Add `ytscribe add <url>` command",
+				"Call POST /api/videos with the URL",
+				"Print video ID and status on success",
+				"Print error message on failure",
+				"Read API base URL from config or env var",
+				"Test manually with a real YouTube URL"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement CLI 'list' command showing video library",
+			"steps": [
+				"Add `ytscribe list` command",
+				"Call GET /api/videos",
+				"Display table with: title, status, duration, date added",
+				"Add --status flag to filter by status",
+				"Test manually and verify table output"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement CLI 'chat' command for interactive conversation",
+			"steps": [
+				"Add `ytscribe chat <video-id>` command",
+				"Start interactive REPL loop",
+				"Send user input to POST /api/videos/:id/chat",
+				"Print assistant response",
+				"Support 'exit' or Ctrl+C to quit",
+				"Test manually with a transcribed video"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add CLI authentication flow for OAuth",
+			"steps": [
+				"Add `ytscribe login` command",
+				"Open browser to /auth/google",
+				"Start local callback server to receive token",
+				"Store token in ~/.ytscribe/credentials.json",
+				"Add `ytscribe logout` to clear credentials",
+				"Use stored credentials in subsequent commands",
+				"Test login flow manually"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Initialize Astro project for frontend with React integration",
+			"steps": [
+				"Run `bun create astro@latest frontend` with TypeScript template",
+				"Add React integration: `cd frontend && bunx astro add react`",
+				"Configure output: 'server' for SSR in astro.config.mjs",
+				"Verify `bun run dev` starts frontend on port 4321",
+				"Verify `bun run build` completes without errors"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Set up Tailwind CSS with custom design tokens",
+			"steps": [
+				"Add Tailwind: `cd frontend && bunx astro add tailwind`",
+				"Create tailwind.config.mjs with custom colors and fonts",
+				"Add CSS reset and base styles in src/styles/global.css",
+				"Verify styles applied to index page",
+				"Run `bun run build` and verify no errors"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Install and configure Framer Motion for React animations",
+			"steps": [
+				"Install: `cd frontend && bun add framer-motion`",
+				"Create src/components/MotionWrapper.tsx for lazy loading",
+				"Create simple animated component to verify setup",
+				"Add component to a test page with client:load",
+				"Verify animation plays in browser"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create animated landing page layout with hero section",
+			"steps": [
+				"Create src/layouts/LandingLayout.astro",
+				"Create src/pages/index.astro using layout",
+				"Build hero section with headline, subheadline, CTA button",
+				"Add Framer Motion entrance animations (fade in, slide up)",
+				"Add animated gradient background or subtle particles",
+				"Verify animations on page load"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create processing animation component showing pipeline progress",
+			"steps": [
+				"Create src/components/ProcessingAnimation.tsx",
+				"Show stages: Downloading → Extracting Audio → Transcribing → Complete",
+				"Animate progress between stages with Framer Motion",
+				"Add visual feedback for current stage (spinner, progress bar)",
+				"Accept currentStage prop to control animation state",
+				"Verify all stage transitions animate smoothly"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create video library page with grid view",
+			"steps": [
+				"Create src/pages/library.astro (protected route)",
+				"Create src/components/VideoGrid.tsx React component",
+				"Display video cards with thumbnail, title, status badge, duration",
+				"Add staggered entrance animation with Framer Motion",
+				"Add empty state for new users",
+				"Wire up to GET /api/videos endpoint"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create video card component with hover animations",
+			"steps": [
+				"Create src/components/VideoCard.tsx",
+				"Show thumbnail, title, duration overlay, status badge",
+				"Add hover scale and shadow animation",
+				"Animate status badge color based on status",
+				"Link to video detail page",
+				"Write Vitest component test for rendering"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create 'add video' modal with URL input",
+			"steps": [
+				"Create src/components/AddVideoModal.tsx",
+				"Modal with URL input field and submit button",
+				"Add entrance/exit animations with AnimatePresence",
+				"Validate URL format on blur",
+				"Submit to POST /api/videos on form submit",
+				"Show loading state during submission",
+				"Close modal and refresh library on success"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Set up assistant-ui for chat interface",
+			"steps": [
+				"Install assistant-ui: `cd frontend && bun add @assistant-ui/react @assistant-ui/react-ui`",
+				"Create src/components/ChatInterface.tsx",
+				"Configure runtime to connect to /api/videos/:id/chat",
+				"Verify basic message send/receive works"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create video detail page with transcript and chat",
+			"steps": [
+				"Create src/pages/video/[id].astro",
+				"Layout: video info header, two-column (transcript | chat)",
+				"Display scrollable transcript with timestamps",
+				"Embed ChatInterface component for conversation",
+				"Add loading states for both transcript and chat"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add real-time status updates during video processing using SSE",
+			"steps": [
+				"Add GET /api/videos/:id/status/stream SSE endpoint",
+				"Emit events: status changes, progress percentage, errors",
+				"Create src/hooks/useVideoStatus.ts to consume SSE",
+				"Update VideoCard status in real-time",
+				"Update ProcessingAnimation from SSE events",
+				"Verify status updates propagate to UI"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement transcript timestamp navigation",
+			"steps": [
+				"Make timestamps in transcript clickable",
+				"Create timestamp navigation context",
+				"Scroll to and highlight clicked segment",
+				"Add keyboard navigation (up/down arrows)",
+				"Style active segment distinctly"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add chat response citation linking to transcript timestamps",
+			"steps": [
+				"Modify chat service to include timestamp references in responses",
+				"Parse citations in assistant messages",
+				"Render citations as clickable links",
+				"Clicking citation scrolls transcript to that timestamp",
+				"Highlight cited sections in transcript"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create user settings page",
+			"steps": [
+				"Create src/pages/settings.astro",
+				"Show user profile info from OAuth",
+				"Add logout button calling POST /auth/logout",
+				"Add account deletion option (soft delete)",
+				"Style consistently with app design"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Implement frontend authentication flow",
+			"steps": [
+				"Create src/pages/login.astro with Google OAuth button",
+				"Add auth callback page handling redirect",
+				"Create auth context/store for client-side state",
+				"Add protected route middleware redirecting to login",
+				"Show user avatar in navigation when logged in"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create app navigation header component",
+			"steps": [
+				"Create src/components/Header.tsx",
+				"Logo linking to home, navigation links",
+				"User avatar dropdown with settings and logout",
+				"Mobile-responsive hamburger menu",
+				"Add subtle animation on scroll (shrink/shadow)"
+			],
+			"passes": false
+		},
+		{
+			"category": "reliability",
+			"description": "Add error boundary and error pages",
+			"steps": [
+				"Create src/components/ErrorBoundary.tsx React error boundary",
+				"Create src/pages/404.astro custom 404 page",
+				"Create src/pages/500.astro custom 500 page",
+				"Style error pages consistently with app design",
+				"Test by throwing error in component"
+			],
+			"passes": false
+		},
+		{
+			"category": "reliability",
+			"description": "Add comprehensive logging to backend",
+			"steps": [
+				"Install pino: `bun add pino pino-pretty`",
+				"Create src/utils/logger.ts configured for dev/prod",
+				"Add request logging middleware",
+				"Log pipeline stages with timing",
+				"Add structured error logging",
+				"Verify logs appear in console during requests"
+			],
+			"passes": false
+		},
+		{
+			"category": "performance",
+			"description": "Optimize Framer Motion bundle with LazyMotion",
+			"steps": [
+				"Create src/components/LazyMotionProvider.tsx",
+				"Use domAnimation features for smaller bundle",
+				"Wrap app in LazyMotion provider",
+				"Run `bun run build` and check bundle size",
+				"Verify animations still work correctly"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create Dockerfile for production deployment",
+			"steps": [
+				"Create Dockerfile with multi-stage build",
+				"Use oven/bun:1 as base image",
+				"Install yt-dlp and ffmpeg in runtime stage",
+				"Build both backend and frontend",
+				"Configure for Railway/Fly.io environment variables",
+				"Run `docker build -t ytscribe .` and verify success",
+				"Run container locally and verify health endpoint"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Create docker-compose for local development",
+			"steps": [
+				"Create docker-compose.yml",
+				"Mount source code for hot reload",
+				"Expose ports for backend and frontend",
+				"Configure environment variables",
+				"Run `docker-compose up` and verify both services start",
+				"Verify hot reload works when editing files"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Add Railway deployment configuration",
+			"steps": [
+				"Create railway.toml with service configuration",
+				"Configure SQLite volume mount for persistence",
+				"Set up environment variables template",
+				"Add health check configuration",
+				"Document deployment steps in README"
+			],
+			"passes": false
+		},
+		{
+			"category": "observability",
+			"description": "Add basic analytics tracking",
+			"steps": [
+				"Create analytics table: id, userId, event, properties (JSON), createdAt",
+				"Add trackEvent(userId, event, properties) function",
+				"Track: video_added, transcription_completed, chat_message_sent",
+				"Create admin endpoint GET /api/admin/analytics (protected)",
+				"Verify events are recorded"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Set up E2E testing with Playwright",
+			"steps": [
+				"Install Playwright: `cd frontend && bun add -d @playwright/test`",
+				"Run `bunx playwright install` to get browsers",
+				"Create playwright.config.ts",
+				"Create tests/e2e/home.spec.ts testing landing page loads",
+				"Add e2e script to package.json",
+				"Run `bun run e2e` and verify test passes"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Write E2E test for video add flow",
+			"steps": [
+				"Create tests/e2e/add-video.spec.ts",
+				"Test: login, open add modal, enter URL, submit",
+				"Verify video appears in library with pending status",
+				"Mock or use test YouTube URL",
+				"Run `bun run e2e` and verify passes"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "Write E2E test for chat flow",
+			"steps": [
+				"Create tests/e2e/chat.spec.ts",
+				"Test: navigate to completed video, send chat message",
+				"Verify assistant response appears",
+				"Test timestamp citation click scrolls transcript",
+				"Run `bun run e2e` and verify passes"
+			],
+			"passes": false
+		}
+	]
+}

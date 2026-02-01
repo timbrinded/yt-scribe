@@ -1,0 +1,19 @@
+{
+	"name": "ytscribe",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint": "biome check .",
+		"format": "biome check --write ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.13",
+		"@types/bun": "latest",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18"
+	}
+}
