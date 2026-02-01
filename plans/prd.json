@@ -7,20 +7,6 @@
 	],
 	"tasks": [
 		{
-			"category": "functional",
-			"description": "Set up Elysia server with health check endpoint",
-			"steps": [
-				"Install Elysia: `bun add elysia @elysiajs/cors`",
-				"Create src/server.ts with Elysia app",
-				"Add GET /health endpoint returning { status: 'ok', timestamp }",
-				"Add start script to package.json",
-				"Run `bun run start` in background",
-				"Run `curl http://localhost:3000/health` and verify JSON response",
-				"Stop server and verify clean shutdown"
-			],
-			"passes": false
-		},
-		{
 			"category": "security",
 			"description": "Implement OAuth with Google provider using arctic library",
 			"steps": [

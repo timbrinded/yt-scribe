@@ -170,3 +170,31 @@
 - Next priority: Set up Elysia server with health check endpoint
 - The database schema is now complete for core functionality (users, videos, transcripts, chat_sessions, messages)
 - Ready to start building the API layer
+
+---
+
+### 2026-02-01 - Elysia Server Setup
+
+**Completed:** Set up Elysia server with health check endpoint
+
+**What was done:**
+- Installed elysia and @elysiajs/cors packages
+- Created src/server.ts with Elysia app configured with CORS middleware
+- Added GET /health endpoint returning { status: 'ok', timestamp }
+- Added start and dev scripts to package.json:
+  - `bun run start` - runs the server
+  - `bun run dev` - runs with hot reload (--hot flag)
+- Verified server starts and responds to health check with JSON response
+- Server listens on PORT env var or defaults to 3000
+- Exported App type for end-to-end type safety with Elysia clients
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (15 tests)
+
+**Notes for next task:**
+- Next priority: Implement OAuth with Google provider using arctic library
+- The server is ready to add authentication and API routes
+- Use `bun run dev` for development with hot reload
+- Server exports App type which can be used with Elysia's Eden client for type-safe API calls
