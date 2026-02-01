@@ -474,3 +474,53 @@ const app = new Elysia()
 - The transcribeAudio() function is ready to be used in the pipeline
 - Pipeline should handle status updates: pending → processing → completed/failed
 - Consider cleaning up audio files after successful transcription
+
+---
+
+### 2026-02-01 - Video Processing Pipeline
+
+**Completed:** Create video processing pipeline orchestrating download → transcribe → save
+
+**What was done:**
+- Created src/services/pipeline.ts with:
+  - `processVideo(videoId)` - main orchestration function for the full pipeline
+  - `PipelineError` class with typed error codes (VIDEO_NOT_FOUND, DOWNLOAD_FAILED, TRANSCRIPTION_FAILED, DATABASE_ERROR)
+  - Helper functions: `updateVideoStatus()`, `getVideoById()`
+- Pipeline flow:
+  1. Fetch video record from database
+  2. Update status to 'processing'
+  3. Fetch metadata if not present (title, duration, thumbnail) - non-blocking
+  4. Download audio using yt-dlp via downloadAudio()
+  5. Transcribe audio using OpenAI Whisper via transcribeAudio()
+  6. Save transcript to database with segments
+  7. Update video status to 'completed'
+  8. Clean up temporary audio file
+- Error handling:
+  - Sets status to 'failed' on any error
+  - Cleans up audio file on both success and failure
+  - Wraps errors in typed PipelineError for caller inspection
+- Created tests/services/pipeline.test.ts with comprehensive tests:
+  - PipelineError creation and all error codes
+  - Video status transitions (pending → processing → completed/failed)
+  - Transcript saving with segments and foreign key enforcement
+  - Video metadata updates
+  - Complete pipeline data flow simulation
+  - Failed status on error simulation
+
+**Technical notes:**
+- Uses Drizzle ORM's synchronous methods (.run(), .get()) for bun:sqlite
+- Audio files are stored in data/downloads/{videoId}.m4a
+- Audio cleanup uses Node.js unlinkSync() (errors are logged but not thrown)
+- Pipeline is designed for fire-and-forget async execution
+- Tests use in-memory SQLite with manually created schema to avoid importing real db
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (86 tests)
+
+**Notes for next task:**
+- Next priority: Add POST /api/videos endpoint to queue new video for processing
+- The processVideo() function is ready to be called from API routes
+- Pipeline can be triggered fire-and-forget: `processVideo(videoId).catch(console.error)`
+- Consider adding a job queue for better processing management in production

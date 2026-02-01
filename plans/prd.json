@@ -8,20 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Create video processing pipeline orchestrating download → transcribe → save",
-			"steps": [
-				"Create src/services/pipeline.ts",
-				"Add processVideo(videoId) function that: fetches video record, downloads audio, transcribes, saves transcript to DB, updates video status",
-				"Handle errors by setting status to 'failed'",
-				"Clean up temp audio file after processing",
-				"Write integration test with mocked OpenAI",
-				"Verify database state after successful processing",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add POST /api/videos endpoint to queue new video for processing",
 			"steps": [
 				"Create src/routes/videos.ts Elysia plugin",
