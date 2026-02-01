@@ -68,3 +68,41 @@ export const transcripts = sqliteTable("transcripts", {
 
 export type Transcript = typeof transcripts.$inferSelect;
 export type NewTranscript = typeof transcripts.$inferInsert;
+
+export const chatSessions = sqliteTable("chat_sessions", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	videoId: integer("video_id")
+		.notNull()
+		.references(() => videos.id),
+	userId: integer("user_id")
+		.notNull()
+		.references(() => users.id),
+	title: text("title"),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer("updated_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type NewChatSession = typeof chatSessions.$inferInsert;
+
+export const messageRoleEnum = ["user", "assistant"] as const;
+export type MessageRole = (typeof messageRoleEnum)[number];
+
+export const messages = sqliteTable("messages", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	sessionId: integer("session_id")
+		.notNull()
+		.references(() => chatSessions.id),
+	role: text("role", { enum: messageRoleEnum }).notNull(),
+	content: text("content").notNull(),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;

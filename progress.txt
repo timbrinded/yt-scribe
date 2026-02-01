@@ -124,3 +124,49 @@
 - Next priority: Add chat_sessions and messages tables for conversation history
 - The transcripts table references videos.id with a foreign key constraint
 - Segments are stored as JSON but fully typed via TranscriptSegment interface
+
+---
+
+### 2026-02-01 - Chat Sessions and Messages Tables
+
+**Completed:** Add chat_sessions and messages tables for conversation history
+
+**What was done:**
+- Added chat_sessions table to src/db/schema.ts with all required fields:
+  - id (primary key, auto-increment)
+  - videoId (foreign key to videos.id)
+  - userId (foreign key to users.id)
+  - title (optional text field for session title)
+  - createdAt, updatedAt (timestamps with default functions)
+- Added messages table to src/db/schema.ts with all required fields:
+  - id (primary key, auto-increment)
+  - sessionId (foreign key to chat_sessions.id)
+  - role (enum: user/assistant)
+  - content (text, required)
+  - createdAt (timestamp with default function)
+- Created messageRoleEnum as const array for type-safe role values
+- Exported ChatSession, NewChatSession, Message, NewMessage types
+- Ran `bun run db:push` to apply schema changes to database
+- Added comprehensive tests for chat_sessions and messages tables:
+  - Chat session insert and retrieve test with video and user links
+  - Foreign key constraint enforcement tests (to videos and users)
+  - Message insert and retrieve test with user/assistant roles
+  - Foreign key constraint enforcement test (to chat_sessions)
+  - All message role values test
+  - Message chain integrity test verifying proper ordering
+
+**Technical notes:**
+- Chat sessions link to both videos (for context) and users (for ownership)
+- Messages belong to sessions, not directly to videos or users
+- Message ordering can be determined by id (auto-increment) or createdAt
+- Both tables enforce foreign key constraints
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (15 tests)
+
+**Notes for next task:**
+- Next priority: Set up Elysia server with health check endpoint
+- The database schema is now complete for core functionality (users, videos, transcripts, chat_sessions, messages)
+- Ready to start building the API layer

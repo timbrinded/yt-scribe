@@ -50,6 +50,23 @@ describe("database schema", () => {
 				language TEXT NOT NULL DEFAULT 'en',
 				created_at INTEGER NOT NULL
 			);
+
+			CREATE TABLE chat_sessions (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				video_id INTEGER NOT NULL REFERENCES videos(id),
+				user_id INTEGER NOT NULL REFERENCES users(id),
+				title TEXT,
+				created_at INTEGER NOT NULL,
+				updated_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE messages (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				session_id INTEGER NOT NULL REFERENCES chat_sessions(id),
+				role TEXT NOT NULL,
+				content TEXT NOT NULL,
+				created_at INTEGER NOT NULL
+			);
 		`);
 	});
 
@@ -234,6 +251,218 @@ describe("database schema", () => {
 				const inserted = result[0];
 				assertDefined(inserted);
 				expect(inserted.language).toBe(language);
+			}
+		});
+	});
+
+	describe("chat_sessions table", () => {
+		it("should insert and retrieve a chat session linked to video and user", () => {
+			const userResult = db.select().from(schema.users).limit(1).all();
+			const user = userResult[0];
+			assertDefined(user);
+
+			const videoResult = db.select().from(schema.videos).limit(1).all();
+			const video = videoResult[0];
+			assertDefined(video);
+
+			const newSession: schema.NewChatSession = {
+				videoId: video.id,
+				userId: user.id,
+				title: "Questions about the video",
+			};
+
+			const result = db
+				.insert(schema.chatSessions)
+				.values(newSession)
+				.returning()
+				.all();
+			expect(result).toHaveLength(1);
+			const inserted = result[0];
+			assertDefined(inserted);
+
+			expect(inserted.id).toBeDefined();
+			expect(inserted.videoId).toBe(video.id);
+			expect(inserted.userId).toBe(user.id);
+			expect(inserted.title).toBe("Questions about the video");
+			expect(inserted.createdAt).toBeInstanceOf(Date);
+			expect(inserted.updatedAt).toBeInstanceOf(Date);
+		});
+
+		it("should enforce foreign key to videos", () => {
+			const userResult = db.select().from(schema.users).limit(1).all();
+			const user = userResult[0];
+			assertDefined(user);
+
+			const invalidSession: schema.NewChatSession = {
+				videoId: 99999,
+				userId: user.id,
+				title: "Invalid session",
+			};
+
+			expect(() => {
+				db.insert(schema.chatSessions).values(invalidSession).returning().all();
+			}).toThrow();
+		});
+
+		it("should enforce foreign key to users", () => {
+			const videoResult = db.select().from(schema.videos).limit(1).all();
+			const video = videoResult[0];
+			assertDefined(video);
+
+			const invalidSession: schema.NewChatSession = {
+				videoId: video.id,
+				userId: 99999,
+				title: "Invalid session",
+			};
+
+			expect(() => {
+				db.insert(schema.chatSessions).values(invalidSession).returning().all();
+			}).toThrow();
+		});
+	});
+
+	describe("messages table", () => {
+		it("should insert and retrieve messages linked to session", () => {
+			const sessionResult = db
+				.select()
+				.from(schema.chatSessions)
+				.limit(1)
+				.all();
+			const session = sessionResult[0];
+			assertDefined(session);
+
+			const userMessage: schema.NewMessage = {
+				sessionId: session.id,
+				role: "user",
+				content: "What is this video about?",
+			};
+
+			const userResult = db
+				.insert(schema.messages)
+				.values(userMessage)
+				.returning()
+				.all();
+			expect(userResult).toHaveLength(1);
+			const insertedUser = userResult[0];
+			assertDefined(insertedUser);
+
+			expect(insertedUser.id).toBeDefined();
+			expect(insertedUser.sessionId).toBe(session.id);
+			expect(insertedUser.role).toBe("user");
+			expect(insertedUser.content).toBe("What is this video about?");
+			expect(insertedUser.createdAt).toBeInstanceOf(Date);
+
+			const assistantMessage: schema.NewMessage = {
+				sessionId: session.id,
+				role: "assistant",
+				content: "This video is about testing transcripts.",
+			};
+
+			const assistantResult = db
+				.insert(schema.messages)
+				.values(assistantMessage)
+				.returning()
+				.all();
+			expect(assistantResult).toHaveLength(1);
+			const insertedAssistant = assistantResult[0];
+			assertDefined(insertedAssistant);
+
+			expect(insertedAssistant.role).toBe("assistant");
+		});
+
+		it("should enforce foreign key to chat_sessions", () => {
+			const invalidMessage: schema.NewMessage = {
+				sessionId: 99999,
+				role: "user",
+				content: "Invalid message",
+			};
+
+			expect(() => {
+				db.insert(schema.messages).values(invalidMessage).returning().all();
+			}).toThrow();
+		});
+
+		it("should support all message role values", () => {
+			const sessionResult = db
+				.select()
+				.from(schema.chatSessions)
+				.limit(1)
+				.all();
+			const session = sessionResult[0];
+			assertDefined(session);
+
+			for (const role of schema.messageRoleEnum) {
+				const message: schema.NewMessage = {
+					sessionId: session.id,
+					role,
+					content: `Message with role ${role}`,
+				};
+
+				const result = db
+					.insert(schema.messages)
+					.values(message)
+					.returning()
+					.all();
+				expect(result).toHaveLength(1);
+				const inserted = result[0];
+				assertDefined(inserted);
+				expect(inserted.role).toBe(role);
+			}
+		});
+
+		it("should maintain message chain integrity with ordered retrieval", () => {
+			const sessionResult = db
+				.select()
+				.from(schema.chatSessions)
+				.limit(1)
+				.all();
+			const session = sessionResult[0];
+			assertDefined(session);
+
+			const conversation: schema.NewMessage[] = [
+				{ sessionId: session.id, role: "user", content: "First question" },
+				{
+					sessionId: session.id,
+					role: "assistant",
+					content: "First response",
+				},
+				{ sessionId: session.id, role: "user", content: "Follow-up question" },
+				{
+					sessionId: session.id,
+					role: "assistant",
+					content: "Follow-up response",
+				},
+			];
+
+			for (const msg of conversation) {
+				db.insert(schema.messages).values(msg).returning().all();
+			}
+
+			const messages = db
+				.select()
+				.from(schema.messages)
+				.where(eq(schema.messages.sessionId, session.id))
+				.orderBy(schema.messages.id)
+				.all();
+
+			expect(messages.length).toBeGreaterThanOrEqual(4);
+
+			let lastUserIndex = -1;
+			let lastAssistantIndex = -1;
+
+			for (let i = 0; i < messages.length; i++) {
+				const msg = messages[i];
+				assertDefined(msg);
+
+				if (msg.role === "user") {
+					if (lastAssistantIndex !== -1 && lastUserIndex < lastAssistantIndex) {
+						expect(i).toBeGreaterThan(lastAssistantIndex);
+					}
+					lastUserIndex = i;
+				} else if (msg.role === "assistant") {
+					expect(lastUserIndex).toBeGreaterThanOrEqual(0);
+					lastAssistantIndex = i;
+				}
 			}
 		});
 	});

@@ -8,18 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add chat_sessions and messages tables for conversation history",
-			"steps": [
-				"Add chat_sessions table: id, videoId, userId, title, createdAt, updatedAt",
-				"Add messages table: id, sessionId, role (user/assistant), content, createdAt",
-				"Run `bun run db:push`",
-				"Write test verifying message chain integrity",
-				"Run `bun test` and verify passes"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Set up Elysia server with health check endpoint",
 			"steps": [
 				"Install Elysia: `bun add elysia @elysiajs/cors`",
