@@ -8,21 +8,6 @@
 	"tasks": [
 		{
 			"category": "security",
-			"description": "Implement OAuth with Google provider using arctic library",
-			"steps": [
-				"Install arctic: `bun add arctic`",
-				"Create src/auth/google.ts with Google OAuth client setup",
-				"Add GET /auth/google endpoint that redirects to Google consent",
-				"Add GET /auth/google/callback that exchanges code for tokens",
-				"Create or update user in database from Google profile",
-				"Generate session token and set httpOnly cookie",
-				"Verify redirect to Google works (manual test with real credentials)",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "security",
 			"description": "Add session management with secure cookies",
 			"steps": [
 				"Add sessions table: id, userId, token, expiresAt, createdAt",

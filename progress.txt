@@ -198,3 +198,44 @@
 - The server is ready to add authentication and API routes
 - Use `bun run dev` for development with hot reload
 - Server exports App type which can be used with Elysia's Eden client for type-safe API calls
+
+---
+
+### 2026-02-01 - Google OAuth with Arctic
+
+**Completed:** Implement OAuth with Google provider using arctic library
+
+**What was done:**
+- Installed arctic package for OAuth 2.0 with PKCE support
+- Created src/auth/google.ts with:
+  - Google OAuth client configuration (clientId, clientSecret, redirectUri from env vars)
+  - createAuthorizationUrl() - generates state, code verifier, and auth URL with openid/profile/email scopes
+  - validateCallback() - exchanges authorization code for tokens
+  - decodeIdToken() - extracts user info from JWT ID token
+  - fetchUserInfo() - optional fallback to fetch profile via API
+  - GoogleUserInfo interface for type-safe user profile handling
+- Created src/auth/routes.ts with Elysia router:
+  - GET /auth/google - redirects to Google consent screen, stores state/codeVerifier in httpOnly cookies
+  - GET /auth/google/callback - validates state, exchanges code for tokens, creates/updates user in DB, sets session cookie
+  - GET /auth/me - returns current user from session or 401
+  - POST /auth/logout - clears session cookie
+- Updated src/server.ts to include authRoutes
+- Uses Elysia's cookie schema validation (t.Cookie) for type-safe cookie handling
+
+**Technical notes:**
+- Uses PKCE (Proof Key for Code Exchange) for enhanced security
+- State parameter prevents CSRF attacks
+- Session is stored as JSON in httpOnly cookie (basic implementation)
+- Next task (session management) will add proper sessions table with token validation
+- Environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, FRONTEND_URL
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (15 tests)
+
+**Notes for next task:**
+- Next priority: Add session management with secure cookies (sessions table)
+- Current session is stored directly in cookie - next task will add server-side session validation
+- The /auth/me and /auth/logout endpoints are already implemented as part of this task
+- Manual testing with real Google credentials recommended before deploying
