@@ -13,5 +13,20 @@
 			"Run `bun run lint` and verify it passes"
 		],
 		"completed_at": "2026-02-01"
+	},
+	{
+		"category": "functional",
+		"description": "Set up Drizzle ORM with SQLite and create initial schema for users table",
+		"steps": [
+			"Install Drizzle: `bun add drizzle-orm` and `bun add -d drizzle-kit @libsql/client` (using bun:sqlite for runtime)",
+			"Create src/db/schema.ts with users table (id, email, name, avatarUrl, createdAt)",
+			"Create src/db/index.ts to initialize SQLite connection using bun:sqlite",
+			"Create drizzle.config.ts pointing to schema",
+			"Add db:push and db:generate scripts to package.json",
+			"Run `bun run db:push` to create database",
+			"Verify data/ytscribe.db file is created",
+			"Run `bun run typecheck` to verify schema types"
+		],
+		"completed_at": "2026-02-01"
 	}
 ]

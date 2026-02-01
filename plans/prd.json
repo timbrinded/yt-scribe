@@ -8,21 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Set up Drizzle ORM with SQLite and create initial schema for users table",
-			"steps": [
-				"Install Drizzle: `bun add drizzle-orm better-sqlite3` and `bun add -d drizzle-kit @types/better-sqlite3`",
-				"Create src/db/schema.ts with users table (id, email, name, avatarUrl, createdAt)",
-				"Create src/db/index.ts to initialize SQLite connection",
-				"Create drizzle.config.ts pointing to schema",
-				"Add db:push and db:generate scripts to package.json",
-				"Run `bun run db:push` to create database",
-				"Verify data/ytscribe.db file is created",
-				"Run `bun run typecheck` to verify schema types"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add videos table schema with foreign key to users",
 			"steps": [
 				"Add videos table to schema: id, userId, youtubeUrl, youtubeId, title, duration, thumbnailUrl, status (pending/processing/completed/failed), createdAt, updatedAt",

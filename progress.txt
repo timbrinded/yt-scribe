@@ -22,3 +22,29 @@
 - Next priority: Task 2 - Set up Drizzle ORM with SQLite and create initial schema for users table
 - The project uses tabs for indentation (biome default)
 - All files formatted with `bun run format` before committing
+
+---
+
+### 2026-02-01 - Drizzle ORM Setup
+
+**Completed:** Task 2 - Set up Drizzle ORM with SQLite and create initial schema for users table
+
+**What was done:**
+- Installed drizzle-orm (runtime) and drizzle-kit, @libsql/client (dev, for drizzle-kit migrations)
+- Created src/db/schema.ts with users table (id, email, name, avatarUrl, createdAt)
+- Created src/db/index.ts using bun:sqlite (per CLAUDE.md recommendation) with WAL mode enabled
+- Created drizzle.config.ts pointing to schema with sqlite dialect
+- Added db:push and db:generate scripts to package.json
+- Ran `bun run db:push` to create data/ytscribe.db
+- Verified database file exists with proper users table schema
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (1 test)
+
+**Notes for next task:**
+- Next priority: Add videos table schema with foreign key to users
+- Using bun:sqlite for runtime (per CLAUDE.md), @libsql/client only for drizzle-kit tooling
+- Database stored at data/ytscribe.db (can override with DATABASE_URL env var)
+- Schema exports User and NewUser types for type-safe operations
