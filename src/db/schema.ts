@@ -106,3 +106,18 @@ export const messages = sqliteTable("messages", {
 
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
+
+export const sessions = sqliteTable("sessions", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	userId: integer("user_id")
+		.notNull()
+		.references(() => users.id),
+	token: text("token").notNull().unique(),
+	expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;

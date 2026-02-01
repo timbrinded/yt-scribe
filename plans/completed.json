@@ -91,5 +91,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-01"
+	},
+	{
+		"category": "security",
+		"description": "Add session management with secure cookies",
+		"steps": [
+			"Add sessions table: id, userId, token, expiresAt, createdAt",
+			"Create src/auth/session.ts with createSession, validateSession, deleteSession",
+			"Add GET /auth/me endpoint returning current user or 401",
+			"Add POST /auth/logout endpoint clearing session",
+			"Write tests for session creation and validation",
+			"Run `bun test` and verify passes"
+		],
+		"completed_at": "2026-02-01"
 	}
 ]

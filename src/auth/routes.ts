@@ -7,16 +7,9 @@ import {
 	decodeIdToken,
 	validateCallback,
 } from "./google";
+import { createSession, deleteSession, validateSession } from "./session";
 
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days in seconds
 const OAUTH_COOKIE_MAX_AGE = 60 * 10; // 10 minutes
-
-function generateSessionToken(): string {
-	const bytes = crypto.getRandomValues(new Uint8Array(32));
-	return Array.from(bytes)
-		.map((b) => b.toString(16).padStart(2, "0"))
-		.join("");
-}
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
 	.get(
@@ -112,19 +105,15 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 						.run();
 				}
 
-				// Generate session token
-				const sessionToken = generateSessionToken();
+				// Create server-side session
+				const { token: sessionToken, expiresAt } = createSession(user.id);
 
-				// For now, we store userId in the cookie directly (basic session)
-				// The next task will implement proper session management with a sessions table
-				session.value = JSON.stringify({
-					userId: user.id,
-					token: sessionToken,
-				});
+				// Store session token in secure cookie
+				session.value = sessionToken;
 				session.httpOnly = true;
 				session.secure = process.env.NODE_ENV === "production";
 				session.sameSite = "lax";
-				session.maxAge = COOKIE_MAX_AGE;
+				session.maxAge = Math.floor((expiresAt.getTime() - Date.now()) / 1000);
 				session.path = "/";
 
 				// Redirect to frontend after successful login
@@ -152,39 +141,28 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 	.get(
 		"/me",
 		({ cookie: { session }, set }) => {
-			const sessionCookie = session.value;
+			const sessionToken = session.value;
 
-			if (!sessionCookie) {
+			if (!sessionToken) {
 				set.status = 401;
 				return { error: "Not authenticated" };
 			}
 
-			try {
-				const sessionData = JSON.parse(sessionCookie) as {
-					userId: number;
-					token: string;
-				};
-				const user = db
-					.select()
-					.from(users)
-					.where(eq(users.id, sessionData.userId))
-					.get();
+			const result = validateSession(sessionToken);
 
-				if (!user) {
-					set.status = 401;
-					return { error: "User not found" };
-				}
-
-				return {
-					id: user.id,
-					email: user.email,
-					name: user.name,
-					avatarUrl: user.avatarUrl,
-				};
-			} catch {
+			if (!result) {
+				// Clear invalid cookie
+				session.remove();
 				set.status = 401;
-				return { error: "Invalid session" };
+				return { error: "Invalid or expired session" };
 			}
+
+			return {
+				id: result.user.id,
+				email: result.user.email,
+				name: result.user.name,
+				avatarUrl: result.user.avatarUrl,
+			};
 		},
 		{
 			cookie: t.Cookie({
@@ -195,6 +173,14 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 	.post(
 		"/logout",
 		({ cookie: { session } }) => {
+			const sessionToken = session.value;
+
+			// Delete session from database if it exists
+			if (sessionToken) {
+				deleteSession(sessionToken);
+			}
+
+			// Clear the cookie
 			session.remove();
 			return { message: "Logged out successfully" };
 		},

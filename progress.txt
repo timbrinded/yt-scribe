@@ -239,3 +239,58 @@
 - Current session is stored directly in cookie - next task will add server-side session validation
 - The /auth/me and /auth/logout endpoints are already implemented as part of this task
 - Manual testing with real Google credentials recommended before deploying
+
+---
+
+### 2026-02-01 - Session Management with Secure Cookies
+
+**Completed:** Add session management with secure cookies
+
+**What was done:**
+- Added sessions table to src/db/schema.ts with all required fields:
+  - id (primary key, auto-increment)
+  - userId (foreign key to users.id)
+  - token (unique text field for session token)
+  - expiresAt (timestamp for session expiration)
+  - createdAt (timestamp with default function)
+- Created src/auth/session.ts with session management functions:
+  - createSession(userId) - generates secure token, stores in DB, returns token and expiration
+  - validateSession(token) - validates token, checks expiration, joins with user data
+  - deleteSession(token) - removes session from database
+  - deleteUserSessions(userId) - removes all sessions for a user (for "logout everywhere" functionality)
+  - deleteExpiredSessions() - cleanup function for removing expired sessions
+- Updated src/auth/routes.ts to use new session management:
+  - OAuth callback now creates server-side session with createSession()
+  - Session token stored in httpOnly cookie (not JSON with userId)
+  - GET /auth/me now validates session via validateSession() function
+  - POST /auth/logout now deletes session from database before clearing cookie
+- Created tests/auth/session.test.ts with comprehensive tests:
+  - Session creation with unique token generation
+  - Session storage in database
+  - Token uniqueness verification
+  - 30-day expiration validation
+  - Valid session validation returning user data
+  - Non-existent token returns null
+  - Expired session returns null
+  - Session deletion by token
+  - Deletion of all user sessions
+  - Foreign key constraint enforcement
+  - Unique token constraint enforcement
+
+**Technical notes:**
+- Session tokens are 64-character hex strings (32 random bytes)
+- Sessions expire after 30 days by default
+- validateSession joins sessions with users table for efficient single-query lookup
+- Cookie maxAge is dynamically calculated from session expiration
+- Previous implementation stored userId in cookie; now only stores opaque token
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (27 tests)
+
+**Notes for next task:**
+- Next priority: Create auth middleware for protected routes
+- The session.ts module can be imported by middleware to validate requests
+- Consider implementing session refresh to extend active sessions
+- deleteExpiredSessions() can be called periodically as a cleanup job
