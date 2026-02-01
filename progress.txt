@@ -344,3 +344,46 @@ const app = new Elysia()
 - Next priority: Create YouTube URL validation and metadata extraction service
 - The auth middleware can be used by any protected routes via `.use(authMiddleware)` and `{ auth: true }` option
 - Consider adding session refresh logic to extend sessions on authenticated requests
+
+---
+
+### 2026-02-01 - YouTube URL Validation and Metadata Extraction Service
+
+**Completed:** Create YouTube URL validation and metadata extraction service
+
+**What was done:**
+- Created src/services/youtube.ts with:
+  - `isValidYouTubeUrl(url)` - validates YouTube URL formats
+  - `extractVideoId(url)` - extracts 11-character video ID from URL
+  - `getVideoMetadata(url)` - fetches video metadata via yt-dlp
+- Supports all YouTube URL formats:
+  - Standard watch URLs: youtube.com/watch?v=ID
+  - Short URLs: youtu.be/ID
+  - Embed URLs: youtube.com/embed/ID
+  - Old embed URLs: youtube.com/v/ID
+  - Shorts URLs: youtube.com/shorts/ID
+  - Live URLs: youtube.com/live/ID
+  - URLs with additional query parameters
+- VideoMetadata interface includes: id, title, duration, thumbnailUrl, channelName, uploadDate
+- Uses Bun.spawn() to shell out to yt-dlp with --dump-json flag
+- Created comprehensive tests in tests/services/youtube.test.ts:
+  - 25+ URL validation tests covering all formats and edge cases
+  - Video ID extraction tests for all URL formats
+  - Real metadata extraction test with a public video (Big Buck Bunny)
+  - Error handling tests for invalid URLs and non-existent videos
+
+**Technical notes:**
+- YouTube video IDs are exactly 11 characters (alphanumeric, hyphens, underscores)
+- Regex patterns use non-capturing groups and anchors to ensure exact 11-char ID match
+- yt-dlp is required to be installed on the system (verified via `which yt-dlp`)
+- Metadata extraction tests have 30s timeout for network requests
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (60 tests)
+
+**Notes for next task:**
+- Next priority: Implement video download service using yt-dlp
+- The getVideoMetadata() function can be used when adding new videos to get title/duration/thumbnail
+- Consider caching metadata to avoid repeated yt-dlp calls

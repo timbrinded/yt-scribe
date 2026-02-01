@@ -8,20 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Create YouTube URL validation and metadata extraction service",
-			"steps": [
-				"Create src/services/youtube.ts",
-				"Add function to validate YouTube URL formats (youtu.be, youtube.com/watch, etc)",
-				"Add function to extract video ID from URL",
-				"Shell out to yt-dlp with --dump-json to get metadata (title, duration, thumbnail)",
-				"Write tests for URL validation with various formats",
-				"Write test for metadata extraction with a real public video",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Implement video download service using yt-dlp",
 			"steps": [
 				"Add function downloadAudio(youtubeUrl, outputPath) to youtube service",
