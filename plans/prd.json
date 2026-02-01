@@ -7,20 +7,6 @@
 	],
 	"tasks": [
 		{
-			"category": "security",
-			"description": "Create auth middleware for protected routes",
-			"steps": [
-				"Create src/middleware/auth.ts Elysia plugin",
-				"Middleware should extract session token from cookie",
-				"Validate session and attach user to context",
-				"Return 401 for invalid/missing sessions",
-				"Write test with mock request verifying 401 without auth",
-				"Write test with valid session verifying user attached",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
 			"category": "functional",
 			"description": "Create YouTube URL validation and metadata extraction service",
 			"steps": [

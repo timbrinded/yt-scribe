@@ -294,3 +294,53 @@
 - The session.ts module can be imported by middleware to validate requests
 - Consider implementing session refresh to extend active sessions
 - deleteExpiredSessions() can be called periodically as a cleanup job
+
+---
+
+### 2026-02-01 - Auth Middleware for Protected Routes
+
+**Completed:** Create auth middleware for protected routes
+
+**What was done:**
+- Created src/middleware/auth.ts Elysia plugin using the macro pattern
+- Middleware uses Elysia's `.macro()` with `resolve` to:
+  - Extract session token from cookie
+  - Validate session via validateSession() function
+  - Attach user object to request context
+  - Return 401 with JSON error for invalid/missing sessions
+- Exported AuthUser type for type-safe user access in route handlers
+- Created comprehensive tests in tests/middleware/auth.test.ts:
+  - Test 401 when no session cookie provided
+  - Test 401 when session cookie is empty
+  - Test 401 when session token is invalid
+  - Test 401 when session is expired
+  - Test user attached to context with valid session
+  - Test correct user data in context
+  - Test multiple protected routes work with same middleware
+  - Test user isolation between different sessions
+
+**Usage example:**
+```typescript
+import { authMiddleware } from './middleware/auth'
+
+const app = new Elysia()
+  .use(authMiddleware)
+  .get('/protected', ({ user }) => user, { auth: true })
+```
+
+**Technical notes:**
+- Uses Elysia's macro pattern for proper type inference of `user` in route handlers
+- Routes must specify `{ auth: true }` option to enable authentication
+- Uses `status()` function for returning typed error responses
+- Cookie schema validation via `.guard()` ensures type safety
+- Tests use in-memory SQLite database with duplicated session validation logic (to avoid importing real db)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (35 tests)
+
+**Notes for next task:**
+- Next priority: Create YouTube URL validation and metadata extraction service
+- The auth middleware can be used by any protected routes via `.use(authMiddleware)` and `{ auth: true }` option
+- Consider adding session refresh logic to extend sessions on authenticated requests
