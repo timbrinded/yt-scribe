@@ -132,5 +132,19 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-01"
+	},
+	{
+		"category": "functional",
+		"description": "Implement video download service using yt-dlp",
+		"steps": [
+			"Add function downloadAudio(youtubeUrl, outputPath) to youtube service",
+			"Use yt-dlp to download audio-only in m4a/mp3 format",
+			"Store in data/downloads/{videoId}.m4a",
+			"Return file path on success, throw on failure",
+			"Write test downloading a short public video",
+			"Verify file exists and has audio content",
+			"Run `bun test`"
+		],
+		"completed_at": "2026-02-01"
 	}
 ]

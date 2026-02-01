@@ -1,5 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
+import { existsSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import {
+	downloadAudio,
 	extractVideoId,
 	getVideoMetadata,
 	isValidYouTubeUrl,
@@ -203,4 +206,88 @@ describe("YouTube Metadata Extraction", () => {
 			getVideoMetadata("https://www.youtube.com/watch?v=xxxxxxxxxxx"),
 		).rejects.toThrow();
 	}, 30000);
+});
+
+describe("YouTube Audio Download", () => {
+	// Use a very short public domain video for download testing
+	// "Big Buck Bunny" excerpt - short and publicly available
+	const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=aqz-KE-bpKQ";
+	const TEST_VIDEO_ID = "aqz-KE-bpKQ";
+
+	// Custom test output directory to avoid polluting the main downloads folder
+	const TEST_DOWNLOADS_DIR = "data/downloads/test";
+
+	// Clean up test files after all tests
+	afterAll(() => {
+		if (existsSync(TEST_DOWNLOADS_DIR)) {
+			rmSync(TEST_DOWNLOADS_DIR, { recursive: true, force: true });
+		}
+	});
+
+	test("downloads audio from a real public video", async () => {
+		const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
+		const result = await downloadAudio(TEST_VIDEO_URL, outputPath);
+
+		// Should return the path to the downloaded file
+		expect(result).toBe(outputPath);
+
+		// File should exist
+		expect(existsSync(result)).toBe(true);
+
+		// File should have content (not be empty)
+		const file = Bun.file(result);
+		const size = file.size;
+		expect(size).toBeGreaterThan(0);
+	}, 120000); // 120s timeout - downloads can take time
+
+	test("uses default path when outputPath not provided", async () => {
+		const expectedPath = `data/downloads/${TEST_VIDEO_ID}.m4a`;
+
+		// Clean up if file exists from previous run
+		if (existsSync(expectedPath)) {
+			rmSync(expectedPath);
+		}
+
+		const result = await downloadAudio(TEST_VIDEO_URL);
+
+		// Should return the default path
+		expect(result).toBe(expectedPath);
+
+		// File should exist
+		expect(existsSync(result)).toBe(true);
+
+		// Clean up
+		rmSync(result);
+	}, 120000);
+
+	test("throws error for invalid URL", async () => {
+		await expect(downloadAudio("https://google.com")).rejects.toThrow(
+			"Invalid YouTube URL",
+		);
+	});
+
+	test("throws error for non-existent video", async () => {
+		// This ID shouldn't exist - random string
+		await expect(
+			downloadAudio("https://www.youtube.com/watch?v=xxxxxxxxxxx"),
+		).rejects.toThrow();
+	}, 60000);
+
+	test("creates output directory if it doesn't exist", async () => {
+		const nestedDir = join(TEST_DOWNLOADS_DIR, "nested", "deep");
+		const outputPath = join(nestedDir, `${TEST_VIDEO_ID}.m4a`);
+
+		// Ensure directory doesn't exist
+		if (existsSync(nestedDir)) {
+			rmSync(nestedDir, { recursive: true, force: true });
+		}
+
+		const result = await downloadAudio(TEST_VIDEO_URL, outputPath);
+
+		// Directory should have been created
+		expect(existsSync(nestedDir)).toBe(true);
+
+		// File should exist
+		expect(existsSync(result)).toBe(true);
+	}, 120000);
 });

@@ -1,6 +1,9 @@
+import { existsSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+
 /**
- * YouTube URL validation and metadata extraction service
- * Uses yt-dlp for fetching video metadata
+ * YouTube URL validation, metadata extraction, and audio download service
+ * Uses yt-dlp for fetching video metadata and downloading audio
  */
 
 export interface VideoMetadata {
@@ -121,4 +124,77 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata> {
 		channelName: data.channel,
 		uploadDate: data.upload_date,
 	};
+}
+
+/**
+ * Default directory for downloaded audio files
+ */
+const DEFAULT_DOWNLOADS_DIR = "data/downloads";
+
+/**
+ * Downloads audio from a YouTube video using yt-dlp
+ * @param youtubeUrl - The YouTube URL to download
+ * @param outputPath - Optional custom output path. If not provided, uses data/downloads/{videoId}.m4a
+ * @returns The path to the downloaded audio file
+ * @throws Error if yt-dlp fails or URL is invalid
+ */
+export async function downloadAudio(
+	youtubeUrl: string,
+	outputPath?: string,
+): Promise<string> {
+	const videoId = extractVideoId(youtubeUrl);
+	if (!videoId) {
+		throw new Error(`Invalid YouTube URL: ${youtubeUrl}`);
+	}
+
+	// Determine output path
+	const finalOutputPath =
+		outputPath ?? join(DEFAULT_DOWNLOADS_DIR, `${videoId}.m4a`);
+
+	// Ensure the output directory exists
+	const outputDir = dirname(finalOutputPath);
+	if (!existsSync(outputDir)) {
+		mkdirSync(outputDir, { recursive: true });
+	}
+
+	const proc = Bun.spawn(
+		[
+			"yt-dlp",
+			"--extract-audio",
+			"--audio-format",
+			"m4a",
+			"--audio-quality",
+			"0", // Best quality
+			"--no-warnings",
+			"--no-playlist",
+			"-o",
+			finalOutputPath,
+			youtubeUrl,
+		],
+		{
+			stdout: "pipe",
+			stderr: "pipe",
+		},
+	);
+
+	const [stdout, stderr] = await Promise.all([
+		new Response(proc.stdout).text(),
+		new Response(proc.stderr).text(),
+	]);
+
+	const exitCode = await proc.exited;
+
+	if (exitCode !== 0) {
+		const errorMessage =
+			stderr.trim() || stdout.trim() || "Unknown yt-dlp error";
+		throw new Error(`Failed to download audio: ${errorMessage}`);
+	}
+
+	// Verify the file was created
+	const file = Bun.file(finalOutputPath);
+	if (!(await file.exists())) {
+		throw new Error(`Audio file was not created at: ${finalOutputPath}`);
+	}
+
+	return finalOutputPath;
 }

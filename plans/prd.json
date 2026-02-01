@@ -8,20 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Implement video download service using yt-dlp",
-			"steps": [
-				"Add function downloadAudio(youtubeUrl, outputPath) to youtube service",
-				"Use yt-dlp to download audio-only in m4a/mp3 format",
-				"Store in data/downloads/{videoId}.m4a",
-				"Return file path on success, throw on failure",
-				"Write test downloading a short public video",
-				"Verify file exists and has audio content",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Implement audio transcription using OpenAI Whisper API",
 			"steps": [
 				"Install OpenAI SDK: `bun add openai`",

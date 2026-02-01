@@ -387,3 +387,43 @@ const app = new Elysia()
 - Next priority: Implement video download service using yt-dlp
 - The getVideoMetadata() function can be used when adding new videos to get title/duration/thumbnail
 - Consider caching metadata to avoid repeated yt-dlp calls
+
+---
+
+### 2026-02-01 - Video Download Service with yt-dlp
+
+**Completed:** Implement video download service using yt-dlp
+
+**What was done:**
+- Added `downloadAudio(youtubeUrl, outputPath?)` function to src/services/youtube.ts
+- Uses yt-dlp with `--extract-audio` and `--audio-format m4a` flags for audio-only download
+- Default storage location: `data/downloads/{videoId}.m4a`
+- Automatically creates output directory if it doesn't exist (using recursive mkdir)
+- Returns the path to the downloaded file on success
+- Throws descriptive error on failure (invalid URL, non-existent video, yt-dlp failure)
+- Verifies file was actually created using `Bun.file().exists()`
+- Added comprehensive tests:
+  - Download from real public video (Big Buck Bunny) - verifies file exists and has content
+  - Default path test - verifies function uses `data/downloads/{videoId}.m4a` when no path provided
+  - Invalid URL error handling test
+  - Non-existent video error handling test
+  - Directory creation test - verifies nested directories are created
+
+**Technical notes:**
+- Uses `Bun.spawn()` to shell out to yt-dlp CLI
+- Best audio quality selected with `--audio-quality 0`
+- Download tests have 120s timeout to accommodate network variability
+- Test cleanup uses `afterAll` to remove test download directory
+- Function uses Node.js fs module for directory creation (existsSync, mkdirSync)
+- Uses Bun.file() for checking file existence after download
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (65 tests)
+
+**Notes for next task:**
+- Next priority: Implement audio transcription using OpenAI Whisper API
+- The downloadAudio() function is now available for the processing pipeline
+- Downloaded files should be cleaned up after successful transcription to save disk space
+- Consider adding progress reporting for large video downloads
