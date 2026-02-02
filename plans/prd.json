@@ -8,20 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add POST /api/videos/:id/retry endpoint for failed transcriptions",
-			"steps": [
-				"Add POST /api/videos/:id/retry",
-				"Only allow if status is 'failed'",
-				"Reset status to 'pending' and re-trigger pipeline",
-				"Return 400 if video not in failed state",
-				"Write test for successful retry trigger",
-				"Write test for rejection of non-failed video",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Implement chat service with OpenAI GPT-4o",
 			"steps": [
 				"Create src/services/chat.ts",

@@ -188,4 +188,63 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 				id: t.Numeric(),
 			}),
 		},
+	)
+	.post(
+		"/:id/retry",
+		async ({ params, user, set }) => {
+			const videoId = params.id;
+
+			// Fetch the video
+			const video = db
+				.select()
+				.from(videos)
+				.where(eq(videos.id, videoId))
+				.get();
+
+			// Return 404 if video doesn't exist
+			if (!video) {
+				set.status = 404;
+				return { error: "Video not found" };
+			}
+
+			// Return 403 if video belongs to a different user
+			if (video.userId !== user.id) {
+				set.status = 403;
+				return { error: "Access denied" };
+			}
+
+			// Return 400 if video is not in failed state
+			if (video.status !== "failed") {
+				set.status = 400;
+				return {
+					error: "Can only retry videos with failed status",
+					currentStatus: video.status,
+				};
+			}
+
+			// Reset status to 'pending'
+			db.update(videos)
+				.set({ status: "pending", updatedAt: new Date() })
+				.where(eq(videos.id, videoId))
+				.run();
+
+			// Re-trigger pipeline processing (fire and forget)
+			processVideo(videoId).catch((error) => {
+				console.error(`Pipeline retry failed for video ${videoId}:`, error);
+			});
+
+			return {
+				id: video.id,
+				youtubeUrl: video.youtubeUrl,
+				youtubeId: video.youtubeId,
+				status: "pending",
+				message: "Video processing retry initiated",
+			};
+		},
+		{
+			auth: true,
+			params: t.Object({
+				id: t.Numeric(),
+			}),
+		},
 	);

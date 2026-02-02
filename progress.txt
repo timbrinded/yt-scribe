@@ -652,3 +652,44 @@ const app = new Elysia()
 - Next priority: Add POST /api/videos/:id/retry endpoint for failed transcriptions
 - The videos router now has POST /, GET /, and GET /:id endpoints
 - Consider adding optimistic locking for concurrent access in the future
+
+---
+
+### 2026-02-02 - POST /api/videos/:id/retry Endpoint
+
+**Completed:** Add POST /api/videos/:id/retry endpoint for failed transcriptions
+
+**What was done:**
+- Added POST /api/videos/:id/retry endpoint to src/routes/videos.ts
+- Endpoint only allows retry for videos with status 'failed':
+  - Returns 404 if video doesn't exist
+  - Returns 403 if video belongs to a different user
+  - Returns 400 if video is not in 'failed' state (includes currentStatus in response)
+- On successful retry:
+  - Resets video status to 'pending'
+  - Updates the updatedAt timestamp
+  - Re-triggers the processing pipeline (fire and forget)
+  - Returns video info with status 'pending' and a confirmation message
+- Added comprehensive tests in tests/routes/videos.test.ts:
+  - Authentication test (401 when not authenticated)
+  - Video not found test (404 for non-existent video)
+  - Access control test (403 for other user's video)
+  - Status validation tests (400 for pending, processing, completed videos)
+  - Successful retry test (returns correct response, status 200)
+  - Database update verification test (status updated to 'pending')
+
+**Technical notes:**
+- Reuses existing auth middleware with `{ auth: true }` option
+- Response includes currentStatus in 400 error to help client understand why retry was rejected
+- Pipeline errors are logged but don't affect API response (fire-and-forget pattern)
+- 8 new tests added for the retry endpoint
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (126 tests, 8 new)
+
+**Notes for next task:**
+- Next priority: Implement chat service with OpenAI GPT-4o
+- The videos router now has POST /, GET /, GET /:id, and POST /:id/retry endpoints
+- Consider adding rate limiting for retry endpoint in production

@@ -62,6 +62,19 @@ interface VideoDetailResponse {
 	} | null;
 }
 
+interface RetryResponse {
+	id: number;
+	youtubeUrl: string;
+	youtubeId: string;
+	status: string;
+	message: string;
+}
+
+interface RetryErrorResponse {
+	error: string;
+	currentStatus?: string;
+}
+
 /**
  * Creates a test auth middleware that uses the provided test database
  */
@@ -325,6 +338,61 @@ function createTestVideoRoutes(
 					createdAt: video.createdAt.toISOString(),
 					updatedAt: video.updatedAt.toISOString(),
 					transcript,
+				};
+			},
+			{
+				auth: true,
+				params: t.Object({
+					id: t.Numeric(),
+				}),
+			},
+		)
+		.post(
+			"/:id/retry",
+			async ({ params, user, set }) => {
+				const videoId = params.id;
+
+				// Fetch the video
+				const video = db
+					.select()
+					.from(schema.videos)
+					.where(eq(schema.videos.id, videoId))
+					.get();
+
+				// Return 404 if video doesn't exist
+				if (!video) {
+					set.status = 404;
+					return { error: "Video not found" };
+				}
+
+				// Return 403 if video belongs to a different user
+				if (video.userId !== user.id) {
+					set.status = 403;
+					return { error: "Access denied" };
+				}
+
+				// Return 400 if video is not in failed state
+				if (video.status !== "failed") {
+					set.status = 400;
+					return {
+						error: "Can only retry videos with failed status",
+						currentStatus: video.status,
+					};
+				}
+
+				// Reset status to 'pending'
+				db.update(schema.videos)
+					.set({ status: "pending", updatedAt: new Date() })
+					.where(eq(schema.videos.id, videoId))
+					.run();
+
+				// Skip pipeline trigger in tests
+				return {
+					id: video.id,
+					youtubeUrl: video.youtubeUrl,
+					youtubeId: video.youtubeId,
+					status: "pending",
+					message: "Video processing retry initiated",
 				};
 			},
 			{
@@ -1478,6 +1546,317 @@ describe("GET /api/videos/:id", () => {
 			expect(body.createdAt).toBeDefined();
 			expect(body.updatedAt).toBeDefined();
 			expect("transcript" in body).toBe(true);
+		});
+	});
+});
+
+describe("POST /api/videos/:id/retry", () => {
+	let sqlite: Database;
+	let db: ReturnType<typeof drizzle<typeof schema>>;
+	let testUserId: number;
+	let validToken: string;
+	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
+	let app: any;
+
+	beforeAll(() => {
+		sqlite = new Database(":memory:");
+		sqlite.exec("PRAGMA journal_mode = WAL;");
+		sqlite.exec("PRAGMA foreign_keys = ON;");
+		db = drizzle(sqlite, { schema });
+
+		sqlite.exec(`
+			CREATE TABLE users (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				email TEXT NOT NULL UNIQUE,
+				name TEXT,
+				avatar_url TEXT,
+				created_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE sessions (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL REFERENCES users(id),
+				token TEXT NOT NULL UNIQUE,
+				expires_at INTEGER NOT NULL,
+				created_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE videos (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL REFERENCES users(id),
+				youtube_url TEXT NOT NULL,
+				youtube_id TEXT NOT NULL,
+				title TEXT,
+				duration INTEGER,
+				thumbnail_url TEXT,
+				status TEXT NOT NULL DEFAULT 'pending',
+				created_at INTEGER NOT NULL,
+				updated_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE transcripts (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				video_id INTEGER NOT NULL REFERENCES videos(id),
+				content TEXT NOT NULL,
+				segments TEXT NOT NULL,
+				language TEXT NOT NULL DEFAULT 'en',
+				created_at INTEGER NOT NULL
+			);
+		`);
+	});
+
+	beforeEach(() => {
+		// Clean up between tests
+		sqlite.exec("DELETE FROM transcripts");
+		sqlite.exec("DELETE FROM videos");
+		sqlite.exec("DELETE FROM sessions");
+		sqlite.exec("DELETE FROM users");
+
+		// Create test user
+		const result = db
+			.insert(schema.users)
+			.values({
+				email: "test@example.com",
+				name: "Test User",
+			})
+			.returning()
+			.get();
+		assertDefined(result);
+		testUserId = result.id;
+
+		// Create valid session
+		validToken = `valid-test-token-${Date.now()}`;
+		db.insert(schema.sessions)
+			.values({
+				userId: testUserId,
+				token: validToken,
+				expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+			})
+			.run();
+
+		// Create app instance with test database
+		const authMiddleware = createTestAuthMiddleware(db);
+		const videoRoutes = createTestVideoRoutes(db, authMiddleware);
+		app = new Elysia().use(videoRoutes);
+	});
+
+	afterAll(() => {
+		sqlite.close();
+	});
+
+	describe("authentication", () => {
+		it("should return 401 when not authenticated", async () => {
+			const response = await app.handle(
+				new Request("http://localhost/api/videos/1/retry", {
+					method: "POST",
+				}),
+			);
+
+			expect(response.status).toBe(401);
+		});
+	});
+
+	describe("video not found", () => {
+		it("should return 404 for non-existent video", async () => {
+			const response = await app.handle(
+				new Request("http://localhost/api/videos/99999/retry", {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(404);
+			const body = (await response.json()) as ErrorResponse;
+			expect(body.error).toBe("Video not found");
+		});
+	});
+
+	describe("access control", () => {
+		it("should return 403 if video belongs to different user", async () => {
+			// Create second user
+			const user2 = db
+				.insert(schema.users)
+				.values({
+					email: "other@example.com",
+					name: "Other User",
+				})
+				.returning()
+				.get();
+			assertDefined(user2);
+
+			// Create failed video for second user
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: user2.id,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "failed",
+					title: "Other User's Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			// Try to retry with first user's session
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}/retry`, {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(403);
+			const body = (await response.json()) as ErrorResponse;
+			expect(body.error).toBe("Access denied");
+		});
+	});
+
+	describe("status validation", () => {
+		it("should return 400 if video status is pending", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "pending",
+					title: "Pending Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}/retry`, {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(400);
+			const body = (await response.json()) as RetryErrorResponse;
+			expect(body.error).toBe("Can only retry videos with failed status");
+			expect(body.currentStatus).toBe("pending");
+		});
+
+		it("should return 400 if video status is processing", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "processing",
+					title: "Processing Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}/retry`, {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(400);
+			const body = (await response.json()) as RetryErrorResponse;
+			expect(body.error).toBe("Can only retry videos with failed status");
+			expect(body.currentStatus).toBe("processing");
+		});
+
+		it("should return 400 if video status is completed", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "completed",
+					title: "Completed Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}/retry`, {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(400);
+			const body = (await response.json()) as RetryErrorResponse;
+			expect(body.error).toBe("Can only retry videos with failed status");
+			expect(body.currentStatus).toBe("completed");
+		});
+	});
+
+	describe("successful retry", () => {
+		it("should successfully trigger retry for failed video", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "failed",
+					title: "Failed Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}/retry`, {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as RetryResponse;
+			expect(body.id).toBe(video.id);
+			expect(body.youtubeUrl).toBe(
+				"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+			);
+			expect(body.youtubeId).toBe("dQw4w9WgXcQ");
+			expect(body.status).toBe("pending");
+			expect(body.message).toBe("Video processing retry initiated");
+		});
+
+		it("should update video status to pending in database", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "failed",
+					title: "Failed Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}/retry`, {
+					method: "POST",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			// Check database was updated
+			const updatedVideo = db
+				.select()
+				.from(schema.videos)
+				.where(eq(schema.videos.id, video.id))
+				.get();
+			assertDefined(updatedVideo);
+			expect(updatedVideo.status).toBe("pending");
 		});
 	});
 });
