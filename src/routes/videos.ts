@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { db } from "../db";
 import { videos } from "../db/schema";
@@ -76,6 +76,52 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 			auth: true,
 			body: t.Object({
 				url: t.String(),
+			}),
+		},
+	)
+	.get(
+		"/",
+		({ user, query }) => {
+			const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
+			const offset = Math.max(query.offset ?? 0, 0);
+
+			const userVideos = db
+				.select({
+					id: videos.id,
+					youtubeUrl: videos.youtubeUrl,
+					youtubeId: videos.youtubeId,
+					title: videos.title,
+					duration: videos.duration,
+					thumbnailUrl: videos.thumbnailUrl,
+					status: videos.status,
+					createdAt: videos.createdAt,
+					updatedAt: videos.updatedAt,
+				})
+				.from(videos)
+				.where(eq(videos.userId, user.id))
+				.orderBy(desc(videos.createdAt))
+				.limit(limit)
+				.offset(offset)
+				.all();
+
+			return {
+				videos: userVideos.map((video) => ({
+					...video,
+					createdAt: video.createdAt.toISOString(),
+					updatedAt: video.updatedAt.toISOString(),
+				})),
+				pagination: {
+					limit,
+					offset,
+					count: userVideos.length,
+				},
+			};
+		},
+		{
+			auth: true,
+			query: t.Object({
+				limit: t.Optional(t.Numeric()),
+				offset: t.Optional(t.Numeric()),
 			}),
 		},
 	);

@@ -8,19 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add GET /api/videos endpoint to list user's video library",
-			"steps": [
-				"Add GET /api/videos to videos router",
-				"Return array of user's videos with status and metadata",
-				"Include pagination (limit, offset query params)",
-				"Order by createdAt descending (newest first)",
-				"Write test verifying list returns only current user's videos",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add GET /api/videos/:id endpoint with transcript",
 			"steps": [
 				"Add GET /api/videos/:id",

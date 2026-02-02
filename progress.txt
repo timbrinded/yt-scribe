@@ -562,3 +562,50 @@ const app = new Elysia()
 - Next priority: Add GET /api/videos endpoint to list user's video library
 - The videos router is ready for additional endpoints
 - Consider adding pagination for large video libraries
+
+---
+
+### 2026-02-02 - GET /api/videos Endpoint
+
+**Completed:** Add GET /api/videos endpoint to list user's video library
+
+**What was done:**
+- Added GET /api/videos endpoint to src/routes/videos.ts
+- Returns array of user's videos with all metadata fields:
+  - id, youtubeUrl, youtubeId, title, duration, thumbnailUrl, status, createdAt, updatedAt
+- Implemented pagination with query parameters:
+  - `limit` (default: 20, min: 1, max: 100)
+  - `offset` (default: 0, min: 0)
+- Results ordered by createdAt descending (newest first)
+- Response includes pagination metadata: { limit, offset, count }
+- User isolation: endpoint returns only the authenticated user's videos
+- Added comprehensive tests in tests/routes/videos.test.ts:
+  - Authentication tests (401 when not authenticated)
+  - Empty library test (returns empty array)
+  - User isolation test (only returns current user's videos)
+  - Ordering test (newest first)
+  - Full video fields test (all metadata included)
+  - Pagination tests:
+    - Default limit of 20
+    - Custom limit
+    - Offset support
+    - Max limit of 100
+    - Min limit of 1
+    - Negative offset handled as 0
+
+**Technical notes:**
+- Uses Drizzle's `desc()` function for descending order
+- Uses Elysia's `t.Numeric()` for query parameter validation
+- Timestamps converted to ISO strings in response
+- Tests use same in-memory SQLite pattern as POST tests
+- 11 new tests added for GET endpoint
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (109 tests, 11 new)
+
+**Notes for next task:**
+- Next priority: Add GET /api/videos/:id endpoint with transcript
+- The videos router now has both POST and GET endpoints
+- Consider adding filtering by status in the future
