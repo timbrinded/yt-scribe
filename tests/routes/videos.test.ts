@@ -5,8 +5,8 @@ import { Elysia, t } from "elysia";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import * as schema from "../../src/db/schema.ts";
 
-function assertDefined<T>(value: T | undefined): asserts value is T {
-	if (value === undefined) {
+function assertDefined<T>(value: T | undefined | null): asserts value is T {
+	if (value === undefined || value === null) {
 		throw new Error("Expected value to be defined");
 	}
 }
@@ -41,6 +41,25 @@ interface VideoListResponse {
 		offset: number;
 		count: number;
 	};
+}
+
+interface VideoDetailResponse {
+	id: number;
+	youtubeUrl: string;
+	youtubeId: string;
+	title: string | null;
+	duration: number | null;
+	thumbnailUrl: string | null;
+	status: string;
+	createdAt: string;
+	updatedAt: string;
+	transcript: {
+		id: number;
+		content: string;
+		segments: Array<{ start: number; end: number; text: string }>;
+		language: string;
+		createdAt: string;
+	} | null;
 }
 
 /**
@@ -250,6 +269,70 @@ function createTestVideoRoutes(
 					offset: t.Optional(t.Numeric()),
 				}),
 			},
+		)
+		.get(
+			"/:id",
+			({ params, user, set }) => {
+				const videoId = params.id;
+
+				// Fetch the video
+				const video = db
+					.select()
+					.from(schema.videos)
+					.where(eq(schema.videos.id, videoId))
+					.get();
+
+				// Return 404 if video doesn't exist
+				if (!video) {
+					set.status = 404;
+					return { error: "Video not found" };
+				}
+
+				// Return 403 if video belongs to a different user
+				if (video.userId !== user.id) {
+					set.status = 403;
+					return { error: "Access denied" };
+				}
+
+				// Fetch transcript if video is completed
+				let transcript = null;
+				if (video.status === "completed") {
+					const transcriptRecord = db
+						.select()
+						.from(schema.transcripts)
+						.where(eq(schema.transcripts.videoId, videoId))
+						.get();
+
+					if (transcriptRecord) {
+						transcript = {
+							id: transcriptRecord.id,
+							content: transcriptRecord.content,
+							segments: transcriptRecord.segments,
+							language: transcriptRecord.language,
+							createdAt: transcriptRecord.createdAt.toISOString(),
+						};
+					}
+				}
+
+				return {
+					id: video.id,
+					youtubeUrl: video.youtubeUrl,
+					youtubeId: video.youtubeId,
+					title: video.title,
+					duration: video.duration,
+					thumbnailUrl: video.thumbnailUrl,
+					status: video.status,
+					createdAt: video.createdAt.toISOString(),
+					updatedAt: video.updatedAt.toISOString(),
+					transcript,
+				};
+			},
+			{
+				auth: true,
+				params: t.Object({
+					id: t.Numeric(),
+				}),
+			},
 		);
 }
 
@@ -296,11 +379,21 @@ describe("POST /api/videos", () => {
 				created_at INTEGER NOT NULL,
 				updated_at INTEGER NOT NULL
 			);
+
+			CREATE TABLE transcripts (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				video_id INTEGER NOT NULL REFERENCES videos(id),
+				content TEXT NOT NULL,
+				segments TEXT NOT NULL,
+				language TEXT NOT NULL DEFAULT 'en',
+				created_at INTEGER NOT NULL
+			);
 		`);
 	});
 
 	beforeEach(() => {
 		// Clean up between tests
+		sqlite.exec("DELETE FROM transcripts");
 		sqlite.exec("DELETE FROM videos");
 		sqlite.exec("DELETE FROM sessions");
 		sqlite.exec("DELETE FROM users");
@@ -690,11 +783,21 @@ describe("GET /api/videos", () => {
 				created_at INTEGER NOT NULL,
 				updated_at INTEGER NOT NULL
 			);
+
+			CREATE TABLE transcripts (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				video_id INTEGER NOT NULL REFERENCES videos(id),
+				content TEXT NOT NULL,
+				segments TEXT NOT NULL,
+				language TEXT NOT NULL DEFAULT 'en',
+				created_at INTEGER NOT NULL
+			);
 		`);
 	});
 
 	beforeEach(() => {
 		// Clean up between tests
+		sqlite.exec("DELETE FROM transcripts");
 		sqlite.exec("DELETE FROM videos");
 		sqlite.exec("DELETE FROM sessions");
 		sqlite.exec("DELETE FROM users");
@@ -1005,6 +1108,376 @@ describe("GET /api/videos", () => {
 			expect(response.status).toBe(200);
 			const body = (await response.json()) as VideoListResponse;
 			expect(body.pagination.offset).toBe(0);
+		});
+	});
+});
+
+describe("GET /api/videos/:id", () => {
+	let sqlite: Database;
+	let db: ReturnType<typeof drizzle<typeof schema>>;
+	let testUserId: number;
+	let validToken: string;
+	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
+	let app: any;
+
+	beforeAll(() => {
+		sqlite = new Database(":memory:");
+		sqlite.exec("PRAGMA journal_mode = WAL;");
+		sqlite.exec("PRAGMA foreign_keys = ON;");
+		db = drizzle(sqlite, { schema });
+
+		sqlite.exec(`
+			CREATE TABLE users (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				email TEXT NOT NULL UNIQUE,
+				name TEXT,
+				avatar_url TEXT,
+				created_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE sessions (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL REFERENCES users(id),
+				token TEXT NOT NULL UNIQUE,
+				expires_at INTEGER NOT NULL,
+				created_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE videos (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL REFERENCES users(id),
+				youtube_url TEXT NOT NULL,
+				youtube_id TEXT NOT NULL,
+				title TEXT,
+				duration INTEGER,
+				thumbnail_url TEXT,
+				status TEXT NOT NULL DEFAULT 'pending',
+				created_at INTEGER NOT NULL,
+				updated_at INTEGER NOT NULL
+			);
+
+			CREATE TABLE transcripts (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				video_id INTEGER NOT NULL REFERENCES videos(id),
+				content TEXT NOT NULL,
+				segments TEXT NOT NULL,
+				language TEXT NOT NULL DEFAULT 'en',
+				created_at INTEGER NOT NULL
+			);
+		`);
+	});
+
+	beforeEach(() => {
+		// Clean up between tests
+		sqlite.exec("DELETE FROM transcripts");
+		sqlite.exec("DELETE FROM videos");
+		sqlite.exec("DELETE FROM sessions");
+		sqlite.exec("DELETE FROM users");
+
+		// Create test user
+		const result = db
+			.insert(schema.users)
+			.values({
+				email: "test@example.com",
+				name: "Test User",
+			})
+			.returning()
+			.get();
+		assertDefined(result);
+		testUserId = result.id;
+
+		// Create valid session
+		validToken = `valid-test-token-${Date.now()}`;
+		db.insert(schema.sessions)
+			.values({
+				userId: testUserId,
+				token: validToken,
+				expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+			})
+			.run();
+
+		// Create app instance with test database
+		const authMiddleware = createTestAuthMiddleware(db);
+		const videoRoutes = createTestVideoRoutes(db, authMiddleware);
+		app = new Elysia().use(videoRoutes);
+	});
+
+	afterAll(() => {
+		sqlite.close();
+	});
+
+	describe("authentication", () => {
+		it("should return 401 when not authenticated", async () => {
+			const response = await app.handle(
+				new Request("http://localhost/api/videos/1", {
+					method: "GET",
+				}),
+			);
+
+			expect(response.status).toBe(401);
+		});
+	});
+
+	describe("video not found", () => {
+		it("should return 404 for non-existent video", async () => {
+			const response = await app.handle(
+				new Request("http://localhost/api/videos/99999", {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(404);
+			const body = (await response.json()) as ErrorResponse;
+			expect(body.error).toBe("Video not found");
+		});
+	});
+
+	describe("access control", () => {
+		it("should return 403 if video belongs to different user", async () => {
+			// Create second user
+			const user2 = db
+				.insert(schema.users)
+				.values({
+					email: "other@example.com",
+					name: "Other User",
+				})
+				.returning()
+				.get();
+			assertDefined(user2);
+
+			// Create video for second user
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: user2.id,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "completed",
+					title: "Other User's Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			// Try to access with first user's session
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(403);
+			const body = (await response.json()) as ErrorResponse;
+			expect(body.error).toBe("Access denied");
+		});
+	});
+
+	describe("success cases", () => {
+		it("should return video without transcript when status is pending", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "pending",
+					title: "Pending Video",
+					duration: 300,
+					thumbnailUrl: "https://example.com/thumb.jpg",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as VideoDetailResponse;
+			expect(body.id).toBe(video.id);
+			expect(body.youtubeUrl).toBe(
+				"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+			);
+			expect(body.youtubeId).toBe("dQw4w9WgXcQ");
+			expect(body.title).toBe("Pending Video");
+			expect(body.duration).toBe(300);
+			expect(body.thumbnailUrl).toBe("https://example.com/thumb.jpg");
+			expect(body.status).toBe("pending");
+			expect(body.transcript).toBeNull();
+		});
+
+		it("should return video without transcript when status is processing", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "processing",
+					title: "Processing Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as VideoDetailResponse;
+			expect(body.status).toBe("processing");
+			expect(body.transcript).toBeNull();
+		});
+
+		it("should return video without transcript when status is failed", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "failed",
+					title: "Failed Video",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as VideoDetailResponse;
+			expect(body.status).toBe("failed");
+			expect(body.transcript).toBeNull();
+		});
+
+		it("should return video with transcript when status is completed", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "completed",
+					title: "Completed Video",
+					duration: 300,
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const segments = [
+				{ start: 0, end: 5, text: "Hello world" },
+				{ start: 5, end: 10, text: "This is a test" },
+			];
+
+			db.insert(schema.transcripts)
+				.values({
+					videoId: video.id,
+					content: "Hello world This is a test",
+					segments: segments,
+					language: "en",
+				})
+				.run();
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as VideoDetailResponse;
+			expect(body.id).toBe(video.id);
+			expect(body.status).toBe("completed");
+			expect(body.transcript).not.toBeNull();
+			const transcript = body.transcript;
+			assertDefined(transcript);
+			expect(transcript.content).toBe("Hello world This is a test");
+			expect(transcript.segments).toEqual(segments);
+			expect(transcript.language).toBe("en");
+			expect(transcript.createdAt).toBeDefined();
+		});
+
+		it("should return completed video with null transcript if transcript not found", async () => {
+			// Edge case: video marked as completed but transcript missing
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "completed",
+					title: "Completed Without Transcript",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as VideoDetailResponse;
+			expect(body.status).toBe("completed");
+			expect(body.transcript).toBeNull();
+		});
+
+		it("should include all video fields in response", async () => {
+			const video = db
+				.insert(schema.videos)
+				.values({
+					userId: testUserId,
+					youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+					youtubeId: "dQw4w9WgXcQ",
+					status: "completed",
+					title: "Full Video",
+					duration: 600,
+					thumbnailUrl: "https://example.com/full-thumb.jpg",
+				})
+				.returning()
+				.get();
+			assertDefined(video);
+
+			const response = await app.handle(
+				new Request(`http://localhost/api/videos/${video.id}`, {
+					method: "GET",
+					headers: { Cookie: `session=${validToken}` },
+				}),
+			);
+
+			expect(response.status).toBe(200);
+			const body = (await response.json()) as VideoDetailResponse;
+			expect(body.id).toBeDefined();
+			expect(body.youtubeUrl).toBeDefined();
+			expect(body.youtubeId).toBeDefined();
+			expect(body.title).toBeDefined();
+			expect(body.duration).toBeDefined();
+			expect(body.thumbnailUrl).toBeDefined();
+			expect(body.status).toBeDefined();
+			expect(body.createdAt).toBeDefined();
+			expect(body.updatedAt).toBeDefined();
+			expect("transcript" in body).toBe(true);
 		});
 	});
 });

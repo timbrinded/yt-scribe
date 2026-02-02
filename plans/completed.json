@@ -204,5 +204,18 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-02"
+	},
+	{
+		"category": "functional",
+		"description": "Add GET /api/videos/:id endpoint with transcript",
+		"steps": [
+			"Add GET /api/videos/:id",
+			"Return video with full transcript if completed",
+			"Return 404 for non-existent or other user's video",
+			"Return 403 if video belongs to different user",
+			"Write tests for success, 404, and 403 cases",
+			"Run `bun test`"
+		],
+		"completed_at": "2026-02-02"
 	}
 ]
