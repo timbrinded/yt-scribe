@@ -693,3 +693,48 @@ const app = new Elysia()
 - Next priority: Implement chat service with OpenAI GPT-4o
 - The videos router now has POST /, GET /, GET /:id, and POST /:id/retry endpoints
 - Consider adding rate limiting for retry endpoint in production
+
+---
+
+### 2026-02-02 - Chat Service with OpenAI GPT-4o
+
+**Completed:** Implement chat service with OpenAI GPT-4o
+
+**What was done:**
+- Created src/services/chat.ts with:
+  - `chat(transcript, messages, userMessage, videoTitle?)` - async generator that streams responses
+  - `chatComplete(transcript, messages, userMessage, videoTitle?)` - convenience function returning full response
+  - `ChatMessage` interface for message history (role: user/assistant, content)
+  - `ChatError` class with typed error codes (API_ERROR, RATE_LIMIT, AUTHENTICATION_ERROR, CONTEXT_TOO_LONG)
+- System prompt construction:
+  - Includes video title when provided
+  - Embeds full transcript content
+  - Instructions for the assistant to answer based on transcript, reference timestamps, and stay on topic
+- Uses OpenAI chat completions API with gpt-4o model
+- Streaming response via async generator for better UX
+- Error handling for OpenAI-specific errors (401, 429, context length)
+- Created comprehensive tests in tests/services/chat.test.ts:
+  - ChatError class creation and error codes
+  - Chat function signature verification (async generator)
+  - chatComplete function signature verification (Promise)
+  - Message interface tests for user/assistant roles
+  - System prompt construction tests (empty history, previous messages, with/without title)
+  - Integration tests with real OpenAI API (skipped without API key)
+
+**Technical notes:**
+- Reuses existing OpenAI SDK already installed for Whisper transcription
+- MessageRole type imported from db/schema.ts for consistency
+- Streaming is implemented via async generator (for await...of)
+- chatComplete provides convenient non-streaming alternative
+- Integration tests verify context maintenance across messages
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (141 tests, 15 new)
+
+**Notes for next task:**
+- Next priority: Add POST /api/videos/:id/chat endpoint for conversations
+- The chat service is ready to be used by the chat endpoint
+- Consider adding message token counting to warn before hitting context limits
+- Integration tests demonstrate the service works with real GPT-4o API

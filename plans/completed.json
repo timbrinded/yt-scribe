@@ -231,5 +231,19 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-02"
+	},
+	{
+		"category": "functional",
+		"description": "Implement chat service with OpenAI GPT-4o",
+		"steps": [
+			"Create src/services/chat.ts",
+			"Add function chat(transcript, messages, userMessage) returning assistant response",
+			"Build system prompt including transcript content",
+			"Use OpenAI chat completions API with gpt-4o model",
+			"Stream response for better UX (return async iterator)",
+			"Write test with mocked OpenAI verifying message construction",
+			"Run `bun test`"
+		],
+		"completed_at": "2026-02-02"
 	}
 ]
