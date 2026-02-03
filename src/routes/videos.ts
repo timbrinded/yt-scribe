@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { getDb } from "../db";
 import { transcripts, videos } from "../db/schema";
 import { authMiddleware } from "../middleware/auth";
 import { processVideo } from "../services/pipeline";
@@ -15,6 +15,7 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 	.post(
 		"/",
 		async ({ body, user, set }) => {
+			const db = getDb();
 			const { url } = body;
 
 			// Validate YouTube URL format
@@ -82,6 +83,7 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 	.get(
 		"/",
 		({ user, query }) => {
+			const db = getDb();
 			const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
 			const offset = Math.max(query.offset ?? 0, 0);
 
@@ -128,6 +130,7 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 	.get(
 		"/:id",
 		({ params, user, set }) => {
+			const db = getDb();
 			const videoId = params.id;
 
 			// Fetch the video
@@ -192,6 +195,7 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 	.post(
 		"/:id/retry",
 		async ({ params, user, set }) => {
+			const db = getDb();
 			const videoId = params.id;
 
 			// Fetch the video

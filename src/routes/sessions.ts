@@ -1,6 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { getDb } from "../db";
 import { chatSessions, messages } from "../db/schema";
 import { authMiddleware } from "../middleware/auth";
 
@@ -13,6 +13,7 @@ export const sessionRoutes = new Elysia({ prefix: "/api/sessions" })
 	.get(
 		"/:id/messages",
 		({ params, user, set }) => {
+			const db = getDb();
 			const sessionId = params.id;
 
 			// Fetch the session

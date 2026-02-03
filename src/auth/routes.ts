@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { getDb } from "../db";
 import { users } from "../db/schema";
 import {
 	createAuthorizationUrl,
@@ -49,6 +49,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			redirect,
 			set,
 		}) => {
+			const db = getDb();
 			const { code, state } = query;
 			const storedState = oauth_state.value;
 			const storedCodeVerifier = oauth_code_verifier.value;
