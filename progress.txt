@@ -1513,3 +1513,62 @@ frontend/
 - The AddVideoModal is fully functional and integrated with LibraryView
 - Consider adding debounced URL validation for better UX
 - Modal can be further enhanced with thumbnail preview of video being added
+
+---
+
+### 2026-02-03 - Chat Interface with assistant-ui
+
+**Completed:** Set up assistant-ui for chat interface
+
+**What was done:**
+- Installed @assistant-ui/react package for chat UI components
+- Created frontend/src/components/ChatInterface.tsx with:
+  - Custom ChatModelAdapter that connects to POST /api/videos/:id/chat endpoint
+  - AssistantRuntimeProvider with useLocalRuntime for state management
+  - ThreadPrimitive for message rendering with styled components
+  - ComposerPrimitive for message input with styled input and send button
+  - Empty state with helpful onboarding message
+  - User message component with right-aligned bubble styling
+  - Assistant message component with left-aligned bubble and avatar
+  - Session ID management via useRef for conversation continuity
+  - Error handling for 401, 403, 404, and 400 API responses
+  - Credentials included in fetch for authentication cookies
+- Created frontend/src/pages/demo/chat.astro for testing the component
+- Created frontend/tests/ChatInterface.test.tsx with 10 tests:
+  - Rendering tests for input field, empty state, send button
+  - Props tests for videoId, sessionId, className
+  - Interactive tests for typing in input field
+  - Styling structure tests
+- Updated frontend/tests/setup.ts with:
+  - ResizeObserver mock for assistant-ui components
+  - Element.scrollTo mock for viewport auto-scroll
+- Installed @testing-library/user-event for better user interaction testing
+
+**Files created/modified:**
+- frontend/src/components/ChatInterface.tsx (new)
+- frontend/src/pages/demo/chat.astro (new)
+- frontend/tests/ChatInterface.test.tsx (new)
+- frontend/tests/setup.ts (modified - added mocks)
+- frontend/package.json (modified - new dependencies)
+
+**Technical notes:**
+- Using useLocalRuntime with custom ChatModelAdapter (not AI SDK integration)
+- API returns { sessionId, response } which is stored in ref for subsequent messages
+- Component accepts videoId (required), sessionId (optional), className (optional)
+- Uses ThreadPrimitive.Messages with UserMessage and AssistantMessage components
+- Custom styling using Tailwind classes from global.css design tokens
+- Bundle size: ChatInterface.CVEMQHgK.js (149.08 kB gzipped to 41.87 kB)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (51 tests, 10 new)
+- `bun run build` (frontend) - passes (no warnings)
+
+**Notes for next task:**
+- Next priority: Create video detail page with transcript and chat
+- The ChatInterface is ready to be embedded in the video detail page
+- Demo page available at /demo/chat for testing (requires video with transcript)
+- Consider adding streaming support for better UX with long responses
+- Consider adding message persistence/loading for existing sessions

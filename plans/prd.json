@@ -8,17 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Set up assistant-ui for chat interface",
-			"steps": [
-				"Install assistant-ui: `cd frontend && bun add @assistant-ui/react @assistant-ui/react-ui`",
-				"Create src/components/ChatInterface.tsx",
-				"Configure runtime to connect to /api/videos/:id/chat",
-				"Verify basic message send/receive works"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Create video detail page with transcript and chat",
 			"steps": [
 				"Create src/pages/video/[id].astro",

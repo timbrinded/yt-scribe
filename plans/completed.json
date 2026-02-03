@@ -443,5 +443,16 @@
 			"Close modal and refresh library on success"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Set up assistant-ui for chat interface",
+		"steps": [
+			"Install assistant-ui: `cd frontend && bun add @assistant-ui/react @assistant-ui/react-ui`",
+			"Create src/components/ChatInterface.tsx",
+			"Configure runtime to connect to /api/videos/:id/chat",
+			"Verify basic message send/receive works"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

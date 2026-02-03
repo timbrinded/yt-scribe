@@ -1,0 +1,23 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { ChatInterface } from '../../components/ChatInterface';
+---
+
+<AppLayout title="Chat Demo - YTScribe" description="Chat interface demo">
+	<main class="mx-auto max-w-3xl px-4 py-8">
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold text-neutral-900">Chat Interface Demo</h1>
+			<p class="mt-1 text-sm text-neutral-500">
+				This is a demo of the chat interface. In a real app, this would be connected to a video with a transcript.
+			</p>
+		</div>
+
+		<div class="h-[600px] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+			<ChatInterface videoId={1} client:load />
+		</div>
+
+		<p class="mt-4 text-center text-sm text-neutral-400">
+			Note: This demo requires a real video ID with a completed transcript and authentication.
+		</p>
+	</main>
+</AppLayout>
