@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 import cac from "cac";
 import { ApiClient, ApiRequestError } from "./api";
-import { getSessionToken } from "./credentials";
+import { getConfig } from "./config";
+import { clearCredentials, getSessionToken, saveCredentials } from "./credentials";
 
 /**
  * Format duration in seconds to HH:MM:SS or MM:SS
@@ -250,17 +251,182 @@ cli
 // Login command - OAuth authentication
 cli
 	.command("login", "Authenticate with your account via Google OAuth")
-	.action(() => {
+	.action(async () => {
+		const config = getConfig();
+
+		// Check if already authenticated
+		const existingToken = getSessionToken();
+		if (existingToken) {
+			// Verify the token is still valid
+			const client = new ApiClient();
+			client.setSessionToken(existingToken);
+			try {
+				const response = await fetch(`${config.apiBaseUrl}/auth/me`, {
+					headers: { Cookie: `session=${existingToken}` },
+				});
+				if (response.ok) {
+					const user = (await response.json()) as { name?: string; email: string };
+					console.log(`Already logged in as ${user.name || user.email}`);
+					console.log("Use 'ytscribe logout' first if you want to switch accounts.");
+					return;
+				}
+			} catch {
+				// Token is invalid, proceed with login
+			}
+		}
+
 		console.log("Starting login flow...");
-		console.log("(Not yet implemented)");
+		console.log("Opening browser for authentication...\n");
+
+		// Find an available port for the callback server
+		const callbackPort = 9876 + Math.floor(Math.random() * 100);
+		const callbackUrl = `http://localhost:${callbackPort}/callback`;
+
+		// Create a promise that resolves when we receive the token
+		let resolveToken: (token: string) => void;
+		let rejectToken: (error: Error) => void;
+		const tokenPromise = new Promise<string>((resolve, reject) => {
+			resolveToken = resolve;
+			rejectToken = reject;
+		});
+
+		// Start local callback server
+		const server = Bun.serve({
+			port: callbackPort,
+			fetch(req) {
+				const url = new URL(req.url);
+
+				if (url.pathname === "/callback") {
+					const token = url.searchParams.get("token");
+					const error = url.searchParams.get("error");
+
+					if (error) {
+						rejectToken(new Error(error));
+						return new Response(
+							`<html>
+								<body style="font-family: system-ui; text-align: center; padding: 50px;">
+									<h1>❌ Authentication Failed</h1>
+									<p>${error}</p>
+									<p>You can close this window.</p>
+								</body>
+							</html>`,
+							{ headers: { "Content-Type": "text/html" } },
+						);
+					}
+
+					if (token) {
+						resolveToken(token);
+						return new Response(
+							`<html>
+								<body style="font-family: system-ui; text-align: center; padding: 50px;">
+									<h1>✓ Authentication Successful</h1>
+									<p>You can close this window and return to the terminal.</p>
+								</body>
+							</html>`,
+							{ headers: { "Content-Type": "text/html" } },
+						);
+					}
+
+					return new Response(
+						`<html>
+							<body style="font-family: system-ui; text-align: center; padding: 50px;">
+								<h1>❌ Authentication Failed</h1>
+								<p>No token received.</p>
+								<p>You can close this window.</p>
+							</body>
+						</html>`,
+						{ headers: { "Content-Type": "text/html" } },
+					);
+				}
+
+				return new Response("Not found", { status: 404 });
+			},
+		});
+
+		// Build OAuth URL with CLI callback
+		const authUrl = `${config.apiBaseUrl}/auth/google?cli_callback=${encodeURIComponent(callbackUrl)}`;
+
+		// Open browser
+		const openCommand = process.platform === "darwin"
+			? "open"
+			: process.platform === "win32"
+				? "start"
+				: "xdg-open";
+
+		try {
+			const proc = Bun.spawn([openCommand, authUrl], {
+				stdout: "ignore",
+				stderr: "ignore",
+			});
+			await proc.exited;
+		} catch {
+			console.log(`Please open this URL in your browser:\n${authUrl}\n`);
+		}
+
+		console.log("Waiting for authentication...");
+		console.log("(Press Ctrl+C to cancel)\n");
+
+		// Set a timeout for the authentication
+		const timeoutMs = 5 * 60 * 1000; // 5 minutes
+		const timeout = setTimeout(() => {
+			rejectToken(new Error("Authentication timed out"));
+		}, timeoutMs);
+
+		try {
+			const token = await tokenPromise;
+			clearTimeout(timeout);
+			server.stop();
+
+			// Save the token
+			saveCredentials({ sessionToken: token });
+			console.log("Login successful!");
+
+			// Fetch and display user info
+			try {
+				const response = await fetch(`${config.apiBaseUrl}/auth/me`, {
+					headers: { Cookie: `session=${token}` },
+				});
+				if (response.ok) {
+					const user = (await response.json()) as { name?: string; email: string };
+					console.log(`Welcome, ${user.name || user.email}!`);
+				}
+			} catch {
+				// Ignore errors fetching user info
+			}
+		} catch (error) {
+			clearTimeout(timeout);
+			server.stop();
+			console.error(`Error: ${error instanceof Error ? error.message : "Authentication failed"}`);
+			process.exit(1);
+		}
 	});
 
 // Logout command - clear credentials
 cli
 	.command("logout", "Clear stored credentials")
-	.action(() => {
-		console.log("Logging out...");
-		console.log("(Not yet implemented)");
+	.action(async () => {
+		const sessionToken = getSessionToken();
+
+		if (!sessionToken) {
+			console.log("Not currently logged in.");
+			return;
+		}
+
+		const config = getConfig();
+
+		// Call the logout endpoint to invalidate the session on the server
+		try {
+			await fetch(`${config.apiBaseUrl}/auth/logout`, {
+				method: "POST",
+				headers: { Cookie: `session=${sessionToken}` },
+			});
+		} catch {
+			// Ignore network errors - we'll clear local credentials anyway
+		}
+
+		// Clear local credentials
+		clearCredentials();
+		console.log("Logged out successfully.");
 	});
 
 // Help is automatically included by CAC

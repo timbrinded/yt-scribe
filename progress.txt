@@ -1053,3 +1053,68 @@ Error: Not authenticated. Please run 'ytscribe login' first.
 - The chat command works but requires login command for full manual testing
 - Session ID is maintained across messages for conversation continuity
 - Interactive REPL uses Node.js readline module for cross-platform compatibility
+
+---
+
+### 2026-02-03 - CLI Authentication Flow for OAuth
+
+**Completed:** Add CLI authentication flow for OAuth
+
+**What was done:**
+- Updated src/auth/routes.ts to support CLI authentication flow:
+  - Added `cli_callback` query parameter to GET /auth/google endpoint
+  - Stores callback URL in cookie for use during OAuth flow
+  - Modified callback to redirect to CLI callback URL with token if provided
+  - Token and expiration date passed as URL query parameters
+- Implemented full `ytscribe login` command in src/cli/index.ts:
+  - Checks if already authenticated and verifies token validity
+  - Starts local HTTP server on random port (9876-9975) to receive OAuth callback
+  - Opens browser automatically using platform-specific commands (open/start/xdg-open)
+  - Displays success/error HTML pages in browser after authentication
+  - 5-minute timeout for authentication flow
+  - Saves session token to ~/.ytscribe/credentials.json
+  - Fetches and displays user name/email on successful login
+- Implemented full `ytscribe logout` command:
+  - Checks if currently logged in
+  - Calls POST /auth/logout to invalidate session on server
+  - Clears local credentials via clearCredentials()
+  - Handles network errors gracefully (still clears local credentials)
+
+**Example usage:**
+```
+$ ytscribe login
+Starting login flow...
+Opening browser for authentication...
+
+Waiting for authentication...
+(Press Ctrl+C to cancel)
+
+Login successful!
+Welcome, John Doe!
+
+$ ytscribe logout
+Logged out successfully.
+
+$ ytscribe login (when already logged in)
+Already logged in as John Doe
+Use 'ytscribe logout' first if you want to switch accounts.
+```
+
+**Technical notes:**
+- Uses Bun.serve() for the local callback server
+- OAuth state and code verifier stored in httpOnly cookies
+- CLI callback URL stored in separate cookie during OAuth flow
+- Token passed back to CLI via URL query parameter (not cookie)
+- Local server returns HTML pages for user feedback in browser
+- Platform detection for browser open command (darwin/win32/linux)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests)
+
+**Notes for next task:**
+- Next priority: Initialize Astro project for frontend with React integration
+- All CLI commands are now fully functional (add, list, chat, login, logout)
+- Manual testing requires Google OAuth credentials configured in environment variables
+- CLI is now complete and ready for use

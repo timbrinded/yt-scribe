@@ -14,7 +14,7 @@ const OAUTH_COOKIE_MAX_AGE = 60 * 10; // 10 minutes
 export const authRoutes = new Elysia({ prefix: "/auth" })
 	.get(
 		"/google",
-		({ cookie: { oauth_state, oauth_code_verifier }, redirect }) => {
+		({ query, cookie: { oauth_state, oauth_code_verifier, cli_callback }, redirect }) => {
 			const { url, state, codeVerifier } = createAuthorizationUrl();
 
 			// Store state and code verifier in cookies for validation in callback
@@ -32,12 +32,26 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			oauth_code_verifier.maxAge = OAUTH_COOKIE_MAX_AGE;
 			oauth_code_verifier.path = "/";
 
+			// Store CLI callback URL if provided (for CLI authentication flow)
+			if (query.cli_callback) {
+				cli_callback.value = query.cli_callback;
+				cli_callback.httpOnly = true;
+				cli_callback.secure = process.env.NODE_ENV === "production";
+				cli_callback.sameSite = "lax";
+				cli_callback.maxAge = OAUTH_COOKIE_MAX_AGE;
+				cli_callback.path = "/";
+			}
+
 			return redirect(url.toString());
 		},
 		{
+			query: t.Object({
+				cli_callback: t.Optional(t.String()),
+			}),
 			cookie: t.Cookie({
 				oauth_state: t.Optional(t.String()),
 				oauth_code_verifier: t.Optional(t.String()),
+				cli_callback: t.Optional(t.String()),
 			}),
 		},
 	)
@@ -45,7 +59,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 		"/google/callback",
 		async ({
 			query,
-			cookie: { oauth_state, oauth_code_verifier, session },
+			cookie: { oauth_state, oauth_code_verifier, cli_callback, session },
 			redirect,
 			set,
 		}) => {
@@ -53,10 +67,12 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			const { code, state } = query;
 			const storedState = oauth_state.value;
 			const storedCodeVerifier = oauth_code_verifier.value;
+			const cliCallbackUrl = cli_callback.value;
 
 			// Clear OAuth cookies
 			oauth_state.remove();
 			oauth_code_verifier.remove();
+			cli_callback.remove();
 
 			// Validate state
 			if (!code || !state || !storedState || state !== storedState) {
@@ -109,7 +125,15 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 				// Create server-side session
 				const { token: sessionToken, expiresAt } = createSession(user.id);
 
-				// Store session token in secure cookie
+				// If CLI callback URL is provided, redirect there with the token
+				if (cliCallbackUrl) {
+					const callbackUrl = new URL(cliCallbackUrl);
+					callbackUrl.searchParams.set("token", sessionToken);
+					callbackUrl.searchParams.set("expires_at", expiresAt.toISOString());
+					return redirect(callbackUrl.toString());
+				}
+
+				// Store session token in secure cookie for web frontend
 				session.value = sessionToken;
 				session.httpOnly = true;
 				session.secure = process.env.NODE_ENV === "production";
@@ -135,6 +159,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			cookie: t.Cookie({
 				oauth_state: t.Optional(t.String()),
 				oauth_code_verifier: t.Optional(t.String()),
+				cli_callback: t.Optional(t.String()),
 				session: t.Optional(t.String()),
 			}),
 		},

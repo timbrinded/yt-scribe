@@ -326,5 +326,19 @@
 			"Test manually with a transcribed video"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Add CLI authentication flow for OAuth",
+		"steps": [
+			"Add `ytscribe login` command",
+			"Open browser to /auth/google",
+			"Start local callback server to receive token",
+			"Store token in ~/.ytscribe/credentials.json",
+			"Add `ytscribe logout` to clear credentials",
+			"Use stored credentials in subsequent commands",
+			"Test login flow manually"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

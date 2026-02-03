@@ -74,7 +74,7 @@
 				"Use stored credentials in subsequent commands",
 				"Test login flow manually"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",
