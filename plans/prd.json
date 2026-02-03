@@ -57,18 +57,6 @@
 		},
 		{
 			"category": "functional",
-			"description": "Implement frontend authentication flow",
-			"steps": [
-				"Create src/pages/login.astro with Google OAuth button",
-				"Add auth callback page handling redirect",
-				"Create auth context/store for client-side state",
-				"Add protected route middleware redirecting to login",
-				"Show user avatar in navigation when logged in"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Create app navigation header component",
 			"steps": [
 				"Create src/components/Header.tsx",

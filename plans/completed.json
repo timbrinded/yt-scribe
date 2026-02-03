@@ -466,5 +466,17 @@
 			"Add loading states for both transcript and chat"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Implement frontend authentication flow",
+		"steps": [
+			"Create src/pages/login.astro with Google OAuth button",
+			"Add auth callback page handling redirect",
+			"Create auth context/store for client-side state",
+			"Add protected route middleware redirecting to login",
+			"Show user avatar in navigation when logged in"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

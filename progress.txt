@@ -1638,3 +1638,99 @@ frontend/
 - Consider adding polling or SSE for processing videos to auto-refresh on completion
 - Transcript timestamps could be enhanced to link to YouTube player timestamps
 - Consider implementing the timestamp navigation context for cross-panel highlighting
+
+---
+
+### 2026-02-03 - Frontend Authentication Flow
+
+**Completed:** Implement frontend authentication flow
+
+**What was done:**
+- Created frontend/src/pages/login.astro:
+  - Beautiful login page with Google OAuth button
+  - Logo and branding consistent with app design
+  - Links to terms of service and privacy policy (placeholders)
+  - Gradient background from LandingLayout
+- Created frontend/src/pages/auth/callback.astro:
+  - Handles OAuth callback errors gracefully
+  - Shows error state with retry button
+  - Shows loading state while authentication completes
+- Created frontend/src/hooks/useAuth.ts:
+  - Custom React hook for authentication state management
+  - Provides user, isLoading, isAuthenticated, error states
+  - checkAuth() and logout() actions
+  - fetchCurrentUser() utility function for one-off checks
+- Created frontend/src/components/AuthProvider.tsx:
+  - React context provider for global auth state
+  - useAuthContext() hook for accessing auth in any component
+  - Wraps the app to provide auth state everywhere
+- Created frontend/src/middleware.ts (Astro middleware):
+  - Server-side authentication check for protected routes
+  - Redirects unauthenticated users to /login
+  - Protected routes: /library, /video/*
+  - Validates session with backend /auth/me endpoint
+  - Stores user in context.locals for server-side access
+- Created frontend/src/env.d.ts:
+  - TypeScript declarations for Astro locals
+  - AuthUser interface definition
+- Created frontend/src/components/UserAvatar.tsx:
+  - Displays user avatar with dropdown menu when logged in
+  - Shows "Sign In" button when not authenticated
+  - Dropdown includes: user info, My Library link, Settings link, Sign out
+  - Animated dropdown with Framer Motion
+  - Falls back to initials when no avatar URL
+- Updated frontend/src/pages/index.astro:
+  - Added header with logo and UserAvatar
+  - Header is fixed at top with z-index for proper layering
+- Updated frontend/src/layouts/AppLayout.astro:
+  - Added sticky header with navigation
+  - Includes logo linking to library
+  - UserAvatar component for auth state
+  - Backdrop blur effect for modern look
+- Created comprehensive tests:
+  - frontend/tests/useAuth.test.tsx (8 tests):
+    - Loading state, authenticated state, unauthenticated state
+    - Error handling, API call verification
+  - frontend/tests/UserAvatar.test.tsx (11 tests):
+    - Loading state, sign in button when not authenticated
+    - Avatar display, initials fallback, dropdown menu
+    - Link destinations, sign out button
+
+**Files created:**
+- frontend/src/pages/login.astro
+- frontend/src/pages/auth/callback.astro
+- frontend/src/hooks/useAuth.ts
+- frontend/src/components/AuthProvider.tsx
+- frontend/src/middleware.ts
+- frontend/src/env.d.ts
+- frontend/src/components/UserAvatar.tsx
+- frontend/tests/useAuth.test.tsx
+- frontend/tests/UserAvatar.test.tsx
+
+**Files modified:**
+- frontend/src/pages/index.astro (added header with UserAvatar)
+- frontend/src/layouts/AppLayout.astro (added sticky header with navigation)
+
+**Technical notes:**
+- Middleware uses fetch with Cookie header to validate session server-side
+- UserAvatar fetches user data on mount, handles loading/error states
+- Login page redirects to /auth/google which initiates OAuth flow
+- After successful OAuth, backend redirects to /library with session cookie
+- Protected routes are defined in middleware PROTECTED_ROUTES array
+- Auth context can be used for client-side auth state management
+- UserAvatar has dropdown with clickable outside detection
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 warning for Astro triple-slash reference)
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bun run test` (frontend) - passes (100 tests, 19 new)
+- `bun run build` (frontend) - passes
+- Bundle size: UserAvatar.VuOE9Lvh.js (5.39 kB)
+
+**Notes for next task:**
+- Frontend authentication flow is now complete
+- Users are redirected to /login when accessing protected routes without auth
+- UserAvatar shows in both landing page and app layout headers
+- Consider adding a separate Header component (PRD task) for mobile responsiveness
+- Settings page link in dropdown needs the settings page to be created (separate PRD task)
