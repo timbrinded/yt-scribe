@@ -1,5 +1,5 @@
 import { and, eq, gt, lt } from "drizzle-orm";
-import { db } from "../db";
+import { getDb } from "../db";
 import { type Session, sessions, users } from "../db/schema";
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -28,6 +28,7 @@ export function createSession(userId: number): {
 	token: string;
 	expiresAt: Date;
 } {
+	const db = getDb();
 	const token = generateToken();
 	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
@@ -47,6 +48,7 @@ export function createSession(userId: number): {
  * Returns null if the session is invalid or expired.
  */
 export function validateSession(token: string): SessionWithUser | null {
+	const db = getDb();
 	const now = new Date();
 
 	const result = db
@@ -75,6 +77,7 @@ export function validateSession(token: string): SessionWithUser | null {
  * Deletes a session by token.
  */
 export function deleteSession(token: string): void {
+	const db = getDb();
 	db.delete(sessions).where(eq(sessions.token, token)).run();
 }
 
@@ -82,6 +85,7 @@ export function deleteSession(token: string): void {
  * Deletes all sessions for a user.
  */
 export function deleteUserSessions(userId: number): void {
+	const db = getDb();
 	db.delete(sessions).where(eq(sessions.userId, userId)).run();
 }
 
@@ -89,6 +93,7 @@ export function deleteUserSessions(userId: number): void {
  * Deletes expired sessions (cleanup function).
  */
 export function deleteExpiredSessions(): void {
+	const db = getDb();
 	const now = new Date();
 	db.delete(sessions).where(lt(sessions.expiresAt, now)).run();
 }

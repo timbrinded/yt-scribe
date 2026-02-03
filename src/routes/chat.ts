@@ -1,6 +1,6 @@
 import { asc, count, desc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { getDb } from "../db";
 import {
 	type ChatSession,
 	chatSessions,
@@ -20,6 +20,7 @@ export const chatRoutes = new Elysia({ prefix: "/api/videos" })
 	.post(
 		"/:id/chat",
 		async ({ params, body, user, set }) => {
+			const db = getDb();
 			const videoId = params.id;
 			const { sessionId, message } = body;
 
@@ -165,6 +166,7 @@ export const chatRoutes = new Elysia({ prefix: "/api/videos" })
 	.get(
 		"/:id/sessions",
 		({ params, user, set }) => {
+			const db = getDb();
 			const videoId = params.id;
 
 			// Fetch the video

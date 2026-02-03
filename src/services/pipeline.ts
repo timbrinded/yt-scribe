@@ -1,6 +1,6 @@
 import { unlinkSync } from "node:fs";
 import { eq } from "drizzle-orm";
-import { db } from "../db";
+import { getDb } from "../db";
 import { transcripts, type Video, videos } from "../db/schema";
 import { TranscriptionError, transcribeAudio } from "./transcription";
 import { downloadAudio, getVideoMetadata } from "./youtube";
@@ -39,6 +39,7 @@ async function updateVideoStatus(
 	videoId: number,
 	status: Video["status"],
 ): Promise<void> {
+	const db = getDb();
 	db.update(videos)
 		.set({ status, updatedAt: new Date() })
 		.where(eq(videos.id, videoId))
@@ -49,6 +50,7 @@ async function updateVideoStatus(
  * Fetches a video record by ID
  */
 function getVideoById(videoId: number): Video | undefined {
+	const db = getDb();
 	return db.select().from(videos).where(eq(videos.id, videoId)).get();
 }
 
@@ -68,6 +70,7 @@ function getVideoById(videoId: number): Video | undefined {
  */
 export async function processVideo(videoId: number): Promise<void> {
 	let audioPath: string | null = null;
+	const db = getDb();
 
 	try {
 		// 1. Fetch video record

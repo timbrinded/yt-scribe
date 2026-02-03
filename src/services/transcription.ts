@@ -107,6 +107,13 @@ export async function transcribeAudio(
 		);
 	}
 
+	if (!process.env.OPENAI_API_KEY) {
+		throw new TranscriptionError(
+			"AUTHENTICATION_ERROR",
+			"OpenAI API key not set",
+		);
+	}
+
 	try {
 		// Call OpenAI Whisper API with verbose_json for timestamps
 		const transcription = await getOpenAI().audio.transcriptions.create({

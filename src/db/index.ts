@@ -4,9 +4,30 @@ import * as schema from "./schema.ts";
 
 const DB_PATH = process.env.DATABASE_URL ?? "data/ytscribe.db";
 
-const sqlite = new Database(DB_PATH);
-sqlite.exec("PRAGMA journal_mode = WAL;");
+type Db = ReturnType<typeof drizzle<typeof schema>>;
 
-export const db = drizzle(sqlite, { schema });
+let sqlite: Database | null = null;
+let db: Db | null = null;
+
+function initDb(): Db {
+	if (!sqlite || !db) {
+		sqlite = new Database(DB_PATH);
+		sqlite.exec("PRAGMA journal_mode = WAL;");
+		db = drizzle(sqlite, { schema });
+	}
+	return db;
+}
+
+export function getDb(): Db {
+	return initDb();
+}
+
+export function closeDb(): void {
+	if (sqlite) {
+		sqlite.close();
+		sqlite = null;
+		db = null;
+	}
+}
 
 export { schema };
