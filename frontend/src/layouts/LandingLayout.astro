@@ -1,0 +1,124 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = 'YTScribe - YouTube Video Knowledge Base',
+	description = 'Transform YouTube videos into searchable knowledge bases with AI-powered transcription and chat.'
+} = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+
+		<!-- Open Graph / Social -->
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+
+		<!-- Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+	</head>
+	<body class="min-h-screen bg-neutral-50 text-neutral-900 antialiased">
+		<!-- Animated gradient background -->
+		<div class="fixed inset-0 -z-10 overflow-hidden">
+			<div class="gradient-blob gradient-blob-1"></div>
+			<div class="gradient-blob gradient-blob-2"></div>
+			<div class="gradient-blob gradient-blob-3"></div>
+		</div>
+
+		<slot />
+	</body>
+</html>
+
+<style>
+	.gradient-blob {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(80px);
+		opacity: 0.4;
+		animation: float 20s ease-in-out infinite;
+	}
+
+	.gradient-blob-1 {
+		width: 600px;
+		height: 600px;
+		background: linear-gradient(135deg, var(--color-primary-300), var(--color-primary-500));
+		top: -200px;
+		right: -100px;
+		animation-delay: 0s;
+	}
+
+	.gradient-blob-2 {
+		width: 500px;
+		height: 500px;
+		background: linear-gradient(135deg, var(--color-accent-300), var(--color-accent-500));
+		bottom: -150px;
+		left: -100px;
+		animation-delay: -7s;
+	}
+
+	.gradient-blob-3 {
+		width: 400px;
+		height: 400px;
+		background: linear-gradient(135deg, var(--color-primary-200), var(--color-accent-300));
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		animation-delay: -14s;
+	}
+
+	@keyframes float {
+		0%, 100% {
+			transform: translate(0, 0) scale(1);
+		}
+		25% {
+			transform: translate(30px, -30px) scale(1.05);
+		}
+		50% {
+			transform: translate(-20px, 20px) scale(0.95);
+		}
+		75% {
+			transform: translate(-30px, -20px) scale(1.02);
+		}
+	}
+
+	.gradient-blob-3 {
+		animation-name: float-center;
+	}
+
+	@keyframes float-center {
+		0%, 100% {
+			transform: translate(-50%, -50%) scale(1);
+		}
+		25% {
+			transform: translate(-45%, -55%) scale(1.05);
+		}
+		50% {
+			transform: translate(-55%, -45%) scale(0.95);
+		}
+		75% {
+			transform: translate(-52%, -48%) scale(1.02);
+		}
+	}
+
+	/* Reduce motion for users who prefer it */
+	@media (prefers-reduced-motion: reduce) {
+		.gradient-blob {
+			animation: none;
+		}
+	}
+</style>

@@ -1265,3 +1265,55 @@ frontend/
 - MotionWrapper is ready to be used by other animated components
 - Consider creating animation presets/variants for consistency
 - The AnimatedCard can serve as a template for other animated components
+
+---
+
+### 2026-02-03 - Animated Landing Page with Hero Section
+
+**Completed:** Create animated landing page layout with hero section
+
+**What was done:**
+- Created src/layouts/LandingLayout.astro:
+  - Reusable layout component with meta tags (title, description, Open Graph)
+  - Google Fonts preloaded (Inter, JetBrains Mono)
+  - Animated gradient background with three floating blobs using CSS animations
+  - Respects prefers-reduced-motion for accessibility
+- Created src/components/Hero.tsx:
+  - Full-viewport hero section with staggered Framer Motion animations
+  - Decorative badge with pulsing indicator ("AI-Powered Video Intelligence")
+  - Two-tone headline with gradient text effect
+  - Primary CTA button with arrow icon and hover effects
+  - Secondary CTA button with outline style
+  - Animated scroll indicator at bottom
+  - All animations use custom easing [0.22, 1, 0.36, 1] for smooth feel
+- Created src/components/Features.tsx:
+  - Three feature cards (Transcribe, Search, Chat) with icons
+  - whileInView animations for scroll-triggered entrance
+  - Staggered card animations with 0.15s delay between each
+  - Hover effects: border color change, shadow, gradient overlay
+- Updated src/pages/index.astro:
+  - Uses new LandingLayout
+  - Hero with client:load for immediate animation
+  - Features with client:visible for scroll-triggered animation
+- Fixed Framer Motion v12 TypeScript issues:
+  - Removed explicit Variants type annotations that were too restrictive
+  - Used inline animation props instead for better type inference
+
+**Technical notes:**
+- Gradient blobs use OKLCH colors from design tokens via CSS custom properties
+- Animation blobs have 20s duration with different delays for organic movement
+- Hero animations cascade with delays: badge (0.1s), headline (0.25s), subtitle (0.4s), CTAs (0.55s), scroll indicator (0.7s)
+- Features use viewport={{ once: true, margin: "-100px" }} to trigger slightly before visible
+- Bundle sizes: Hero.D40EZLN3.js (3.51 kB), Features.fNhOmL6r.js (3.44 kB)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests)
+- `bun run build` (frontend) - passes
+
+**Notes for next task:**
+- Next priority: Create processing animation component showing pipeline progress
+- The LandingLayout can be extended with additional sections (pricing, testimonials, etc.)
+- AnimatedCard component is still available but not currently used (replaced by Features)
+- Consider adding a "How it works" section with the processing animation preview

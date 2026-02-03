@@ -377,5 +377,18 @@
 			"Verify animation plays in browser"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Create animated landing page layout with hero section",
+		"steps": [
+			"Create src/layouts/LandingLayout.astro",
+			"Create src/pages/index.astro using layout",
+			"Build hero section with headline, subheadline, CTA button",
+			"Add Framer Motion entrance animations (fade in, slide up)",
+			"Add animated gradient background or subtle particles",
+			"Verify animations on page load"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

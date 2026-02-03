@@ -8,19 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Create animated landing page layout with hero section",
-			"steps": [
-				"Create src/layouts/LandingLayout.astro",
-				"Create src/pages/index.astro using layout",
-				"Build hero section with headline, subheadline, CTA button",
-				"Add Framer Motion entrance animations (fade in, slide up)",
-				"Add animated gradient background or subtle particles",
-				"Verify animations on page load"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Create processing animation component showing pipeline progress",
 			"steps": [
 				"Create src/components/ProcessingAnimation.tsx",

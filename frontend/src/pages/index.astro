@@ -1,63 +1,19 @@
 ---
-import '../styles/global.css';
-import { AnimatedCard } from '../components/AnimatedCard';
+import LandingLayout from '../layouts/LandingLayout.astro';
+import { Hero } from '../components/Hero';
+import { Features } from '../components/Features';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>YTScribe - YouTube Video Knowledge Base</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-	</head>
-	<body class="min-h-screen">
-		<main class="container mx-auto px-4 py-16">
-			<h1 class="text-4xl font-bold text-primary-600 mb-4">YTScribe</h1>
-			<p class="text-lg text-neutral-600 mb-8">
-				Transform YouTube videos into searchable knowledge bases with AI-powered transcription and chat.
-			</p>
-			<div class="flex gap-4 mb-12">
-				<a
-					href="/login"
-					class="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors duration-200"
-				>
-					Get Started
-				</a>
-				<a
-					href="#features"
-					class="inline-flex items-center px-6 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 transition-colors duration-200"
-				>
-					Learn More
-				</a>
-			</div>
+<LandingLayout>
+	<main>
+		<Hero
+			client:load
+			title="Transform YouTube into Knowledge"
+			subtitle="YTScribe transcribes your favorite videos and lets you chat with the content using AI. Never lose an insight again."
+			primaryCta={{ text: "Get Started", href: "/login" }}
+			secondaryCta={{ text: "Learn More", href: "#features" }}
+		/>
 
-			<section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<AnimatedCard client:load delay={0}>
-					<h3 class="text-lg font-semibold text-neutral-800 mb-2">Transcribe</h3>
-					<p class="text-neutral-600">
-						Automatically transcribe YouTube videos with AI-powered speech recognition.
-					</p>
-				</AnimatedCard>
-
-				<AnimatedCard client:load delay={0.1}>
-					<h3 class="text-lg font-semibold text-neutral-800 mb-2">Search</h3>
-					<p class="text-neutral-600">
-						Search through your video library and find specific moments instantly.
-					</p>
-				</AnimatedCard>
-
-				<AnimatedCard client:load delay={0.2}>
-					<h3 class="text-lg font-semibold text-neutral-800 mb-2">Chat</h3>
-					<p class="text-neutral-600">
-						Ask questions about your videos and get answers with timestamp citations.
-					</p>
-				</AnimatedCard>
-			</section>
-		</main>
-	</body>
-</html>
+		<Features client:visible />
+	</main>
+</LandingLayout>
