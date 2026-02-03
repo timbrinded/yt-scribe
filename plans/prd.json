@@ -68,19 +68,6 @@
 			"passes": false
 		},
 		{
-			"category": "reliability",
-			"description": "Add comprehensive logging to backend",
-			"steps": [
-				"Install pino: `bun add pino pino-pretty`",
-				"Create src/utils/logger.ts configured for dev/prod",
-				"Add request logging middleware",
-				"Log pipeline stages with timing",
-				"Add structured error logging",
-				"Verify logs appear in console during requests"
-			],
-			"passes": false
-		},
-		{
 			"category": "performance",
 			"description": "Optimize Framer Motion bundle with LazyMotion",
 			"steps": [

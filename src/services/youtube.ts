@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { logger } from "../utils/logger";
 
 /**
  * YouTube URL validation, metadata extraction, and audio download service
@@ -111,10 +112,16 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata> {
 
 	if (exitCode !== 0) {
 		const errorMessage = stderr.trim() || "Unknown yt-dlp error";
+		logger.error({ url, exitCode, stderr: errorMessage }, "yt-dlp metadata fetch failed");
 		throw new Error(`Failed to fetch video metadata: ${errorMessage}`);
 	}
 
 	const data: YtDlpOutput = JSON.parse(stdout);
+
+	logger.debug(
+		{ videoId: data.id, title: data.title, duration: data.duration },
+		"Fetched video metadata",
+	);
 
 	return {
 		id: data.id,
@@ -187,14 +194,25 @@ export async function downloadAudio(
 	if (exitCode !== 0) {
 		const errorMessage =
 			stderr.trim() || stdout.trim() || "Unknown yt-dlp error";
+		logger.error(
+			{ videoId, youtubeUrl, exitCode, stderr: errorMessage },
+			"yt-dlp audio download failed",
+		);
 		throw new Error(`Failed to download audio: ${errorMessage}`);
 	}
 
 	// Verify the file was created
 	const file = Bun.file(finalOutputPath);
 	if (!(await file.exists())) {
+		logger.error({ videoId, outputPath: finalOutputPath }, "Audio file not created");
 		throw new Error(`Audio file was not created at: ${finalOutputPath}`);
 	}
+
+	const fileSize = file.size;
+	logger.info(
+		{ videoId, outputPath: finalOutputPath, fileSizeMB: (fileSize / 1024 / 1024).toFixed(2) },
+		"Audio download completed",
+	);
 
 	return finalOutputPath;
 }

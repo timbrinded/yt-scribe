@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { TranscriptSegment } from "../db/schema";
+import { logger } from "../utils/logger";
 
 /**
  * Audio transcription service using OpenAI Whisper API
@@ -114,6 +115,11 @@ export async function transcribeAudio(
 		);
 	}
 
+	logger.debug(
+		{ filePath, fileSize: fileSize / 1024 / 1024, extension },
+		"Starting audio transcription",
+	);
+
 	try {
 		// Call OpenAI Whisper API with verbose_json for timestamps
 		const transcription = await getOpenAI().audio.transcriptions.create({
@@ -132,6 +138,15 @@ export async function transcribeAudio(
 			}),
 		);
 
+		logger.info(
+			{
+				language: transcription.language,
+				duration: transcription.duration,
+				segmentCount: segments.length,
+			},
+			"Transcription completed successfully",
+		);
+
 		return {
 			text: transcription.text,
 			segments,
@@ -141,6 +156,10 @@ export async function transcribeAudio(
 	} catch (error) {
 		// Handle OpenAI-specific errors
 		if (error instanceof OpenAI.APIError) {
+			logger.error(
+				{ status: error.status, message: error.message, filePath },
+				"OpenAI Whisper API error",
+			);
 			if (error.status === 401) {
 				throw new TranscriptionError(
 					"AUTHENTICATION_ERROR",
@@ -165,6 +184,10 @@ export async function transcribeAudio(
 		}
 
 		// Unknown errors
+		logger.error(
+			{ error: error instanceof Error ? error.message : String(error), filePath },
+			"Unknown transcription error",
+		);
 		throw new TranscriptionError(
 			"API_ERROR",
 			`Transcription failed: ${error instanceof Error ? error.message : "Unknown error"}`,

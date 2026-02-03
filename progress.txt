@@ -1815,3 +1815,78 @@ frontend/
 - 500 page available for server errors
 - Consider wrapping major app sections with ErrorBoundary
 - Next priorities: SSE status updates, navigation header, or settings page
+
+---
+
+### 2026-02-03 - Comprehensive Backend Logging
+
+**Completed:** Add comprehensive logging to backend
+
+**What was done:**
+- Installed pino v10.3.0 and pino-pretty v13.1.3 for structured logging
+- Created src/utils/logger.ts with:
+  - Main logger configured for dev (pretty-printed) and prod (JSON) environments
+  - LOG_LEVEL env var support (defaults to debug in dev, info in prod)
+  - createChildLogger() for adding request-specific or component-specific metadata
+  - logWithTiming() helper that returns success/failure functions with duration tracking
+  - logError() for structured error logging with name, message, and stack
+- Created src/middleware/logging.ts Elysia plugin:
+  - Logs all incoming HTTP requests with method, path, query, user-agent
+  - Assigns unique requestId (8-char UUID) to each request
+  - Creates child logger with request context for all subsequent logs
+  - Logs response with status code and duration in ms
+  - Uses different log levels: info for 2xx/3xx, warn for 4xx, error for 5xx
+  - Handles onError hook for unhandled errors
+- Updated src/server.ts to use loggingMiddleware
+- Added timing logs to video processing pipeline (src/services/pipeline.ts):
+  - Overall pipeline timing (video-pipeline)
+  - Metadata fetch timing (fetch-metadata)
+  - Audio download timing (download-audio)
+  - Transcription timing (transcribe-audio)
+  - Database save timing (save-transcript)
+  - Each stage logs success with relevant metadata or failure with error details
+- Added structured error logging to services:
+  - src/services/youtube.ts: Logs metadata fetch and audio download success/errors
+  - src/services/transcription.ts: Logs transcription start, completion, and errors
+  - src/services/chat.ts: Logs chat completion start and OpenAI API errors
+
+**Files created:**
+- src/utils/logger.ts
+- src/middleware/logging.ts
+
+**Files modified:**
+- src/server.ts (added logging middleware)
+- src/services/pipeline.ts (added timing logs for all stages)
+- src/services/youtube.ts (added error and success logging)
+- src/services/transcription.ts (added error and success logging)
+- src/services/chat.ts (added error and debug logging)
+
+**Technical notes:**
+- Pino is a fast JSON logger optimized for Node.js/Bun
+- In dev mode, uses pino-pretty for human-readable colored output
+- In production, outputs JSON for log aggregation systems (e.g., Datadog, ELK)
+- Request logging middleware runs before all routes
+- Performance timing uses performance.now() for high-resolution measurements
+- All logs include structured metadata for filtering and analysis
+
+**Example log output (dev mode):**
+```
+[16:29:20] INFO: → GET /api/videos
+    requestId: "a1b2c3d4"
+    method: "GET"
+    path: "/api/videos"
+[16:29:20] INFO: ← GET /api/videos 200 (15ms)
+    status: 200
+    durationMs: 15
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 warning for Astro triple-slash reference, pre-existing)
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (113 tests)
+
+**Notes for next task:**
+- Logging is now comprehensive across the backend
+- Consider adding log aggregation service integration for production
+- Next priorities: SSE status updates, navigation header, settings page, or Docker setup

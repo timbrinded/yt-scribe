@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { MessageRole } from "../db/schema";
+import { logger } from "../utils/logger";
 
 /**
  * Chat service using OpenAI GPT-4o for transcript-based conversations
@@ -98,6 +99,11 @@ export async function* chat(
 		{ role: "user", content: userMessage },
 	];
 
+	logger.debug(
+		{ messageCount: messages.length, userMessageLength: userMessage.length },
+		"Starting chat completion",
+	);
+
 	try {
 		const stream = await getOpenAI().chat.completions.create({
 			model: "gpt-4o",
@@ -114,6 +120,10 @@ export async function* chat(
 	} catch (error) {
 		// Handle OpenAI-specific errors
 		if (error instanceof OpenAI.APIError) {
+			logger.error(
+				{ status: error.status, message: error.message },
+				"OpenAI API error in chat",
+			);
 			if (error.status === 401) {
 				throw new ChatError("AUTHENTICATION_ERROR", "Invalid OpenAI API key");
 			}
@@ -138,6 +148,10 @@ export async function* chat(
 		}
 
 		// Unknown errors
+		logger.error(
+			{ error: error instanceof Error ? error.message : String(error) },
+			"Unknown error in chat",
+		);
 		throw new ChatError(
 			"API_ERROR",
 			`Chat failed: ${error instanceof Error ? error.message : "Unknown error"}`,
