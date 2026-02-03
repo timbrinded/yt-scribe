@@ -409,7 +409,6 @@ describe("POST /api/videos", () => {
 	let db: ReturnType<typeof drizzle<typeof schema>>;
 	let testUserId: number;
 	let validToken: string;
-	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
 	let app: any;
 
 	beforeAll(() => {
@@ -813,7 +812,6 @@ describe("GET /api/videos", () => {
 	let db: ReturnType<typeof drizzle<typeof schema>>;
 	let testUserId: number;
 	let validToken: string;
-	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
 	let app: any;
 
 	beforeAll(() => {
@@ -1185,7 +1183,6 @@ describe("GET /api/videos/:id", () => {
 	let db: ReturnType<typeof drizzle<typeof schema>>;
 	let testUserId: number;
 	let validToken: string;
-	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
 	let app: any;
 
 	beforeAll(() => {
@@ -1555,7 +1552,6 @@ describe("POST /api/videos/:id/retry", () => {
 	let db: ReturnType<typeof drizzle<typeof schema>>;
 	let testUserId: number;
 	let validToken: string;
-	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
 	let app: any;
 
 	beforeAll(() => {

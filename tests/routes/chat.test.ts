@@ -247,7 +247,6 @@ describe("POST /api/videos/:id/chat", () => {
 	let testUserId: number;
 	let validToken: string;
 	let completedVideoId: number;
-	// biome-ignore lint/suspicious/noExplicitAny: Elysia has complex type inference
 	let app: any;
 
 	// Mock chat function

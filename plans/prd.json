@@ -1,7 +1,7 @@
 {
 	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
 	"quality_gates": [
-		"bun run typecheck (tsc --noEmit)",
+		"bun run typecheck",
 		"bun test",
 		"bun run lint (biome check)"
 	],
