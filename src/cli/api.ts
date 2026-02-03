@@ -12,6 +12,33 @@ export interface AddVideoResponse {
 	createdAt: string;
 }
 
+export interface VideoListItem {
+	id: number;
+	youtubeUrl: string;
+	youtubeId: string;
+	title: string | null;
+	duration: number | null;
+	thumbnailUrl: string | null;
+	status: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ListVideosResponse {
+	videos: VideoListItem[];
+	pagination: {
+		limit: number;
+		offset: number;
+		count: number;
+	};
+}
+
+export interface ListVideosOptions {
+	limit?: number;
+	offset?: number;
+	status?: string;
+}
+
 export interface ApiError {
 	error: string;
 	existingVideoId?: number;
@@ -66,6 +93,19 @@ export class ApiClient {
 
 	async addVideo(url: string): Promise<AddVideoResponse> {
 		return this.request<AddVideoResponse>("POST", "/api/videos", { url });
+	}
+
+	async listVideos(options: ListVideosOptions = {}): Promise<ListVideosResponse> {
+		const params = new URLSearchParams();
+		if (options.limit !== undefined) {
+			params.set("limit", String(options.limit));
+		}
+		if (options.offset !== undefined) {
+			params.set("offset", String(options.offset));
+		}
+		const queryString = params.toString();
+		const path = queryString ? `/api/videos?${queryString}` : "/api/videos";
+		return this.request<ListVideosResponse>("GET", path);
 	}
 }
 

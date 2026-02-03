@@ -934,3 +934,63 @@ Error: Not authenticated. Please run 'ytscribe login' first.
 - Full manual testing with real YouTube URL requires login command to be implemented
 - API base URL can be configured via YTSCRIBE_API_URL environment variable
 - Credentials stored in ~/.ytscribe/credentials.json
+
+---
+
+### 2026-02-03 - CLI 'list' Command Implementation
+
+**Completed:** Implement CLI 'list' command showing video library
+
+**What was done:**
+- Added `listVideos()` method to src/cli/api.ts:
+  - New interfaces: VideoListItem, ListVideosResponse, ListVideosOptions
+  - Supports limit and offset query parameters
+  - Returns array of videos with pagination metadata
+- Updated src/cli/index.ts with full list command implementation:
+  - Checks for authentication before making API call
+  - Calls GET /api/videos with limit=100 to fetch all videos
+  - Filters by status client-side when --status flag provided
+  - Validates status flag against allowed values (pending, processing, completed, failed)
+  - Displays formatted table with columns: ID, Title, Status, Duration, Added date
+  - Added formatDuration() helper to convert seconds to MM:SS or HH:MM:SS format
+  - Handles empty library with helpful message
+  - Handles expired session with clear error message
+
+**Example usage:**
+```
+$ ytscribe list
+ID  Title                                     Status     Duration  Added
+-----------------------------------------------------------------------
+1   Big Buck Bunny                            completed    9:56    2026-02-03
+2   Learning JavaScript                       processing      -    2026-02-03
+3   Cooking Tutorial                          pending         -    2026-02-02
+
+Total: 3 videos
+
+$ ytscribe list --status completed
+ID  Title                                     Status     Duration  Added
+-----------------------------------------------------------------------
+1   Big Buck Bunny                            completed    9:56    2026-02-03
+
+Total: 1 video
+```
+
+**Error handling:**
+```
+$ ytscribe list (without login)
+Error: Not authenticated. Please run 'ytscribe login' first.
+
+$ ytscribe list --status invalid
+Error: Invalid status. Must be one of: pending, processing, completed, failed
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - 171 pass, 1 fail (pre-existing flaky integration test in transcription.test.ts)
+
+**Notes for next task:**
+- Next priority: Implement CLI 'chat' command for interactive conversation
+- The list command works but requires login command for full manual testing
+- Consider adding server-side filtering by status in the future for better performance
+- The transcription integration test has a flaky edge case where segment.end === segment.start

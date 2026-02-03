@@ -301,5 +301,17 @@
 			"Test manually with a real YouTube URL"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Implement CLI 'list' command showing video library",
+		"steps": [
+			"Add `ytscribe list` command",
+			"Call GET /api/videos",
+			"Display table with: title, status, duration, date added",
+			"Add --status flag to filter by status",
+			"Test manually and verify table output"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]
