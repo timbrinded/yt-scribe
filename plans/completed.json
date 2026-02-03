@@ -288,5 +288,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Implement CLI 'add' command to queue video via API",
+		"steps": [
+			"Add `ytscribe add <url>` command",
+			"Call POST /api/videos with the URL",
+			"Print video ID and status on success",
+			"Print error message on failure",
+			"Read API base URL from config or env var",
+			"Test manually with a real YouTube URL"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

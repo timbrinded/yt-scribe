@@ -60,7 +60,7 @@
 				"Read API base URL from config or env var",
 				"Test manually with a real YouTube URL"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

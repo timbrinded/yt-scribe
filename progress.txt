@@ -878,3 +878,59 @@ Commands:
 - Commands are stubbed with "(Not yet implemented)" messages
 - Need to implement config/env var for API base URL
 - CLI will need to store credentials in ~/.ytscribe/ for authentication
+
+---
+
+### 2026-02-03 - CLI 'add' Command Implementation
+
+**Completed:** Implement CLI 'add' command to queue video via API
+
+**What was done:**
+- Created src/cli/config.ts for CLI configuration:
+  - Reads YTSCRIBE_API_URL env var or defaults to http://localhost:3000
+  - Exports getConfig() function returning CliConfig interface
+- Created src/cli/api.ts for API communication:
+  - ApiClient class with setSessionToken() and request() methods
+  - addVideo(url) method calling POST /api/videos
+  - ApiRequestError class for typed error handling
+  - AddVideoResponse and ApiError interfaces
+- Created src/cli/credentials.ts for session token storage:
+  - Stores credentials in ~/.ytscribe/credentials.json
+  - loadCredentials(), saveCredentials(), clearCredentials() functions
+  - getSessionToken() convenience function
+- Updated src/cli/index.ts with full add command implementation:
+  - Checks for authentication before making API call
+  - Calls POST /api/videos with the URL
+  - Prints video ID, YouTube ID, status, and creation date on success
+  - Handles error cases: 401 (expired session), 409 (duplicate video), 400 (invalid URL)
+  - Uses proper exit codes (1 for errors)
+
+**Example usage:**
+```
+$ ytscribe add "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+Video added successfully!
+  ID: 1
+  YouTube ID: dQw4w9WgXcQ
+  Status: pending
+  Created: 2026-02-03T12:00:00.000Z
+```
+
+**Error handling:**
+```
+$ ytscribe add "invalid-url"
+Error: Invalid YouTube URL
+
+$ ytscribe add "..." (without login)
+Error: Not authenticated. Please run 'ytscribe login' first.
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests)
+
+**Notes for next task:**
+- Next priority: Implement CLI 'list' command showing video library
+- Full manual testing with real YouTube URL requires login command to be implemented
+- API base URL can be configured via YTSCRIBE_API_URL environment variable
+- Credentials stored in ~/.ytscribe/credentials.json
