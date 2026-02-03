@@ -8,18 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Create video detail page with transcript and chat",
-			"steps": [
-				"Create src/pages/video/[id].astro",
-				"Layout: video info header, two-column (transcript | chat)",
-				"Display scrollable transcript with timestamps",
-				"Embed ChatInterface component for conversation",
-				"Add loading states for both transcript and chat"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add real-time status updates during video processing using SSE",
 			"steps": [
 				"Add GET /api/videos/:id/status/stream SSE endpoint",

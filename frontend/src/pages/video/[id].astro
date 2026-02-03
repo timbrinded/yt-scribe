@@ -1,0 +1,32 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { VideoDetailView } from '../../components/VideoDetailView';
+
+// Get the video ID from the URL
+const { id } = Astro.params;
+
+// Validate that id is a valid number
+const videoId = id ? parseInt(id, 10) : NaN;
+const isValidId = !Number.isNaN(videoId) && videoId > 0;
+---
+
+<AppLayout title="Video - YTScribe" description="View video transcript and chat">
+	<div class="h-screen flex flex-col">
+		{isValidId ? (
+			<VideoDetailView videoId={videoId} client:load />
+		) : (
+			<div class="flex flex-1 items-center justify-center">
+				<div class="text-center">
+					<h1 class="text-lg font-semibold text-neutral-900">Invalid video ID</h1>
+					<p class="mt-2 text-sm text-neutral-500">The video ID must be a valid number.</p>
+					<a
+						href="/library"
+						class="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+					>
+						Back to library
+					</a>
+				</div>
+			</div>
+		)}
+	</div>
+</AppLayout>

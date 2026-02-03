@@ -1572,3 +1572,69 @@ frontend/
 - Demo page available at /demo/chat for testing (requires video with transcript)
 - Consider adding streaming support for better UX with long responses
 - Consider adding message persistence/loading for existing sessions
+
+---
+
+### 2026-02-03 - Video Detail Page with Transcript and Chat
+
+**Completed:** Create video detail page with transcript and chat
+
+**What was done:**
+- Created frontend/src/components/TranscriptPanel.tsx:
+  - Displays scrollable transcript with formatted timestamps (MM:SS or HH:MM:SS)
+  - Clickable timestamps that trigger onTimestampClick callback
+  - Keyboard navigation support (up/down arrows, j/k keys, Escape to exit)
+  - Active segment highlighting with primary color ring
+  - Accessible with proper ARIA attributes (role="list", aria-label)
+  - TranscriptSkeleton component for loading state
+- Created frontend/src/components/VideoDetailView.tsx:
+  - Main view component that fetches video data from GET /api/videos/:id
+  - Video header with thumbnail, title, status badge, duration, YouTube link
+  - Two-column layout: transcript panel (left) | chat panel (right)
+  - Handles all video states: pending, processing, completed, failed
+  - Processing state shows informative message with spinner
+  - Failed state shows error message with link to library for retry
+  - Error states for 401, 403, 404 responses with appropriate messages
+  - Loading skeleton for both header and content areas
+- Created frontend/src/pages/video/[id].astro:
+  - Dynamic route at /video/:id using Astro's file-based routing
+  - Validates video ID is a positive number
+  - Shows error message for invalid IDs with link to library
+  - Uses AppLayout for consistent styling
+- Created comprehensive tests:
+  - frontend/tests/TranscriptPanel.test.tsx (11 tests):
+    - Segment rendering, timestamp formatting, empty state
+    - Click handlers, accessibility attributes, data attributes
+  - frontend/tests/VideoDetailView.test.tsx (19 tests):
+    - Loading, completed, processing, pending, failed states
+    - Error handling (404, 403, 500)
+    - API call verification, component rendering
+
+**Files created:**
+- frontend/src/components/TranscriptPanel.tsx
+- frontend/src/components/VideoDetailView.tsx
+- frontend/src/pages/video/[id].astro
+- frontend/tests/TranscriptPanel.test.tsx
+- frontend/tests/VideoDetailView.test.tsx
+
+**Technical notes:**
+- TranscriptPanel uses Framer Motion's AnimatePresence for keyboard hint animation
+- VideoDetailView reuses existing ChatInterface component
+- Segment refs stored in Map for efficient scroll-to-segment functionality
+- Auto-generated YouTube thumbnail if thumbnailUrl not provided
+- Status badges have distinct styling for each state (pending=gray, processing=purple with pulse, ready=green, failed=red)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (81 tests, 30 new)
+- `bun run build` (frontend) - passes
+- Bundle size: VideoDetailView.DeLGn2vb.js (14.43 kB)
+
+**Notes for next task:**
+- Next priority: Add real-time status updates during video processing using SSE
+- The video detail page is fully functional for completed videos
+- Consider adding polling or SSE for processing videos to auto-refresh on completion
+- Transcript timestamps could be enhanced to link to YouTube player timestamps
+- Consider implementing the timestamp navigation context for cross-panel highlighting
