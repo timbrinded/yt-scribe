@@ -3,7 +3,7 @@
 	"quality_gates": [
 		"bun run typecheck",
 		"bun test",
-		"bun run lint (biome check)"
+		"bun run lint"
 	],
 	"tasks": [
 		{
