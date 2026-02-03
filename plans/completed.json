@@ -429,5 +429,19 @@
 			"Write Vitest component test for rendering"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Create 'add video' modal with URL input",
+		"steps": [
+			"Create src/components/AddVideoModal.tsx",
+			"Modal with URL input field and submit button",
+			"Add entrance/exit animations with AnimatePresence",
+			"Validate URL format on blur",
+			"Submit to POST /api/videos on form submit",
+			"Show loading state during submission",
+			"Close modal and refresh library on success"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

@@ -8,20 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Create 'add video' modal with URL input",
-			"steps": [
-				"Create src/components/AddVideoModal.tsx",
-				"Modal with URL input field and submit button",
-				"Add entrance/exit animations with AnimatePresence",
-				"Validate URL format on blur",
-				"Submit to POST /api/videos on form submit",
-				"Show loading state during submission",
-				"Close modal and refresh library on success"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Set up assistant-ui for chat interface",
 			"steps": [
 				"Install assistant-ui: `cd frontend && bun add @assistant-ui/react @assistant-ui/react-ui`",

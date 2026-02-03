@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { VideoGrid, type VideoItem } from "./VideoGrid";
 import { MotionWrapper } from "./MotionWrapper";
+import { AddVideoModal } from "./AddVideoModal";
 
 /**
  * API configuration
@@ -41,6 +42,7 @@ export function LibraryView({ initialVideos }: LibraryViewProps) {
 	const [isLoading, setIsLoading] = useState(!initialVideos);
 	const [error, setError] = useState<string | null>(null);
 	const [isUnauthorized, setIsUnauthorized] = useState(false);
+	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
 	const loadVideos = useCallback(async () => {
 		try {
@@ -195,10 +197,7 @@ export function LibraryView({ initialVideos }: LibraryViewProps) {
 						transition={{ delay: 0.2 }}
 						whileHover={{ scale: 1.02 }}
 						whileTap={{ scale: 0.98 }}
-						onClick={() => {
-							// This will be connected to AddVideoModal later
-							console.log("Add video clicked");
-						}}
+						onClick={() => setIsAddModalOpen(true)}
 						className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-700"
 					>
 						<svg
@@ -222,6 +221,29 @@ export function LibraryView({ initialVideos }: LibraryViewProps) {
 						isLoading={isLoading}
 					/>
 				</AnimatePresence>
+
+				{/* Add Video Modal */}
+				<AddVideoModal
+					isOpen={isAddModalOpen}
+					onClose={() => setIsAddModalOpen(false)}
+					onSuccess={(video) => {
+						// Add the new video to the beginning of the list
+						setVideos((prev) => [
+							{
+								id: video.id,
+								youtubeId: video.youtubeId,
+								youtubeUrl: video.youtubeUrl,
+								title: null,
+								duration: null,
+								thumbnailUrl: null,
+								status: video.status as VideoItem["status"],
+								createdAt: video.createdAt,
+								updatedAt: video.createdAt,
+							},
+							...prev,
+						]);
+					}}
+				/>
 			</m.div>
 		</MotionWrapper>
 	);

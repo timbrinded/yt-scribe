@@ -1459,3 +1459,57 @@ frontend/
 - Library page is functional but needs AddVideoModal to be complete
 - The LibraryView has a placeholder onClick for the "Add Video" button
 - Consider implementing frontend authentication flow to fully test the library page
+
+---
+
+### 2026-02-03 - Add Video Modal with URL Input
+
+**Completed:** Create 'add video' modal with URL input
+
+**What was done:**
+- Created frontend/src/components/AddVideoModal.tsx with:
+  - Modal with URL input field and submit button
+  - Entrance/exit animations using AnimatePresence
+  - URL validation on blur (supports youtube.com, youtu.be, /shorts/, /live/, /embed/)
+  - POST /api/videos form submission with proper error handling
+  - Loading state during submission (spinner animation)
+  - Success callback to close modal and add video to library
+  - Error handling for 401 (unauthorized), 409 (duplicate), 400 (invalid URL)
+  - Escape key support for closing modal
+  - Backdrop click support for closing modal
+  - Focus management (auto-focus on input when modal opens)
+- Updated frontend/src/components/LibraryView.tsx to:
+  - Import and render AddVideoModal
+  - Control modal open/close state
+  - Handle onSuccess to add new video to beginning of list
+- Created comprehensive tests in frontend/tests/AddVideoModal.test.tsx:
+  - 21 tests covering rendering, validation, submission, error handling
+  - Mock framer-motion to avoid animation issues
+  - Mock fetch for API interaction tests
+
+**Files created/modified:**
+- frontend/src/components/AddVideoModal.tsx (new)
+- frontend/src/components/LibraryView.tsx (modified)
+- frontend/tests/AddVideoModal.test.tsx (new)
+
+**Technical notes:**
+- Modal uses LazyMotion via MotionWrapper for smaller bundle size
+- URL validation regex handles all YouTube URL formats
+- AnimatePresence provides smooth enter/exit transitions
+- Form prevents submission while loading
+- State resets when modal closes for clean reopening
+- Modal accessible with keyboard (Escape to close, Tab navigation)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (41 tests, 21 new)
+- `bun run build` (frontend) - passes
+- Bundle size: LibraryView.CglyVa3c.js (18.08 kB, increased due to AddVideoModal)
+
+**Notes for next task:**
+- Next priority: Set up assistant-ui for chat interface
+- The AddVideoModal is fully functional and integrated with LibraryView
+- Consider adding debounced URL validation for better UX
+- Modal can be further enhanced with thumbnail preview of video being added
