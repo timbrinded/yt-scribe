@@ -340,5 +340,18 @@
 			"Test login flow manually"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Initialize Astro project for frontend with React integration",
+		"steps": [
+			"Run `bun create astro@latest frontend` with TypeScript template",
+			"Add React integration: `cd frontend && bunx astro add react`",
+			"Configure output: 'server' for SSR in astro.config.mjs",
+			"Add @astrojs/node adapter for SSR builds",
+			"Verify `bun run dev` starts frontend on port 4321",
+			"Verify `bun run build` completes without errors"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]
