@@ -47,7 +47,7 @@
 				"Run `bun run src/cli/index.ts --help` and verify output",
 				"Run `bun run typecheck`"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

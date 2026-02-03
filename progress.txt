@@ -833,3 +833,48 @@ const app = new Elysia()
   - GET /api/videos/:id/sessions - list sessions for a video
   - GET /api/sessions/:id/messages - get full conversation
 - Consider adding session title auto-generation from first message in the future
+
+---
+
+### 2026-02-03 - CLI Entry Point with CAC
+
+**Completed:** Create CLI entry point with CAC for command parsing
+
+**What was done:**
+- Installed CAC package for CLI command parsing: `bun add cac`
+- Created src/cli/index.ts as CLI entry point with:
+  - `ytscribe add <url>` command stub for adding videos
+  - `ytscribe list` command stub with --status filter option
+  - `ytscribe chat <video-id>` command stub for interactive chat
+  - `ytscribe login` command stub for OAuth authentication
+  - `ytscribe logout` command stub for clearing credentials
+  - Automatic --help and --version flags via CAC
+- Added bin field to package.json pointing to ./src/cli/index.ts
+- CLI uses shebang `#!/usr/bin/env bun` for direct execution
+- Verified `bun run src/cli/index.ts --help` shows all commands with descriptions
+
+**CLI --help output:**
+```
+ytscribe/0.1.0
+
+Usage:
+  $ ytscribe <command> [options]
+
+Commands:
+  add <url>        Add a YouTube video to your library for transcription
+  list             List all videos in your library
+  chat <video-id>  Start an interactive chat session about a video
+  login            Authenticate with your account via Google OAuth
+  logout           Clear stored credentials
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests)
+
+**Notes for next task:**
+- Next priority: Implement CLI 'add' command to queue video via API
+- Commands are stubbed with "(Not yet implemented)" messages
+- Need to implement config/env var for API base URL
+- CLI will need to store credentials in ~/.ytscribe/ for authentication

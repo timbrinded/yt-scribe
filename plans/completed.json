@@ -275,5 +275,18 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Create CLI entry point with CAC for command parsing",
+		"steps": [
+			"Install CAC: `bun add cac`",
+			"Create src/cli/index.ts as CLI entry point",
+			"Add bin field to package.json pointing to cli",
+			"Implement `ytscribe --help` showing available commands",
+			"Run `bun run src/cli/index.ts --help` and verify output",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

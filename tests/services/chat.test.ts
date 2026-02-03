@@ -33,25 +33,19 @@ describe("Chat Service", () => {
 		// We test the exported functions work and handle parameters correctly
 		// The actual OpenAI calls are tested via integration tests
 
-		test("chat function exists and is async generator", async () => {
-			// Verify the function signature
-			const transcript = "Test transcript";
-			const messages: ChatMessage[] = [];
-			const userMessage = "Test message";
-
-			// The function should return an async iterator
-			const result = chat(transcript, messages, userMessage);
-			expect(typeof result[Symbol.asyncIterator]).toBe("function");
+		test("chat function exists and is async generator function", () => {
+			// Verify the function exists and is the right type
+			// Don't actually call it to avoid creating OpenAI connections
+			expect(typeof chat).toBe("function");
+			// Async generator functions have this constructor name
+			expect(chat.constructor.name).toBe("AsyncGeneratorFunction");
 		});
 
-		test("chatComplete function exists and returns Promise", () => {
-			// Verify the function signature
-			const transcript = "Test transcript";
-			const messages: ChatMessage[] = [];
-			const userMessage = "Test message";
-
-			const result = chatComplete(transcript, messages, userMessage);
-			expect(result).toBeInstanceOf(Promise);
+		test("chatComplete function exists and is async function", () => {
+			// Verify the function exists and is the right type
+			// Don't actually call it to avoid creating OpenAI connections
+			expect(typeof chatComplete).toBe("function");
+			expect(chatComplete.constructor.name).toBe("AsyncFunction");
 		});
 
 		test("ChatMessage interface supports user and assistant roles", () => {

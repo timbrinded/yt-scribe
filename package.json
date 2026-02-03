@@ -3,6 +3,9 @@
 	"private": true,
 	"type": "module",
 	"module": "index.ts",
+	"bin": {
+		"ytscribe": "./src/cli/index.ts"
+	},
 	"scripts": {
 		"start": "bun run src/server.ts",
 		"dev": "bun --hot run src/server.ts",
@@ -17,6 +20,7 @@
 	"dependencies": {
 		"@elysiajs/cors": "^1.4.1",
 		"arctic": "^3.7.0",
+		"cac": "^6.7.14",
 		"drizzle-orm": "^0.45.1",
 		"elysia": "^1.4.22",
 		"openai": "^6.17.0"

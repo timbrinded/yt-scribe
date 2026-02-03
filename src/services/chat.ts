@@ -5,7 +5,15 @@ import type { MessageRole } from "../db/schema";
  * Chat service using OpenAI GPT-4o for transcript-based conversations
  */
 
-const openai = new OpenAI();
+// Lazy-initialized OpenAI client to avoid keeping connections open at module load
+let _openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+	if (!_openai) {
+		_openai = new OpenAI();
+	}
+	return _openai;
+}
 
 /**
  * Message format for chat history
@@ -91,7 +99,7 @@ export async function* chat(
 	];
 
 	try {
-		const stream = await openai.chat.completions.create({
+		const stream = await getOpenAI().chat.completions.create({
 			model: "gpt-4o",
 			messages: allMessages,
 			stream: true,

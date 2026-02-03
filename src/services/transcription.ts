@@ -5,7 +5,15 @@ import type { TranscriptSegment } from "../db/schema";
  * Audio transcription service using OpenAI Whisper API
  */
 
-const openai = new OpenAI();
+// Lazy-initialized OpenAI client to avoid keeping connections open at module load
+let _openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+	if (!_openai) {
+		_openai = new OpenAI();
+	}
+	return _openai;
+}
 
 /**
  * Result of transcription including full text and timestamped segments
@@ -101,7 +109,7 @@ export async function transcribeAudio(
 
 	try {
 		// Call OpenAI Whisper API with verbose_json for timestamps
-		const transcription = await openai.audio.transcriptions.create({
+		const transcription = await getOpenAI().audio.transcriptions.create({
 			file: file,
 			model: "whisper-1",
 			response_format: "verbose_json",

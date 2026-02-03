@@ -13,5 +13,9 @@ export default defineConfig({
 		pool: "forks",
 		// Reduce teardown timeout to exit faster
 		teardownTimeout: 1000,
+		// Force exit after tests complete to avoid hanging from open handles
+		// (e.g., OpenAI SDK HTTP connections, database connections)
+		// @ts-expect-error - forceExit works at runtime with bun test but isn't in vitest types
+		forceExit: true,
 	},
 });
