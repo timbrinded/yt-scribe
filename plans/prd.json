@@ -64,19 +64,6 @@
 		},
 		{
 			"category": "functional",
-			"description": "Implement CLI 'chat' command for interactive conversation",
-			"steps": [
-				"Add `ytscribe chat <video-id>` command",
-				"Start interactive REPL loop",
-				"Send user input to POST /api/videos/:id/chat",
-				"Print assistant response",
-				"Support 'exit' or Ctrl+C to quit",
-				"Test manually with a transcribed video"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add CLI authentication flow for OAuth",
 			"steps": [
 				"Add `ytscribe login` command",

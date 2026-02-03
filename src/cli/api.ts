@@ -39,6 +39,15 @@ export interface ListVideosOptions {
 	status?: string;
 }
 
+export interface ChatResponse {
+	sessionId: number;
+	response: string;
+}
+
+export interface ChatOptions {
+	sessionId?: number;
+}
+
 export interface ApiError {
 	error: string;
 	existingVideoId?: number;
@@ -106,6 +115,18 @@ export class ApiClient {
 		const queryString = params.toString();
 		const path = queryString ? `/api/videos?${queryString}` : "/api/videos";
 		return this.request<ListVideosResponse>("GET", path);
+	}
+
+	async sendChatMessage(
+		videoId: number,
+		message: string,
+		options: ChatOptions = {},
+	): Promise<ChatResponse> {
+		const body: { message: string; sessionId?: number } = { message };
+		if (options.sessionId !== undefined) {
+			body.sessionId = options.sessionId;
+		}
+		return this.request<ChatResponse>("POST", `/api/videos/${videoId}/chat`, body);
 	}
 }
 

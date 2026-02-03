@@ -313,5 +313,18 @@
 			"Test manually and verify table output"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Implement CLI 'chat' command for interactive conversation",
+		"steps": [
+			"Add `ytscribe chat <video-id>` command",
+			"Start interactive REPL loop",
+			"Send user input to POST /api/videos/:id/chat",
+			"Print assistant response",
+			"Support 'exit' or Ctrl+C to quit",
+			"Test manually with a transcribed video"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

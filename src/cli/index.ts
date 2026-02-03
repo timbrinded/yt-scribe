@@ -151,9 +151,100 @@ cli
 // Chat command - interactive conversation with video transcript
 cli
 	.command("chat <video-id>", "Start an interactive chat session about a video")
-	.action((videoId: string) => {
-		console.log(`Starting chat for video: ${videoId}`);
-		console.log("(Not yet implemented)");
+	.action(async (videoId: string) => {
+		const sessionToken = getSessionToken();
+
+		if (!sessionToken) {
+			console.error("Error: Not authenticated. Please run 'ytscribe login' first.");
+			process.exit(1);
+		}
+
+		// Validate video ID is a number
+		const parsedVideoId = Number.parseInt(videoId, 10);
+		if (Number.isNaN(parsedVideoId)) {
+			console.error("Error: Invalid video ID. Must be a number.");
+			process.exit(1);
+		}
+
+		const client = new ApiClient();
+		client.setSessionToken(sessionToken);
+
+		console.log(`Starting chat for video ${parsedVideoId}...`);
+		console.log('Type your message and press Enter. Type "exit" or "quit" to end the session.\n');
+
+		let currentSessionId: number | undefined;
+
+		// Create readline interface for interactive input
+		const rl = await import("node:readline");
+		const readline = rl.createInterface({
+			input: process.stdin,
+			output: process.stdout,
+		});
+
+		const prompt = () => {
+			readline.question("You: ", async (input) => {
+				const trimmedInput = input.trim();
+
+				// Check for exit commands
+				if (trimmedInput.toLowerCase() === "exit" || trimmedInput.toLowerCase() === "quit") {
+					console.log("\nGoodbye!");
+					readline.close();
+					process.exit(0);
+				}
+
+				// Skip empty input
+				if (!trimmedInput) {
+					prompt();
+					return;
+				}
+
+				try {
+					const result = await client.sendChatMessage(parsedVideoId, trimmedInput, {
+						sessionId: currentSessionId,
+					});
+
+					// Store session ID for subsequent messages
+					currentSessionId = result.sessionId;
+
+					// Display assistant response
+					console.log(`\nAssistant: ${result.response}\n`);
+				} catch (error) {
+					if (error instanceof ApiRequestError) {
+						if (error.statusCode === 401) {
+							console.error("\nError: Session expired. Please run 'ytscribe login' again.");
+							readline.close();
+							process.exit(1);
+						} else if (error.statusCode === 404) {
+							console.error(`\nError: Video not found (ID: ${parsedVideoId})`);
+							readline.close();
+							process.exit(1);
+						} else if (error.statusCode === 403) {
+							console.error("\nError: You don't have access to this video.");
+							readline.close();
+							process.exit(1);
+						} else if (error.statusCode === 400) {
+							console.error(`\nError: ${error.message}`);
+							readline.close();
+							process.exit(1);
+						} else {
+							console.error(`\nError: ${error.message}\n`);
+						}
+					} else {
+						console.error(`\nError: An unexpected error occurred.\n`);
+					}
+				}
+
+				prompt();
+			});
+		};
+
+		// Handle Ctrl+C gracefully
+		readline.on("close", () => {
+			console.log("\nGoodbye!");
+			process.exit(0);
+		});
+
+		prompt();
 	});
 
 // Login command - OAuth authentication

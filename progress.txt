@@ -994,3 +994,62 @@ Error: Invalid status. Must be one of: pending, processing, completed, failed
 - The list command works but requires login command for full manual testing
 - Consider adding server-side filtering by status in the future for better performance
 - The transcription integration test has a flaky edge case where segment.end === segment.start
+
+---
+
+### 2026-02-03 - CLI 'chat' Command Implementation
+
+**Completed:** Implement CLI 'chat' command for interactive conversation
+
+**What was done:**
+- Added `sendChatMessage()` method to src/cli/api.ts:
+  - New interfaces: ChatResponse, ChatOptions
+  - Calls POST /api/videos/:id/chat with message and optional sessionId
+  - Returns sessionId and response for continuing conversation
+- Updated src/cli/index.ts with full chat command implementation:
+  - Validates video ID is a number before starting
+  - Checks for authentication before making API call
+  - Uses Node.js readline module for interactive REPL loop
+  - Maintains session ID across messages for conversation continuity
+  - Supports 'exit' and 'quit' commands to end session
+  - Handles Ctrl+C gracefully with "Goodbye!" message
+  - Error handling for various API response codes (401, 403, 404, 400)
+  - Displays assistant response with clear formatting
+
+**Example usage:**
+```
+$ ytscribe chat 1
+Starting chat for video 1...
+Type your message and press Enter. Type "exit" or "quit" to end the session.
+
+You: What is this video about?
+
+Assistant: This video is about...
+
+You: exit
+
+Goodbye\!
+```
+
+**Error handling:**
+```
+$ ytscribe chat abc
+Error: Invalid video ID. Must be a number.
+
+$ ytscribe chat 999
+Error: Video not found (ID: 999)
+
+$ ytscribe chat 1 (without login)
+Error: Not authenticated. Please run 'ytscribe login' first.
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests)
+
+**Notes for next task:**
+- Next priority: Add CLI authentication flow for OAuth
+- The chat command works but requires login command for full manual testing
+- Session ID is maintained across messages for conversation continuity
+- Interactive REPL uses Node.js readline module for cross-platform compatibility
