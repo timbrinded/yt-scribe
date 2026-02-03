@@ -1,0 +1,10 @@
+---
+import LandingLayout from '../../layouts/LandingLayout.astro';
+import { ProcessingDemo } from '../../components/ProcessingDemo';
+---
+
+<LandingLayout title="Processing Animation Demo - YTScribe">
+	<main class="container mx-auto py-12">
+		<ProcessingDemo client:load />
+	</main>
+</LandingLayout>

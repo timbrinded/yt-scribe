@@ -1317,3 +1317,62 @@ frontend/
 - The LandingLayout can be extended with additional sections (pricing, testimonials, etc.)
 - AnimatedCard component is still available but not currently used (replaced by Features)
 - Consider adding a "How it works" section with the processing animation preview
+
+---
+
+### 2026-02-03 - Processing Animation Component
+
+**Completed:** Create processing animation component showing pipeline progress
+
+**What was done:**
+- Created frontend/src/components/ProcessingAnimation.tsx:
+  - Shows 4 pipeline stages: Downloading → Extracting Audio → Transcribing → Complete
+  - ProcessingStage type: "idle" | "downloading" | "extracting" | "transcribing" | "complete" | "error"
+  - Each stage has icon, label, and description
+  - Animated spinner for active stage
+  - Optional progress bar with percentage for current stage
+  - Checkmark animation for completed stages
+  - Error state with error message display
+  - Connector lines between stages with animated fill
+  - Celebration animation on complete (spring-animated checkmark)
+  - Uses MotionWrapper with LazyMotion for optimal bundle size
+- Created frontend/src/components/ProcessingDemo.tsx:
+  - Interactive demo component for testing the animation
+  - Auto-play mode that cycles through all stages with simulated progress
+  - Manual stage buttons for direct testing
+  - Start Demo, Show Error, and Reset controls
+- Created frontend/src/pages/demo/processing.astro:
+  - Demo page accessible at /demo/processing
+  - Uses LandingLayout for consistent styling
+
+**Technical notes:**
+- Uses Framer Motion's AnimatePresence for stage icon transitions
+- Stage transitions use custom easing [0.22, 1, 0.36, 1] for smooth feel
+- Progress bar animates smoothly with easeOut transition
+- Complete state uses spring animation (stiffness: 200, damping: 10)
+- Stage configs stored as Record for type safety
+- Component accepts className prop for custom styling
+- Error state shows custom error message or default fallback
+
+**Component API:**
+```typescript
+<ProcessingAnimation
+  currentStage="downloading" | "extracting" | "transcribing" | "complete" | "error" | "idle"
+  progress={45}  // Optional: 0-100 percentage for progress bar
+  errorMessage="Custom error message"  // Optional: shown in error state
+  className="custom-styles"  // Optional: additional CSS classes
+/>
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (171 pass, 1 fail - pre-existing flaky YouTube download test)
+- `bun run build` (frontend) - passes
+- Bundle size: ProcessingDemo.DHbpNIaZ.js (12.44 kB)
+
+**Notes for next task:**
+- Next priority: Create video library page with grid view
+- ProcessingAnimation is ready to be integrated with real-time SSE status updates
+- Demo page at /demo/processing useful for testing animation changes
+- Consider using ProcessingAnimation in AddVideoModal or a dedicated processing view
