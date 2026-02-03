@@ -69,18 +69,6 @@
 		},
 		{
 			"category": "reliability",
-			"description": "Add error boundary and error pages",
-			"steps": [
-				"Create src/components/ErrorBoundary.tsx React error boundary",
-				"Create src/pages/404.astro custom 404 page",
-				"Create src/pages/500.astro custom 500 page",
-				"Style error pages consistently with app design",
-				"Test by throwing error in component"
-			],
-			"passes": false
-		},
-		{
-			"category": "reliability",
 			"description": "Add comprehensive logging to backend",
 			"steps": [
 				"Install pino: `bun add pino pino-pretty`",

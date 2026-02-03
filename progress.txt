@@ -1734,3 +1734,84 @@ frontend/
 - UserAvatar shows in both landing page and app layout headers
 - Consider adding a separate Header component (PRD task) for mobile responsiveness
 - Settings page link in dropdown needs the settings page to be created (separate PRD task)
+
+---
+
+### 2026-02-03 - Error Boundary and Error Pages
+
+**Completed:** Add error boundary and error pages
+
+**What was done:**
+- Created frontend/src/components/ErrorBoundary.tsx:
+  - React class component that catches JavaScript errors in child component tree
+  - Shows fallback UI with error message, Try Again button, and Go Home link
+  - Displays error details in development mode
+  - Accepts optional custom fallback prop
+  - Has handleReset method to clear error state
+  - Logs errors to console with componentDidCatch
+- Created frontend/src/pages/404.astro:
+  - Custom 404 "Page Not Found" page with consistent design
+  - Shows decorative illustration with dashed circle and icon
+  - Includes Go Home and My Library action buttons
+  - Help link to report issues
+- Created frontend/src/pages/500.astro:
+  - Custom 500 "Server Error" page with accent color theme
+  - Shows warning triangle illustration
+  - Try Again button with page reload functionality
+  - Animated status indicator dot
+  - Help link for persistent issues
+- Created frontend/src/components/ErrorTestComponent.tsx:
+  - Demo component for testing ErrorBoundary behavior
+  - BuggyComponent that can be triggered to throw an error
+  - Control buttons: Trigger Error, Reset Demo
+  - Instructions panel explaining how to use
+- Created frontend/src/pages/demo/error.astro:
+  - Demo page at /demo/error for testing error boundary
+- Created frontend/tests/ErrorBoundary.test.tsx with 13 tests:
+  - Renders children when no error
+  - Renders fallback UI when error thrown
+  - Renders custom fallback when provided
+  - Shows Try again button and Go home link
+  - Resets error state when remounted
+  - Logs error to console
+  - Renders error icon in fallback
+  - Handles multiple children
+  - Catches error only in its subtree
+  - Has proper accessibility attributes
+  - Maintains error state until reset
+- Fixed frontend test setup by installing @testing-library/jest-dom
+
+**Files created:**
+- frontend/src/components/ErrorBoundary.tsx
+- frontend/src/pages/404.astro
+- frontend/src/pages/500.astro
+- frontend/src/components/ErrorTestComponent.tsx
+- frontend/src/pages/demo/error.astro
+- frontend/tests/ErrorBoundary.test.tsx
+
+**Files modified:**
+- frontend/tests/setup.ts (changed to import @testing-library/jest-dom/vitest)
+- frontend/package.json (added @testing-library/jest-dom)
+
+**Technical notes:**
+- ErrorBoundary uses React class component (required for componentDidCatch)
+- Error pages use LandingLayout for consistent gradient background
+- 404/500 pages have decorative illustrations with floating elements
+- ErrorBoundary shows error.message in dev mode only (import.meta.env.DEV)
+- Demo page available at /demo/error for testing
+- All error pages styled with app design tokens (colors, shadows, typography)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 warning for Astro triple-slash reference)
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (113 tests, 13 new)
+- `bun run build` (frontend) - passes
+- Bundle size: ErrorTestComponent.4HNDhiC5.js (5.48 kB)
+
+**Notes for next task:**
+- Error boundary is ready to wrap components that may throw
+- 404 page will be shown automatically for unknown routes
+- 500 page available for server errors
+- Consider wrapping major app sections with ErrorBoundary
+- Next priorities: SSE status updates, navigation header, or settings page

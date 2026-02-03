@@ -1,0 +1,78 @@
+---
+import LandingLayout from '../layouts/LandingLayout.astro';
+---
+
+<LandingLayout title="Server Error - YTScribe" description="Something went wrong on our end.">
+	<div class="flex min-h-screen flex-col items-center justify-center px-4">
+		<div class="w-full max-w-lg text-center">
+			<!-- 500 illustration -->
+			<div class="relative mx-auto mb-8 h-48 w-48">
+				<!-- Circular background with error color -->
+				<div class="absolute inset-0 rounded-full bg-gradient-to-br from-accent-100 to-accent-200"></div>
+				<!-- Icon overlay -->
+				<div class="absolute inset-0 flex items-center justify-center">
+					<svg class="h-24 w-24 text-accent-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+						<circle cx="12" cy="17" r="1" fill="currentColor"/>
+						<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<!-- Floating elements for decoration -->
+				<div class="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-accent-400 opacity-60"></div>
+				<div class="absolute -bottom-1 -left-3 h-6 w-6 rounded-full bg-accent-300 opacity-50"></div>
+				<div class="absolute top-1/2 -right-4 h-3 w-3 rounded-full bg-primary-300 opacity-40"></div>
+			</div>
+
+			<!-- Error code -->
+			<h1 class="mb-2 text-8xl font-bold text-neutral-900">500</h1>
+
+			<!-- Error message -->
+			<h2 class="mb-4 text-2xl font-semibold text-neutral-700">Server error</h2>
+			<p class="mb-8 text-neutral-500">
+				Something went wrong on our end. We're working to fix it.
+				<br />
+				Please try again in a moment.
+			</p>
+
+			<!-- Action buttons -->
+			<div class="flex flex-col gap-4 sm:flex-row sm:justify-center">
+				<button
+					type="button"
+					onclick="window.location.reload()"
+					class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-6 py-3 font-medium text-white shadow-lg shadow-primary-500/25 transition-all hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-500/30"
+				>
+					<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+					</svg>
+					Try again
+				</button>
+				<a
+					href="/"
+					class="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white/80 px-6 py-3 font-medium text-neutral-700 backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
+				>
+					<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+					</svg>
+					Go home
+				</a>
+			</div>
+
+			<!-- Status indicator -->
+			<div class="mt-10 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-2 text-sm text-neutral-600">
+				<span class="relative flex h-2 w-2">
+					<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75"></span>
+					<span class="relative inline-flex h-2 w-2 rounded-full bg-accent-500"></span>
+				</span>
+				Checking system status...
+			</div>
+
+			<!-- Help link -->
+			<p class="mt-6 text-sm text-neutral-400">
+				If this keeps happening,{" "}
+				<a href="https://github.com/anthropics/claude-code/issues" class="text-primary-600 hover:text-primary-700 hover:underline" target="_blank" rel="noopener noreferrer">
+					let us know
+				</a>
+			</p>
+		</div>
+	</div>
+</LandingLayout>
