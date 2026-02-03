@@ -8,18 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Set up Tailwind CSS with custom design tokens",
-			"steps": [
-				"Add Tailwind: `cd frontend && bunx astro add tailwind`",
-				"Create tailwind.config.mjs with custom colors and fonts",
-				"Add CSS reset and base styles in src/styles/global.css",
-				"Verify styles applied to index page",
-				"Run `bun run build` and verify no errors"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Install and configure Framer Motion for React animations",
 			"steps": [
 				"Install: `cd frontend && bun add framer-motion`",

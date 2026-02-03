@@ -1173,3 +1173,55 @@ frontend/
 - Frontend is ready for Tailwind integration
 - Consider adding a workspace-level script to run both frontend and backend
 - The index.astro is a placeholder and will be replaced with proper landing page
+
+---
+
+### 2026-02-03 - Tailwind CSS Setup with Custom Design Tokens
+
+**Completed:** Set up Tailwind CSS with custom design tokens
+
+**What was done:**
+- Added Tailwind CSS v4 via `bunx astro add tailwind`
+- Installed @tailwindcss/vite@4.1.18 and tailwindcss@4.1.18
+- Updated astro.config.mjs with Tailwind Vite plugin
+- Created comprehensive design tokens in src/styles/global.css using Tailwind v4's @theme directive:
+  - Primary color palette (purple-ish, 11 shades using OKLCH color space)
+  - Accent color palette (YouTube-inspired red, 11 shades)
+  - Neutral gray scale (11 shades)
+  - Status colors (success, warning, error)
+  - Typography: Inter for sans-serif, JetBrains Mono for monospace
+  - Font sizes with matching line heights
+  - Full spacing scale (0-96)
+  - Border radius scale
+  - Shadow scale (sm, default, md, lg, xl, 2xl)
+  - Transition durations
+  - Z-index scale for layers (dropdown, sticky, modal, tooltip, etc.)
+- Added CSS reset and base styles following modern best practices
+- Added focus-visible styles for accessibility
+- Added prefers-reduced-motion media query support
+- Updated index.astro to:
+  - Import global.css
+  - Use Tailwind utility classes
+  - Include Google Fonts for Inter and JetBrains Mono
+  - Show a basic landing page with styled buttons demonstrating the design system
+- Verified dev server renders styles correctly
+- Verified production build completes without errors
+
+**Technical notes:**
+- Tailwind v4 uses @theme directive in CSS instead of separate config file
+- Uses OKLCH color space for perceptually uniform color gradients
+- Design tokens are available as CSS custom properties (e.g., --color-primary-500)
+- Tailwind generates utility classes automatically from @theme tokens
+- Inter font loaded from Google Fonts with weights 400, 500, 600, 700
+- JetBrains Mono loaded with weights 400, 500 for code display
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - 171 pass, 1 fail (pre-existing flaky YouTube download test)
+
+**Notes for next task:**
+- Next priority: Install and configure Framer Motion for React animations
+- Design tokens are ready to use throughout the frontend
+- Consider creating a design system documentation page to showcase all tokens
+- The index.astro now has basic styling but will be enhanced with Framer Motion animations

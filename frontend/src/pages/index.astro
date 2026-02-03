@@ -1,5 +1,5 @@
 ---
-
+import '../styles/global.css';
 ---
 
 <html lang="en">
@@ -9,9 +9,31 @@
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>YTScribe - YouTube Video Knowledge Base</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 	</head>
-	<body>
-		<h1>Astro</h1>
+	<body class="min-h-screen">
+		<main class="container mx-auto px-4 py-16">
+			<h1 class="text-4xl font-bold text-primary-600 mb-4">YTScribe</h1>
+			<p class="text-lg text-neutral-600 mb-8">
+				Transform YouTube videos into searchable knowledge bases with AI-powered transcription and chat.
+			</p>
+			<div class="flex gap-4">
+				<a
+					href="/login"
+					class="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors duration-200"
+				>
+					Get Started
+				</a>
+				<a
+					href="#features"
+					class="inline-flex items-center px-6 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 transition-colors duration-200"
+				>
+					Learn More
+				</a>
+			</div>
+		</main>
 	</body>
 </html>
