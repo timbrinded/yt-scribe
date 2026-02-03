@@ -8,18 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Install and configure Framer Motion for React animations",
-			"steps": [
-				"Install: `cd frontend && bun add framer-motion`",
-				"Create src/components/MotionWrapper.tsx for lazy loading",
-				"Create simple animated component to verify setup",
-				"Add component to a test page with client:load",
-				"Verify animation plays in browser"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Create animated landing page layout with hero section",
 			"steps": [
 				"Create src/layouts/LandingLayout.astro",

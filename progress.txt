@@ -1225,3 +1225,43 @@ frontend/
 - Design tokens are ready to use throughout the frontend
 - Consider creating a design system documentation page to showcase all tokens
 - The index.astro now has basic styling but will be enhanced with Framer Motion animations
+
+---
+
+### 2026-02-03 - Framer Motion Setup
+
+**Completed:** Install and configure Framer Motion for React animations
+
+**What was done:**
+- Installed framer-motion v12.31.0 in the frontend directory
+- Created src/components/MotionWrapper.tsx:
+  - Uses LazyMotion with domAnimation features for smaller bundle (~17kb vs ~45kb)
+  - Strict mode enabled for better debugging
+  - Wrapper component pattern for consistent usage
+- Created src/components/AnimatedCard.tsx:
+  - Simple demo component showing fade-in and slide-up animation
+  - Accepts children and optional delay prop for staggered animations
+  - Uses `m` component from framer-motion (lazy-compatible)
+- Updated src/pages/index.astro:
+  - Added three AnimatedCard components showcasing features
+  - Cards have staggered delays (0, 0.1, 0.2 seconds)
+  - Used client:load directive for client-side hydration
+- Verified build succeeds with AnimatedCard bundled (72.70 kB)
+
+**Technical notes:**
+- Using `m` instead of `motion` when inside LazyMotion context
+- LazyMotion with domAnimation provides animations without gesture support (smaller bundle)
+- The `strict` prop on LazyMotion enforces that all m.* components are inside the provider
+- client:load in Astro hydrates the component immediately on page load
+- Animation: initial={{ opacity: 0, y: 20 }} → animate={{ opacity: 1, y: 0 }}
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests)
+
+**Notes for next task:**
+- Next priority: Create animated landing page layout with hero section
+- MotionWrapper is ready to be used by other animated components
+- Consider creating animation presets/variants for consistency
+- The AnimatedCard can serve as a template for other animated components

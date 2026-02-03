@@ -365,5 +365,17 @@
 			"Run `bun run build` and verify no errors"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Install and configure Framer Motion for React animations",
+		"steps": [
+			"Install: `cd frontend && bun add framer-motion`",
+			"Create src/components/MotionWrapper.tsx for lazy loading",
+			"Create simple animated component to verify setup",
+			"Add component to a test page with client:load",
+			"Verify animation plays in browser"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

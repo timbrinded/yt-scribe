@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { AnimatedCard } from '../components/AnimatedCard';
 ---
 
 <html lang="en">
@@ -20,7 +21,7 @@ import '../styles/global.css';
 			<p class="text-lg text-neutral-600 mb-8">
 				Transform YouTube videos into searchable knowledge bases with AI-powered transcription and chat.
 			</p>
-			<div class="flex gap-4">
+			<div class="flex gap-4 mb-12">
 				<a
 					href="/login"
 					class="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors duration-200"
@@ -34,6 +35,29 @@ import '../styles/global.css';
 					Learn More
 				</a>
 			</div>
+
+			<section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<AnimatedCard client:load delay={0}>
+					<h3 class="text-lg font-semibold text-neutral-800 mb-2">Transcribe</h3>
+					<p class="text-neutral-600">
+						Automatically transcribe YouTube videos with AI-powered speech recognition.
+					</p>
+				</AnimatedCard>
+
+				<AnimatedCard client:load delay={0.1}>
+					<h3 class="text-lg font-semibold text-neutral-800 mb-2">Search</h3>
+					<p class="text-neutral-600">
+						Search through your video library and find specific moments instantly.
+					</p>
+				</AnimatedCard>
+
+				<AnimatedCard client:load delay={0.2}>
+					<h3 class="text-lg font-semibold text-neutral-800 mb-2">Chat</h3>
+					<p class="text-neutral-600">
+						Ask questions about your videos and get answers with timestamp citations.
+					</p>
+				</AnimatedCard>
+			</section>
 		</main>
 	</body>
 </html>
