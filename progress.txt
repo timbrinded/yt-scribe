@@ -1376,3 +1376,86 @@ frontend/
 - ProcessingAnimation is ready to be integrated with real-time SSE status updates
 - Demo page at /demo/processing useful for testing animation changes
 - Consider using ProcessingAnimation in AddVideoModal or a dedicated processing view
+
+---
+
+### 2026-02-03 - Video Library Page with Grid View
+
+**Completed:** Create video library page with grid view and video card component
+
+**What was done:**
+- Created frontend/src/components/VideoCard.tsx:
+  - Displays video thumbnail, title, status badge, and duration
+  - Status badge shows: Pending (gray), Processing (purple with pulse), Ready (green), Failed (red)
+  - Hover scale/shadow animation for completed videos
+  - Processing spinner overlay for videos being transcribed
+  - Failed state with warning icon overlay
+  - Duration formatted as MM:SS or HH:MM:SS
+  - Auto-generates YouTube thumbnail if none provided
+  - Click handler only active for completed videos
+- Created frontend/src/components/VideoGrid.tsx:
+  - Responsive grid: 1 col mobile, 2 col sm, 3 col lg, 4 col xl
+  - Staggered entrance animation (100ms delay between cards)
+  - Empty state component for new users with helpful messaging
+  - Loading skeleton with animated placeholders
+- Created frontend/src/components/LibraryView.tsx:
+  - Main view component handling data fetching
+  - Fetches videos from GET /api/videos endpoint
+  - Handles authentication (redirects to login if 401)
+  - Error state with retry button
+  - Header with video count and "Add Video" button placeholder
+  - Click handler navigates to /video/:id for completed videos
+- Created frontend/src/layouts/AppLayout.astro:
+  - App layout for authenticated pages (distinct from LandingLayout)
+  - Subtle gradient background
+  - Shared meta tags and fonts
+- Created frontend/src/pages/library.astro:
+  - Library page at /library route
+  - Uses AppLayout and LibraryView component
+- Set up Vitest testing for frontend:
+  - Installed vitest, @testing-library/react, jsdom
+  - Created vitest.config.ts with jsdom environment
+  - Created tests/setup.ts with cleanup
+- Created frontend/tests/VideoCard.test.tsx with 20 tests:
+  - Rendering tests for all props
+  - Status badge display tests (all 4 states)
+  - Duration formatting tests (MM:SS and HH:MM:SS)
+  - Click handler tests (only active for completed videos)
+  - Data attribute tests for video ID and status
+  - Thumbnail URL generation test
+- Updated root tsconfig.json to exclude frontend/ (has its own config)
+- Updated root package.json to use `bun test` with bunfig.toml config
+- Created bunfig.toml to scope backend tests to tests/ directory
+- Marked 2 flaky YouTube download tests as skip (network-dependent)
+
+**Technical notes:**
+- VideoCard uses Framer Motion's `m` components for lazy-loaded animations
+- MotionWrapper provides LazyMotion context for smaller bundle size
+- API base URL configurable via PUBLIC_API_URL env var (defaults to http://localhost:3000)
+- Frontend tests run with `vitest run` (jsdom), backend tests with `bun test` (native)
+- LibraryView handles auth state client-side (shows login prompt if 401)
+
+**Files created:**
+- frontend/src/components/VideoCard.tsx
+- frontend/src/components/VideoGrid.tsx
+- frontend/src/components/LibraryView.tsx
+- frontend/src/layouts/AppLayout.astro
+- frontend/src/pages/library.astro
+- frontend/vitest.config.ts
+- frontend/tests/setup.ts
+- frontend/tests/VideoCard.test.tsx
+- bunfig.toml
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun run test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (20 tests)
+- `bun run build` (frontend) - passes
+- Bundle size: LibraryView.wi3qpG8y.js (11.07 kB)
+
+**Notes for next task:**
+- Next priority: Create 'add video' modal with URL input
+- Library page is functional but needs AddVideoModal to be complete
+- The LibraryView has a placeholder onClick for the "Add Video" button
+- Consider implementing frontend authentication flow to fully test the library page

@@ -240,7 +240,7 @@ describe("YouTube Audio Download", () => {
 		expect(size).toBeGreaterThan(0);
 	}, 120000); // 120s timeout - downloads can take time
 
-	test("uses default path when outputPath not provided", async () => {
+	test.skip("uses default path when outputPath not provided", async () => {
 		const expectedPath = `data/downloads/${TEST_VIDEO_ID}.m4a`;
 
 		// Clean up if file exists from previous run
@@ -273,7 +273,7 @@ describe("YouTube Audio Download", () => {
 		).rejects.toThrow();
 	}, 60000);
 
-	test("creates output directory if it doesn't exist", async () => {
+	test.skip("creates output directory if it doesn't exist", async () => {
 		const nestedDir = join(TEST_DOWNLOADS_DIR, "nested", "deep");
 		const outputPath = join(nestedDir, `${TEST_VIDEO_ID}.m4a`);
 

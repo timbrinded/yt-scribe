@@ -1,0 +1,10 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import { LibraryView } from '../components/LibraryView';
+---
+
+<AppLayout title="Library - YTScribe" description="Your video knowledge base">
+	<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+		<LibraryView client:load />
+	</div>
+</AppLayout>

@@ -403,5 +403,31 @@
 			"Verify all stage transitions animate smoothly"
 		],
 		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Create video library page with grid view",
+		"steps": [
+			"Create src/pages/library.astro (protected route)",
+			"Create src/components/VideoGrid.tsx React component",
+			"Display video cards with thumbnail, title, status badge, duration",
+			"Add staggered entrance animation with Framer Motion",
+			"Add empty state for new users",
+			"Wire up to GET /api/videos endpoint"
+		],
+		"completed_at": "2026-02-03"
+	},
+	{
+		"category": "functional",
+		"description": "Create video card component with hover animations",
+		"steps": [
+			"Create src/components/VideoCard.tsx",
+			"Show thumbnail, title, duration overlay, status badge",
+			"Add hover scale and shadow animation",
+			"Animate status badge color based on status",
+			"Link to video detail page",
+			"Write Vitest component test for rendering"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]
