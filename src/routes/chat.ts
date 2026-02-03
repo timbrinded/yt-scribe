@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, count, desc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { db } from "../db";
 import {
@@ -159,6 +159,63 @@ export const chatRoutes = new Elysia({ prefix: "/api/videos" })
 			body: t.Object({
 				sessionId: t.Optional(t.Number()),
 				message: t.String(),
+			}),
+		},
+	)
+	.get(
+		"/:id/sessions",
+		({ params, user, set }) => {
+			const videoId = params.id;
+
+			// Fetch the video
+			const video = db
+				.select()
+				.from(videos)
+				.where(eq(videos.id, videoId))
+				.get();
+
+			// Return 404 if video doesn't exist
+			if (!video) {
+				set.status = 404;
+				return { error: "Video not found" };
+			}
+
+			// Return 403 if video belongs to a different user
+			if (video.userId !== user.id) {
+				set.status = 403;
+				return { error: "Access denied" };
+			}
+
+			// Fetch chat sessions with message counts
+			const sessionsWithCounts = db
+				.select({
+					id: chatSessions.id,
+					title: chatSessions.title,
+					createdAt: chatSessions.createdAt,
+					updatedAt: chatSessions.updatedAt,
+					messageCount: count(messages.id),
+				})
+				.from(chatSessions)
+				.leftJoin(messages, eq(messages.sessionId, chatSessions.id))
+				.where(eq(chatSessions.videoId, videoId))
+				.groupBy(chatSessions.id)
+				.orderBy(desc(chatSessions.updatedAt))
+				.all();
+
+			return {
+				sessions: sessionsWithCounts.map((s) => ({
+					id: s.id,
+					title: s.title,
+					messageCount: s.messageCount,
+					createdAt: s.createdAt.toISOString(),
+					updatedAt: s.updatedAt.toISOString(),
+				})),
+			};
+		},
+		{
+			auth: true,
+			params: t.Object({
+				id: t.Numeric(),
 			}),
 		},
 	);

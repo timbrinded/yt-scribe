@@ -34,7 +34,7 @@
 				"Write test verifying session list",
 				"Run `bun test`"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

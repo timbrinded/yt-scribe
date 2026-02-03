@@ -262,5 +262,18 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-02"
+	},
+	{
+		"category": "functional",
+		"description": "Add GET /api/videos/:id/sessions endpoint to list chat history",
+		"steps": [
+			"Add GET /api/videos/:id/sessions",
+			"Return list of chat sessions for the video",
+			"Include session title and message count",
+			"Add GET /api/sessions/:id/messages to get full conversation",
+			"Write test verifying session list",
+			"Run `bun test`"
+		],
+		"completed_at": "2026-02-03"
 	}
 ]

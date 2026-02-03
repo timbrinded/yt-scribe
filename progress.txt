@@ -785,3 +785,51 @@ const app = new Elysia()
 - The chat endpoint is ready for use by CLI and frontend
 - Consider adding streaming support in the future for better UX
 - Consider adding rate limiting in production
+
+---
+
+### 2026-02-03 - Chat Sessions and Messages Retrieval Endpoints
+
+**Completed:** Add GET /api/videos/:id/sessions endpoint to list chat history
+
+**What was done:**
+- Added GET /api/videos/:id/sessions endpoint to src/routes/chat.ts:
+  - Returns list of chat sessions for the video
+  - Includes session id, title, messageCount, createdAt, updatedAt
+  - Orders sessions by updatedAt descending (most recent first)
+  - Uses SQL aggregate with LEFT JOIN to count messages per session
+  - Validates video exists and belongs to user (404/403 errors)
+- Created src/routes/sessions.ts with GET /api/sessions/:id/messages endpoint:
+  - Returns full conversation with sessionId, videoId, title, and all messages
+  - Messages include id, role, content, createdAt in order
+  - Validates session exists and belongs to user (404/403 errors)
+- Updated src/server.ts to register sessionRoutes
+- Created comprehensive tests:
+  - tests/routes/sessions.test.ts: 8 tests for GET /api/sessions/:id/messages
+    - Authentication tests (401 when not authenticated)
+    - Session validation tests (404, 403)
+    - Empty messages, ordered messages, all fields included, null title
+  - Extended tests/routes/chat.test.ts: 8 tests for GET /api/videos/:id/sessions
+    - Authentication tests (401 when not authenticated)
+    - Video validation tests (404, 403)
+    - Empty array, sessions with message counts, ordering, all fields, null title, video isolation
+
+**Technical notes:**
+- Uses Drizzle's count() and desc() functions for aggregation and ordering
+- LEFT JOIN ensures sessions with 0 messages are included in count
+- Timestamps converted to ISO strings in response for consistency
+- Test patterns follow existing conventions with in-memory SQLite and test auth middleware
+- 16 new tests added total across both test files
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (172 tests, 16 new)
+
+**Notes for next task:**
+- Next priority: Create CLI entry point with CAC for command parsing
+- The chat history API is now complete with:
+  - POST /api/videos/:id/chat - send messages
+  - GET /api/videos/:id/sessions - list sessions for a video
+  - GET /api/sessions/:id/messages - get full conversation
+- Consider adding session title auto-generation from first message in the future
