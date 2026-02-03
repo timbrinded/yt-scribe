@@ -9,5 +9,9 @@ export default defineConfig({
 			provider: "v8",
 			reporter: ["text", "json", "html"],
 		},
+		// Use isolated pool to ensure clean process exit
+		pool: "forks",
+		// Reduce teardown timeout to exit faster
+		teardownTimeout: 1000,
 	},
 });

@@ -21,7 +21,7 @@
 				"Write test for continuing existing session",
 				"Run `bun test`"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

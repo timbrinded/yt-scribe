@@ -738,3 +738,50 @@ const app = new Elysia()
 - The chat service is ready to be used by the chat endpoint
 - Consider adding message token counting to warn before hitting context limits
 - Integration tests demonstrate the service works with real GPT-4o API
+
+---
+
+### 2026-02-02 - Chat Endpoint for Conversations
+
+**Completed:** Add POST /api/videos/:id/chat endpoint for conversations
+
+**What was done:**
+- Created src/routes/chat.ts with POST /api/videos/:id/chat endpoint:
+  - Accepts `{ sessionId?, message }` body
+  - If no sessionId, creates new chat_session linked to video and user
+  - Validates video exists, belongs to user, and has status "completed"
+  - Loads transcript for the video
+  - Loads previous messages if existing session
+  - Calls chatComplete() service and saves both user and assistant messages
+  - Returns `{ sessionId, response }`
+- Updated src/server.ts to register chatRoutes
+- Session validation:
+  - Returns 404 if session not found
+  - Returns 400 if session belongs to different video
+  - Returns 403 if session belongs to different user
+- Created comprehensive tests in tests/routes/chat.test.ts:
+  - Authentication tests (401 when not authenticated)
+  - Video validation tests (404, 403, 400 for various cases)
+  - New session creation tests
+  - Existing session continuation tests
+  - Message accumulation tests
+  - Session isolation tests
+
+**Technical notes:**
+- Uses existing authMiddleware with `{ auth: true }` option
+- Uses chatComplete() non-streaming version for simplicity (streaming can be added later)
+- Messages are stored in order with createdAt timestamps
+- Session updatedAt is updated after each message exchange
+- Test file uses mock chat function to avoid calling real OpenAI API
+- 15 new tests added for the chat endpoint
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes
+- `bun test` - passes (156 tests, 15 new)
+
+**Notes for next task:**
+- Next priority: Add GET /api/videos/:id/sessions endpoint to list chat history
+- The chat endpoint is ready for use by CLI and frontend
+- Consider adding streaming support in the future for better UX
+- Consider adding rate limiting in production

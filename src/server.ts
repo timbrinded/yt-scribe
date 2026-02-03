@@ -1,6 +1,7 @@
 import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import { authRoutes } from "./auth/routes";
+import { chatRoutes } from "./routes/chat";
 import { videoRoutes } from "./routes/videos";
 
 const app = new Elysia()
@@ -11,6 +12,7 @@ const app = new Elysia()
 	}))
 	.use(authRoutes)
 	.use(videoRoutes)
+	.use(chatRoutes)
 	.listen(process.env.PORT ?? 3000);
 
 console.log(

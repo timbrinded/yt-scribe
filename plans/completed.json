@@ -245,5 +245,22 @@
 			"Run `bun test`"
 		],
 		"completed_at": "2026-02-02"
+	},
+	{
+		"category": "functional",
+		"description": "Add POST /api/videos/:id/chat endpoint for conversations",
+		"steps": [
+			"Create src/routes/chat.ts",
+			"POST /api/videos/:id/chat accepts { sessionId?, message }",
+			"If no sessionId, create new chat_session",
+			"Load transcript for the video",
+			"Load previous messages if existing session",
+			"Call chat service and save both user and assistant messages",
+			"Return { sessionId, response } (or stream)",
+			"Write test for new session creation",
+			"Write test for continuing existing session",
+			"Run `bun test`"
+		],
+		"completed_at": "2026-02-02"
 	}
 ]
