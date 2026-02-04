@@ -40,3 +40,8 @@ data/*.db-shm
 
 # Editor directories
 .cursor/
+
+# Playwright
+.auth/
+playwright-report/
+test-results/

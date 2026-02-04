@@ -91,6 +91,7 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata> {
 	const proc = Bun.spawn(
 		[
 			"yt-dlp",
+			...getCookieArgs(),
 			"--dump-json",
 			"--no-download",
 			"--no-warnings",
@@ -139,6 +140,23 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata> {
 const DEFAULT_DOWNLOADS_DIR = "data/downloads";
 
 /**
+ * Gets yt-dlp cookie arguments based on environment configuration
+ * Supports YT_COOKIES_BROWSER (e.g., "firefox", "chrome") or YT_COOKIES_FILE (path to cookies.txt)
+ */
+function getCookieArgs(): string[] {
+	const browser = process.env.YT_COOKIES_BROWSER;
+	const cookieFile = process.env.YT_COOKIES_FILE;
+
+	if (browser) {
+		return ["--cookies-from-browser", browser];
+	}
+	if (cookieFile) {
+		return ["--cookies", cookieFile];
+	}
+	return [];
+}
+
+/**
  * Downloads audio from a YouTube video using yt-dlp
  * @param youtubeUrl - The YouTube URL to download
  * @param outputPath - Optional custom output path. If not provided, uses data/downloads/{videoId}.m4a
@@ -167,6 +185,7 @@ export async function downloadAudio(
 	const proc = Bun.spawn(
 		[
 			"yt-dlp",
+			...getCookieArgs(),
 			"--extract-audio",
 			"--audio-format",
 			"m4a",

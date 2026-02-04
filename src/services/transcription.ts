@@ -1,4 +1,7 @@
 import OpenAI from "openai";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { unlink } from "node:fs/promises";
 import type { TranscriptSegment } from "../db/schema";
 import { logger } from "../utils/logger";
 
@@ -35,7 +38,7 @@ export interface TranscriptionResult {
  */
 export type TranscriptionErrorCode =
 	| "FILE_NOT_FOUND"
-	| "FILE_TOO_LARGE"
+	| "COMPRESSION_FAILED"
 	| "INVALID_AUDIO_FORMAT"
 	| "API_ERROR"
 	| "RATE_LIMIT"
@@ -73,6 +76,52 @@ const SUPPORTED_FORMATS = [
 ];
 
 /**
+ * Compresses audio for transcription using ffmpeg
+ * Optimized for speech: mono, 16kHz, 64kbps MP3
+ * @param inputPath - Path to the original audio file
+ * @returns Path to the compressed temporary file
+ */
+async function compressAudioForTranscription(inputPath: string): Promise<string> {
+	const outputPath = join(tmpdir(), `transcribe-${Date.now()}.mp3`);
+
+	logger.info(
+		{ inputPath, outputPath },
+		"Compressing audio for transcription",
+	);
+
+	const proc = Bun.spawn([
+		"ffmpeg",
+		"-i", inputPath,
+		"-ac", "1",        // Mono
+		"-ar", "16000",    // 16kHz sample rate
+		"-b:a", "64k",     // 64kbps bitrate
+		"-y",              // Overwrite output
+		outputPath,
+	], {
+		stderr: "pipe",
+	});
+
+	const exitCode = await proc.exited;
+
+	if (exitCode !== 0) {
+		const stderr = await new Response(proc.stderr).text();
+		logger.error({ exitCode, stderr }, "ffmpeg compression failed");
+		throw new TranscriptionError(
+			"COMPRESSION_FAILED",
+			`Audio compression failed: ${stderr.slice(-200)}`,
+		);
+	}
+
+	const compressedSize = Bun.file(outputPath).size;
+	logger.info(
+		{ outputPath, compressedSizeMB: (compressedSize / 1024 / 1024).toFixed(2) },
+		"Audio compression completed",
+	);
+
+	return outputPath;
+}
+
+/**
  * Transcribes an audio file using OpenAI Whisper API
  * @param filePath - Path to the audio file to transcribe
  * @returns Transcription result with text, segments, language, and duration
@@ -87,15 +136,6 @@ export async function transcribeAudio(
 		throw new TranscriptionError(
 			"FILE_NOT_FOUND",
 			`Audio file not found: ${filePath}`,
-		);
-	}
-
-	// Check file size
-	const fileSize = file.size;
-	if (fileSize > MAX_FILE_SIZE) {
-		throw new TranscriptionError(
-			"FILE_TOO_LARGE",
-			`File size ${(fileSize / 1024 / 1024).toFixed(2)} MB exceeds maximum of 25 MB`,
 		);
 	}
 
@@ -115,15 +155,30 @@ export async function transcribeAudio(
 		);
 	}
 
+	// Check file size and compress if needed
+	const fileSize = file.size;
+	const needsCompression = fileSize > MAX_FILE_SIZE;
+	let fileToTranscribe = file;
+	let tempFilePath: string | null = null;
+
+	if (needsCompression) {
+		logger.info(
+			{ filePath, sizeMB: (fileSize / 1024 / 1024).toFixed(2) },
+			"File exceeds 25MB limit, compressing for transcription",
+		);
+		tempFilePath = await compressAudioForTranscription(filePath);
+		fileToTranscribe = Bun.file(tempFilePath);
+	}
+
 	logger.debug(
-		{ filePath, fileSize: fileSize / 1024 / 1024, extension },
+		{ filePath, fileSize: fileSize / 1024 / 1024, extension, compressed: needsCompression },
 		"Starting audio transcription",
 	);
 
 	try {
 		// Call OpenAI Whisper API with verbose_json for timestamps
 		const transcription = await getOpenAI().audio.transcriptions.create({
-			file: file,
+			file: fileToTranscribe,
 			model: "whisper-1",
 			response_format: "verbose_json",
 			timestamp_granularities: ["segment"],
@@ -192,5 +247,12 @@ export async function transcribeAudio(
 			"API_ERROR",
 			`Transcription failed: ${error instanceof Error ? error.message : "Unknown error"}`,
 		);
+	} finally {
+		// Clean up temp file if we compressed (in case of errors)
+		if (tempFilePath) {
+			await unlink(tempFilePath).catch((err) =>
+				logger.warn({ tempFilePath, error: err.message }, "Failed to clean up temp file"),
+			);
+		}
 	}
 }

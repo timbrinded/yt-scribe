@@ -181,7 +181,10 @@ describe("YouTube Metadata Extraction", () => {
 	// "Big Buck Bunny" - a short, publicly available video
 	const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=aqz-KE-bpKQ";
 
-	test("fetches metadata for a real public video", async () => {
+	// Integration test - requires network access and may fail due to YouTube bot detection
+	const runIntegrationTests = !!process.env.YOUTUBE_INTEGRATION_TESTS;
+
+	test.skipIf(!runIntegrationTests)("fetches metadata for a real public video", async () => {
 		const metadata = await getVideoMetadata(TEST_VIDEO_URL);
 
 		expect(metadata.id).toBe("aqz-KE-bpKQ");
@@ -217,6 +220,9 @@ describe("YouTube Audio Download", () => {
 	// Custom test output directory to avoid polluting the main downloads folder
 	const TEST_DOWNLOADS_DIR = "data/downloads/test";
 
+	// Integration tests - require network access and may fail due to YouTube bot detection
+	const runIntegrationTests = !!process.env.YOUTUBE_INTEGRATION_TESTS;
+
 	// Clean up test files after all tests
 	afterAll(() => {
 		if (existsSync(TEST_DOWNLOADS_DIR)) {
@@ -224,7 +230,7 @@ describe("YouTube Audio Download", () => {
 		}
 	});
 
-	test("downloads audio from a real public video", async () => {
+	test.skipIf(!runIntegrationTests)("downloads audio from a real public video", async () => {
 		const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
 		const result = await downloadAudio(TEST_VIDEO_URL, outputPath);
 
