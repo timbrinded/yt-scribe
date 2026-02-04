@@ -2,20 +2,6 @@
 	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
 	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
 	"tasks": [
-				{
-			"category": "functional",
-			"description": "[Effect-TS] Create Pipeline Effect service (orchestration layer)",
-			"steps": [
-				"Create `src/effect/services/Pipeline.ts`",
-				"Define PipelineService interface with processVideo(videoId) method",
-				"Depend on Database, YouTube, Transcription, Progress services",
-				"Port processing flow: fetch video -> emit progress -> download audio -> transcribe -> save transcript",
-				"Use Effect.tapError to mark video as failed on error",
-				"Emit progress events at each stage via Progress.emit",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
 		{
 			"category": "functional",
 			"description": "[Effect-TS] Define HttpApi schema and groups",

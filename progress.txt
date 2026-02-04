@@ -3358,3 +3358,66 @@ Layer.provide(Database.Live),
 - Authorization middleware is ready to be applied to protected API groups
 - Middleware provides CurrentUser context to all downstream handlers
 - Test layers available for unit testing handlers without real auth
+
+---
+
+### 2026-02-04 - Effect-TS Pipeline Effect Service (Orchestration Layer)
+
+**Completed:** [Effect-TS] Create Pipeline Effect service (orchestration layer)
+
+**What was done:**
+- Created `src/effect/services/Pipeline.ts` following established patterns:
+  - Pipeline Context.Tag class with `@ytscribe/Pipeline` identifier
+  - Pipeline.Live layer using Layer.effect with multiple dependencies:
+    - Database (for video/transcript persistence)
+    - YouTube (for audio download and metadata)
+    - Transcription (for audio-to-text conversion)
+    - Progress (for real-time progress events)
+  - Pipeline.Test layer with helpful error message for unmocked calls
+  - `makePipelineTestLayer()` factory function for partial mocking
+- Ported pipeline orchestration logic from src/services/pipeline.ts:
+  - Fetch video record from database (VideoNotFoundError if missing)
+  - Update status to processing
+  - Emit progress events at each stage via Progress.emit
+  - Fetch metadata if needed (non-fatal, caught and ignored)
+  - Download audio via YouTube.downloadAudio
+  - Transcribe audio via Transcription.transcribe
+  - Save transcript to database
+  - Update status to completed
+  - Clean up audio file
+- Effect-TS patterns demonstrated:
+  - Multiple service dependencies via `yield* Service` in Layer.effect
+  - Effect.tapError for cleanup on error (mark video as failed)
+  - Effect.ensuring for guaranteed file cleanup regardless of outcome
+  - Effect.catchAll for making metadata fetch non-fatal
+  - Typed error union: PipelineServiceError (VideoNotFoundError | DownloadFailedError | TranscriptionFailedError | DatabaseError)
+- Progress events emitted:
+  - "pending" - starting video processing
+  - "downloading" - 0% and 100% progress
+  - "extracting" - audio extracted
+  - "transcribing" - 0% and 100% progress
+  - "complete" - processing finished
+  - "error" - on any failure (with error message)
+
+**Files created:**
+- src/effect/services/Pipeline.ts
+
+**Technical notes:**
+- This is the orchestration layer - it depends on all other services (Database, YouTube, Transcription, Progress)
+- Layer composition will happen in src/effect/layers/Live.ts
+- Effect.tapError ensures video is marked as failed even on partial pipeline failures
+- Effect.ensuring guarantees audio file cleanup on success, error, or interruption
+- TranscriptSegment type mapping required due to readonly vs mutable type differences between effect types and db schema
+- Service helper functions (updateVideoStatus, fetchAndSaveMetadata, getErrorMessage) kept private to implementation
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Define HttpApi schema and groups
+- Pipeline service is the last core service to implement
+- The HttpApi groups will use all services including Pipeline for video processing
+- Layer composition can now be done in src/effect/layers/Live.ts
