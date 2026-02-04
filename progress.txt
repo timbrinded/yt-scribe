@@ -3908,3 +3908,66 @@ $ bun src/effect/main.ts
 - The Effect-TS server now serves both API and frontend
 - Frontend is fully integrated with SSR support
 - Ready to remove old Elysia implementation
+
+---
+
+### 2026-02-04 - Effect-TS Remove Elysia and Old Service Files
+
+**Completed:** [Effect-TS] Remove Elysia and old service files + Update package.json scripts
+
+**What was done:**
+- Deleted old Elysia server and all related files:
+  - `src/server.ts` (old Elysia entry point)
+  - `src/routes/` directory (chat.ts, sessions.ts, videos.ts)
+  - `src/middleware/` directory (auth.ts, logging.ts)
+  - `src/services/` directory (chat.ts, pipeline.ts, progress.ts, transcription.ts, youtube.ts)
+  - `src/auth/` directory (google.ts, routes.ts, session.ts)
+  - `src/utils/logger.ts` (only used by old Elysia code)
+- Deleted old test files that tested Elysia routes and services:
+  - `tests/services/` directory
+  - `tests/routes/` directory
+  - `tests/middleware/` directory
+  - `tests/auth/` directory
+- Updated package.json:
+  - Changed `start` script to `bun src/effect/main.ts`
+  - Changed `dev` script to `bun --hot src/effect/main.ts`
+  - Removed `elysia` and `@elysiajs/cors` from dependencies
+  - Removed `pino` and `pino-pretty` from dependencies (only used by old code)
+- Ran `bun install` to update lockfile (4 packages removed)
+- Fixed `src/effect/api/handlers/auth.ts`:
+  - Inlined Google OAuth helpers that were imported from deleted `src/auth/google.ts`
+  - Added `arctic` import and OAuth helper functions (createAuthorizationUrl, validateCallback, decodeIdToken)
+  - All OAuth logic is now self-contained in the Effect handler file
+
+**Files deleted:**
+- src/server.ts
+- src/routes/*.ts (3 files)
+- src/middleware/*.ts (2 files)
+- src/services/*.ts (5 files)
+- src/auth/*.ts (3 files)
+- src/utils/logger.ts
+- tests/services/*.ts, tests/routes/*.ts, tests/middleware/*.ts, tests/auth/*.ts
+
+**Files modified:**
+- package.json (scripts updated, dependencies removed)
+- src/effect/api/handlers/auth.ts (inlined OAuth helpers)
+
+**Dependencies removed:**
+- elysia@^1.4.22
+- @elysiajs/cors@^1.4.1
+- pino@^10.3.0
+- pino-pretty@^13.1.3
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun test` - passes (154 pass, 2 skip)
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun run start` - starts Effect server on port 3001 correctly
+- `bun run dev` - starts with HMR correctly
+
+**Notes for next task:**
+- The codebase is now fully migrated to Effect-TS
+- Old Elysia implementation completely removed
+- Effect-TS server serves both API routes and Astro frontend
+- Next priorities: Create test layer infrastructure, add Pipeline service tests, add API integration tests
+- Test count reduced from 170+ to 154 due to removing old Elysia tests (Effect tests remain)

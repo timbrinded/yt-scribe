@@ -4,45 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Serve frontend static files",
-			"steps": [
-				"Add static file serving to API for frontend assets",
-				"Use HttpRouter.mountApp or platform file serving utilities",
-				"Configure to serve from frontend/dist in production",
-				"Add fallback to index.html for SPA routing",
-				"Test: Build frontend, start server, verify pages load"
-			],
-			"passes": true
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Remove Elysia and old service files",
-			"steps": [
-				"Delete src/server.ts (old Elysia entry)",
-				"Delete src/routes/*.ts (old Elysia routes)",
-				"Delete src/middleware/*.ts (old Elysia middleware)",
-				"Delete src/services/*.ts (old service implementations)",
-				"Delete src/auth/*.ts (old OAuth implementation)",
-				"Update package.json scripts to use src/effect/main.ts",
-				"Remove elysia and @elysiajs/* from dependencies",
-				"Run `bun run typecheck`",
-				"Run `bun test`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Update package.json scripts",
-			"steps": [
-				"Change dev: bun --hot src/effect/main.ts",
-				"Change start: bun src/effect/main.ts",
-				"Verify `bun run dev` starts Effect server with HMR",
-				"Verify `bun run start` starts production server"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create test layer infrastructure",
 			"steps": [
 				"Run `bun add -d @effect/vitest`",

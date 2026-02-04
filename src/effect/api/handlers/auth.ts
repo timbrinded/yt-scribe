@@ -32,17 +32,74 @@ import {
 } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { eq } from "drizzle-orm";
+import * as arctic from "arctic";
 import { YTScribeApi } from "../index";
 import { CurrentUser } from "../middleware/auth";
 import { Database } from "../../services/Database";
 import { Auth } from "../../services/Auth";
 import { users } from "../../../db/schema";
-import {
-	createAuthorizationUrl,
-	decodeIdToken,
-	validateCallback,
-} from "../../../auth/google";
 import type { CurrentUserResponse } from "../groups/auth";
+
+// =============================================================================
+// GOOGLE OAUTH HELPERS
+// =============================================================================
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleRedirectUri =
+	process.env.GOOGLE_REDIRECT_URI ??
+	"http://localhost:3000/auth/google/callback";
+
+if (!googleClientId || !googleClientSecret) {
+	console.warn(
+		"Warning: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set for OAuth to work",
+	);
+}
+
+const google = new arctic.Google(
+	googleClientId ?? "",
+	googleClientSecret ?? "",
+	googleRedirectUri,
+);
+
+interface GoogleUserInfo {
+	sub: string;
+	email: string;
+	email_verified: boolean;
+	name: string;
+	picture: string;
+	given_name?: string;
+	family_name?: string;
+}
+
+function createAuthorizationUrl(): {
+	url: URL;
+	state: string;
+	codeVerifier: string;
+} {
+	const state = arctic.generateState();
+	const codeVerifier = arctic.generateCodeVerifier();
+	const scopes = ["openid", "profile", "email"];
+	const url = google.createAuthorizationURL(state, codeVerifier, scopes);
+
+	return { url, state, codeVerifier };
+}
+
+async function validateCallback(
+	code: string,
+	codeVerifier: string,
+): Promise<{ accessToken: string; idToken: string }> {
+	const tokens = await google.validateAuthorizationCode(code, codeVerifier);
+	const accessToken = tokens.accessToken();
+	const idToken = tokens.idToken();
+
+	return { accessToken, idToken };
+}
+
+function decodeIdToken(idToken: string): GoogleUserInfo {
+	const claims = arctic.decodeIdToken(idToken) as GoogleUserInfo;
+	return claims;
+}
 
 // =============================================================================
 // CONSTANTS
