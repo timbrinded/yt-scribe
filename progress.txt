@@ -4094,3 +4094,75 @@ Service test factories (per service):
 - Next priorities: Task 2 - API integration tests, Task 3 - Analytics tracking
 - The test patterns established here can be applied to API integration tests
 - Consider using makePipelineTestContext() for API tests that need full pipeline
+
+---
+
+### 2026-02-04 - Effect-TS API Integration Tests
+
+**Completed:** [Effect-TS] Add API integration tests with full test layer
+
+**What was done:**
+- Created `tests/effect/api/videos.test.ts` with 20 comprehensive API tests
+- Used HttpApiBuilder.toWebHandler pattern for in-process API testing without HTTP server
+- Composed test handler with all three API handler groups (videos, chat, auth)
+- Created helper functions for test handler creation and authenticated requests
+
+**Test categories implemented:**
+1. POST /api/videos:
+   - Creates video and returns 201 for valid YouTube URL
+   - Returns 400 for invalid YouTube URL
+   - Returns 409 for duplicate video
+   - Returns 401 without authorization
+   - Accepts various YouTube URL formats (watch, youtu.be, shorts, embed)
+
+2. GET /api/videos:
+   - Returns empty array for user with no videos
+   - Returns only current user's videos (user isolation)
+   - Supports pagination with limit and offset
+   - Returns 401 without authorization
+
+3. GET /api/videos/:id:
+   - Returns video details for owned video
+   - Returns transcript when video is completed
+   - Returns null transcript for pending video
+   - Returns 404 for non-existent video
+   - Returns 403 for video owned by another user
+   - Returns 401 without authorization
+
+4. POST /api/videos/:id/retry:
+   - Retries failed video and returns 200
+   - Returns 400 when video is not in failed state
+   - Returns 404 for non-existent video
+   - Returns 403 for video owned by another user
+   - Returns 401 without authorization
+
+**Test infrastructure used:**
+- makeTestLayer() for composing all service mocks
+- makeAuthorizationTestLayer() for auth middleware mocking
+- makeDatabaseTestLayer() with custom seed function for test data
+- makeYouTubeTestLayer() for metadata/download mocking
+- makePipelineTestLayer() for processing mocking
+- makeChatTestLayer() for chat service mocking
+- makeAuthTestLayer() for auth service mocking
+- HttpApiBuilder.toWebHandler for in-process request handling
+
+**Key patterns demonstrated:**
+- Layer.mergeAll for combining all handler groups (VideosGroupLive, ChatGroupLive, AuthGroupLive)
+- HttpApiBuilder.api with Layer.provide chain for full API composition
+- Database seeding per-test via closure function
+- Authorization mocking with authenticated/unauthenticated states
+- Response type assertions for TypeScript safety
+
+**Files created:**
+- tests/effect/api/videos.test.ts
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun test` - passes (189 pass, 2 skip)
+- `bun run lint` - passes (1 pre-existing Astro warning)
+
+**Notes for next task:**
+- API integration tests are now complete for video endpoints
+- Next priority: Task - Add basic analytics tracking
+- The test patterns can be extended for chat and auth endpoint tests
+- HttpApiBuilder.toWebHandler is the preferred pattern for API integration testing

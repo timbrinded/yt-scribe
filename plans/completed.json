@@ -1041,5 +1041,20 @@
 			"Run `bun test tests/effect/services/`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Add API integration tests with full test layer",
+		"steps": [
+			"Create `tests/effect/api/videos.test.ts`",
+			"Use makeTestLayer() to create fully mocked environment",
+			"Use Effect HttpClient to make requests against test server",
+			"Test: POST /videos creates video and returns 201",
+			"Test: POST /videos returns 400 for invalid YouTube URL",
+			"Test: GET /videos returns user's videos only",
+			"Test: Unauthorized request returns 401",
+			"Run `bun test tests/effect/api/`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
