@@ -10,6 +10,7 @@ import {
 } from "@assistant-ui/react";
 import { MotionWrapper } from "./MotionWrapper";
 import { m } from "framer-motion";
+import { CitationText } from "./CitationText";
 
 /**
  * API configuration
@@ -184,7 +185,7 @@ function UserMessage() {
 }
 
 /**
- * Assistant message component
+ * Assistant message component with citation support
  */
 function AssistantMessage() {
 	return (
@@ -206,13 +207,13 @@ function AssistantMessage() {
 						/>
 					</svg>
 				</div>
-				{/* Message content */}
+				{/* Message content with citation support */}
 				<div className="max-w-[85%] rounded-2xl rounded-tl-md bg-neutral-100 px-4 py-2.5 shadow-sm">
 					<MessagePrimitive.Content
 						components={{
 							Text: ({ text }) => (
 								<p className="whitespace-pre-wrap text-sm text-neutral-800">
-									{text}
+									<CitationText text={text} />
 								</p>
 							),
 						}}

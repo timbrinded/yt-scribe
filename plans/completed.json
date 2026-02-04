@@ -552,5 +552,17 @@
 			"Style active segment distinctly"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Add chat response citation linking to transcript timestamps",
+		"steps": [
+			"Modify chat service to include timestamp references in responses",
+			"Parse citations in assistant messages",
+			"Render citations as clickable links",
+			"Clicking citation scrolls transcript to that timestamp",
+			"Highlight cited sections in transcript"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

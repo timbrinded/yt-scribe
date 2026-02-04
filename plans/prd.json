@@ -407,18 +407,6 @@
 			"passes": false
 		},
 		{
-			"category": "functional",
-			"description": "Add chat response citation linking to transcript timestamps",
-			"steps": [
-				"Modify chat service to include timestamp references in responses",
-				"Parse citations in assistant messages",
-				"Render citations as clickable links",
-				"Clicking citation scrolls transcript to that timestamp",
-				"Highlight cited sections in transcript"
-			],
-			"passes": false
-		},
-		{
 			"category": "performance",
 			"description": "Optimize Framer Motion bundle with LazyMotion",
 			"steps": [

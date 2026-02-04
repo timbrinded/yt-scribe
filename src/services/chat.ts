@@ -60,7 +60,8 @@ ${transcript}
 Instructions:
 - Answer questions based on the transcript content above
 - If the information is not in the transcript, say so clearly
-- When referencing specific parts, include approximate timestamps if available in the transcript
+- When referencing specific parts of the video, ALWAYS include timestamps in the format [MM:SS] or [HH:MM:SS] for longer videos
+- Use timestamps like [0:30], [2:15], [1:05:30] to cite specific moments - these become clickable links for the user
 - Be concise but thorough in your responses
 - If asked about topics not covered in the transcript, politely redirect to what is available`;
 }

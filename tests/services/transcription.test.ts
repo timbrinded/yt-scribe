@@ -5,7 +5,6 @@ import {
 	TranscriptionError,
 	transcribeAudio,
 } from "../../src/services/transcription";
-import { text } from "drizzle-orm/gel-core";
 
 const TEST_DIR = "data/test-transcription";
 
@@ -191,7 +190,9 @@ describe("Transcription Service - Integration", () => {
 			expect(typeof result.duration).toBe("number");
 			expect(result.duration).toBeGreaterThan(0);
 
-			expect(result.text).toContain("Alright, so here we are in front of the elephants. The cool thing about these guys");
+			expect(result.text).toContain(
+				"Alright, so here we are in front of the elephants. The cool thing about these guys",
+			);
 			console.log(`Transcribed Text: ${result.text}`);
 			// Verify segment structure
 			for (const segment of result.segments) {

@@ -2191,3 +2191,68 @@ frontend/
 - Timestamp navigation is now fully functional with context-based state sharing
 - The context enables future chat-to-transcript citation linking (next PRD task)
 - Next priorities: Chat response citation linking, Docker setup, E2E testing, or Effect-TS migration
+
+---
+
+### 2026-02-04 - Chat Citation Linking to Transcript Timestamps
+
+**Completed:** Add chat response citation linking to transcript timestamps
+
+**What was done:**
+- Updated src/services/chat.ts system prompt to instruct GPT to use consistent timestamp citation format:
+  - Timestamps should be in [MM:SS] or [HH:MM:SS] format
+  - GPT is told these become clickable links for the user
+- Created frontend/src/utils/citations.ts with citation parsing utilities:
+  - `parseTimestampToSeconds(timestamp)` - converts "2:30" or "1:05:30" to seconds
+  - `formatSecondsToTimestamp(seconds)` - converts seconds back to timestamp string
+  - `extractCitations(text)` - extracts all [MM:SS] and [HH:MM:SS] citations from text
+  - `parseTextWithCitations(text)` - splits text into segments of plain text and citations
+  - Citation interface with text, seconds, startIndex, endIndex
+- Created frontend/src/components/CitationText.tsx:
+  - Renders text with timestamp citations as clickable buttons
+  - Citations are styled with primary color, clock icon, and hover effects
+  - Clicking a citation calls `navigateToTimestamp(seconds)` from TimestampNavigationContext
+  - Works with or without TimestampNavigationContext (graceful degradation)
+  - Supports optional `onCitationClick` callback for custom handling
+- Updated frontend/src/components/ChatInterface.tsx:
+  - Imported CitationText component
+  - Changed AssistantMessage's Text component to wrap content in CitationText
+  - User messages still render as plain text (no citations)
+- Fixed pre-existing issue in tests/services/transcription.test.ts:
+  - Removed unused import of `text` from drizzle-orm
+- Created comprehensive tests:
+  - frontend/tests/citations.test.ts (18 tests): timestamp parsing, formatting, citation extraction, text parsing
+  - frontend/tests/CitationText.test.tsx (10 tests): rendering, click handling, context integration
+
+**Files created:**
+- frontend/src/utils/citations.ts
+- frontend/src/components/CitationText.tsx
+- frontend/tests/citations.test.ts
+- frontend/tests/CitationText.test.tsx
+
+**Files modified:**
+- src/services/chat.ts (updated system prompt for citation format)
+- frontend/src/components/ChatInterface.tsx (integrated CitationText)
+- tests/services/transcription.test.ts (removed unused import)
+
+**Technical notes:**
+- Citation format uses bracket notation [0:30] to match common transcript timestamp conventions
+- CitationText uses `useTimestampNavigationOptional()` to work outside context (e.g., demo pages)
+- Clicking a citation navigates to the transcript segment and highlights it (via existing context)
+- The TranscriptPanel's scroll-to-segment was fixed in the previous task, so citations now properly scroll
+- Citations are rendered as buttons for accessibility (focusable, keyboard activatable)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests, 28 new)
+- `bun run build` (frontend) - passes
+- Bundle sizes: ChatInterface.Mp1zz1yl.js (151.91 kB gzip: 42.82 kB), VideoDetailView.DsbWUG2F.js (14.39 kB gzip: 4.36 kB)
+
+**Notes for next task:**
+- Citation linking is now fully functional end-to-end
+- GPT will naturally include timestamps like [2:30] when referencing specific parts of the video
+- Clicking these timestamps scrolls the transcript panel to that segment and highlights it
+- Next priorities: Effect-TS migration, Docker setup, E2E testing, or bundle optimization
+
