@@ -407,18 +407,6 @@
 			"passes": false
 		},
 		{
-			"category": "functional",
-			"description": "Add Railway deployment configuration",
-			"steps": [
-				"Create railway.toml with service configuration",
-				"Configure SQLite volume mount for persistence",
-				"Set up environment variables template",
-				"Add health check configuration",
-				"Document deployment steps in README"
-			],
-			"passes": false
-		},
-		{
 			"category": "observability",
 			"description": "Add basic analytics tracking",
 			"steps": [

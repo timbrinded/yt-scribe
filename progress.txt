@@ -2411,3 +2411,53 @@ frontend/
 - Environment variables need to be set in .env file (copy from .env.example)
 - Next priorities: Railway deployment config, Effect-TS migration, E2E testing, or analytics
 
+---
+
+### 2026-02-04 - Railway Deployment Configuration
+
+**Completed:** Add Railway deployment configuration
+
+**What was done:**
+- Created railway.toml with service configuration:
+  - Build using Dockerfile
+  - Health check at /health with 10s timeout
+  - ON_FAILURE restart policy with 3 retries
+  - Service name and internal port (3000) configuration
+- Updated README.md with comprehensive documentation:
+  - Project overview and features
+  - Tech stack summary
+  - Quick start instructions (local and Docker)
+  - CLI usage examples
+  - API endpoint reference
+  - Railway deployment step-by-step guide
+  - Other deployment platform notes (Fly.io, Render, DigitalOcean)
+  - Environment variables table
+  - Development commands reference
+  - Project structure overview
+
+**Files created:**
+- railway.toml
+
+**Files modified:**
+- README.md (complete rewrite with deployment documentation)
+
+**Technical notes:**
+- Railway volumes must be configured via dashboard (not config-as-code)
+- Health check configured in railway.toml uses /health endpoint
+- SQLite requires persistent volume mounted at /app/data
+- README includes instructions for updating Google OAuth redirect URI after deployment
+- Dockerfile already has health check instruction that Railway will respect
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+- `bun run build` (frontend) - passes
+
+**Notes for next task:**
+- Railway deployment configuration is complete
+- Project is ready for deployment to Railway or any Docker-compatible platform
+- Next priorities: E2E testing with Playwright, basic analytics tracking, or Effect-TS migration
+- The Effect-TS migration is a large undertaking (28 tasks) - should be done incrementally
+

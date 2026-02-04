@@ -1,0 +1,38 @@
+# YTScribe Railway Configuration
+# See: https://docs.railway.com/reference/config-as-code
+
+[build]
+# Use Dockerfile for building
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Start command (overrides Dockerfile CMD if needed)
+# startCommand = "bun run src/server.ts"
+
+# Number of replicas
+numReplicas = 1
+
+# Health check configuration
+healthcheckPath = "/health"
+healthcheckTimeout = 10
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Sleep application after inactivity (in seconds, 0 = disabled)
+# Set to 0 for production, or enable for cost savings on dev environments
+sleepApplication = false
+
+# Runtime configuration
+[deploy.runtime]
+# Enable Railway's internal networking (required for multi-service setups)
+# internalNetworking = true
+
+[service]
+# Service name for Railway dashboard
+name = "ytscribe"
+
+# Internal port the application listens on
+internalPort = 3000
