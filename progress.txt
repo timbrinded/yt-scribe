@@ -3053,3 +3053,58 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - YouTube service is now available as a leaf dependency for Pipeline service
 - The Progress service will use PubSub.unbounded and Stream.fromPubSub for real-time events
 - Layer composition will happen in src/effect/layers/Live.ts
+
+---
+
+### 2026-02-04 - Progress Effect Service with PubSub
+
+**Completed:** [Effect-TS] Create Progress Effect service with PubSub
+
+**What was done:**
+- Created `src/effect/services/Progress.ts` following the established Effect-TS service pattern:
+  - Progress Context.Tag class with `@ytscribe/Progress` identifier
+  - Progress.Live layer using Layer.scoped with PubSub.unbounded for lifecycle management
+  - Progress.Test layer with same PubSub-based implementation for testing
+  - `emit(event)` - publishes ProgressEvent to PubSub
+  - `subscribe(videoId)` - returns Stream filtered by videoId using Stream.fromQueue
+  - `subscribeAll()` - returns Stream of all events
+- Implemented `createProgressEvent()` helper function for convenient event creation with auto-timestamp
+- Created `makeProgressTestLayer()` factory for tests with event collection:
+  - Returns layer and `getEvents` Effect for inspecting emitted events
+  - Events are collected in array for assertions
+  - Each test layer is isolated with its own event collection
+- Created `makeProgressMockLayer()` factory for custom mock implementations:
+  - Allows partial overrides of emit, subscribe, subscribeAll
+  - Default implementations are no-ops
+- Created comprehensive tests in `tests/effect/services/Progress.test.ts` (16 tests):
+  - createProgressEvent helper tests (3 tests)
+  - Progress.Live layer tests (5 tests): emit/subscribe, filtering by videoId, subscribeAll, multiple subscribers
+  - Progress.Test layer tests (2 tests)
+  - makeProgressTestLayer factory tests (2 tests): event collection, isolation
+  - makeProgressMockLayer factory tests (3 tests): default implementations, custom emit, custom subscribe
+  - Processing stage type tests (1 test): all stages supported
+
+**Files created:**
+- src/effect/services/Progress.ts
+- tests/effect/services/Progress.test.ts
+
+**Technical notes:**
+- Uses Effect PubSub.unbounded() for pub/sub messaging - unbounded to avoid backpressure issues
+- Layer.scoped is required because PubSub is a resource with lifecycle (created on layer init, cleaned up on scope close)
+- Stream.unwrapScoped used for subscribe methods to properly scope the dequeue subscription
+- Stream.fromQueue converts the Queue (dequeue) to a Stream for consumption
+- Stream.filter used to filter events by videoId in subscribe() method
+- Test layer uses same PubSub implementation as Live - both work identically
+- makeProgressTestLayer collects events in array outside Effect scope for easy access
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (229 pass, 7 skip, 16 new)
+- `bun run test` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Transcription Effect service (first with dependency)
+- Progress service is now available as a leaf dependency for Pipeline service
+- The service uses PubSub for real-time event broadcasting to multiple subscribers
+- Layer composition will happen in src/effect/layers/Live.ts

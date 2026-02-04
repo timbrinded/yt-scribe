@@ -764,5 +764,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create Progress Effect service with PubSub",
+		"steps": [
+			"Create `src/effect/services/Progress.ts`",
+			"Define ProgressEvent schema with videoId, stage, progress, message, timestamp",
+			"Define ProgressService interface: emit, subscribe(videoId), subscribeAll",
+			"Implement using PubSub.unbounded<ProgressEvent>() and Stream.fromPubSub",
+			"Use Layer.scoped for PubSub lifecycle",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
