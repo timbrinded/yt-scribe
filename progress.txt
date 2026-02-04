@@ -2753,3 +2753,59 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - Next priority: [Effect-TS] Create service dependency graph documentation (ARCHITECTURE.md)
 - The service template is now ready to guide creation of all Effect services
 - Consider using the template as a starting point when creating Database, OpenAI, YouTube services
+
+---
+
+### 2026-02-04 - Effect-TS Service Dependency Graph Documentation
+
+**Completed:** [Effect-TS] Create service dependency graph documentation + Document test DI pattern
+
+**What was done:**
+- Created `src/effect/ARCHITECTURE.md` with comprehensive Effect-TS architecture documentation
+- Documented service dependency graph with ASCII diagram:
+  - Orchestration Layer: Pipeline (depends on all services)
+  - Dependent Layer: Transcription→OpenAI, Chat→OpenAI, Auth→Database
+  - Leaf Layer: Database, OpenAI, YouTube, Progress (no Effect dependencies)
+- Documented service categories:
+  - Leaf services (no deps): Database (Layer.scoped), YouTube, Progress (Layer.scoped), OpenAI
+  - Config-dependent: OpenAI (OPENAI_API_KEY), Database (DATABASE_URL optional)
+  - Service-dependent: Transcription, Chat, Auth, Pipeline
+- Documented layer composition:
+  - Composition order: leaf → dependent → orchestration
+  - Layer.merge vs Layer.mergeAll vs Layer.provide vs Layer.provideMerge
+  - Code examples showing proper composition patterns
+- Documented layer memoization:
+  - Store composed layers in constants to share instances
+  - Correct vs incorrect patterns with examples
+  - MemoMap for advanced scenarios
+- Documented testing with DI:
+  - Each service has .Live and .Test layers
+  - Tests swap services via Effect.provide(TestLayer)
+  - makeTestLayer() factory for partial mocking
+  - Composing test layers with full examples
+  - Example showing same business logic with different implementations
+- Documented directory structure for Effect-TS migration
+- Documented migration strategy phases (Foundation → Core Services → Dependent → HTTP API → Integration → Cleanup)
+- Added Effect patterns quick reference (creating effects, composition, error handling, running)
+
+**Files created:**
+- src/effect/ARCHITECTURE.md
+
+**Technical notes:**
+- Documentation covers both the "Create service dependency graph documentation" and "Document test DI pattern" PRD tasks
+- ASCII art dependency graph provides visual overview of service relationships
+- Layer composition examples are copy-paste ready for actual implementation
+- Test layer documentation includes partial mock factory pattern for targeted testing
+- Migration phases align with remaining PRD tasks
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create base service types and conventions (src/effect/services/types.ts)
+- The ARCHITECTURE.md serves as the guide for implementing all Effect services
+- Both architecture documentation tasks are now complete
+- The migration strategy outlines remaining work in clear phases

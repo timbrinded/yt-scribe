@@ -4,34 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Establish service definition pattern with Context.Tag",
-			"steps": [
-				"Create `src/effect/services/_template.ts` as a reference pattern",
-				"Define service interface type (what the service provides)",
-				"Create Context.Tag class extending interface with unique identifier @ytscribe/ServiceName",
-				"Add static Live property using Layer.effect() or Layer.scoped()",
-				"Add static Test property using Layer.succeed() for mock implementations",
-				"Document pattern with comments: why Context.Tag, when to use Layer.effect vs Layer.scoped vs Layer.sync, how to depend on other services",
-				"Run `bun run typecheck`"
-			],
-			"passes": true
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Create service dependency graph documentation",
-			"steps": [
-				"Create `src/effect/ARCHITECTURE.md`",
-				"Document leaf services (no deps): Database, YouTube, Progress",
-				"Document config-dependent: OpenAI (needs OPENAI_API_KEY)",
-				"Document service-dependent: Transcription->OpenAI, Chat->OpenAI, Auth->Database, Pipeline->Database,YouTube,Transcription,Progress",
-				"Document Layer composition order: leaf -> dependent -> orchestration",
-				"Explain Layer.provide vs Layer.provideMerge vs Layer.merge",
-				"Document layer memoization rules (store in const to share)"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create base service types and conventions",
 			"steps": [
 				"Create `src/effect/services/types.ts`",
@@ -39,18 +11,6 @@
 				"Define common Result types if needed (e.g., Paginated<T>)",
 				"Export re-usable type utilities",
 				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Document test DI pattern for service replacement",
-			"steps": [
-				"Add Testing with DI section to src/effect/ARCHITECTURE.md",
-				"Explain each service has .Test layer implementing same interface with mock behavior",
-				"Explain tests swap services via Effect.provide(TestLayer) instead of Effect.provide(LiveLayer)",
-				"Document makeTestLayer() factory for partial mocking",
-				"Include example showing same business logic with different implementations"
 			],
 			"passes": false
 		},

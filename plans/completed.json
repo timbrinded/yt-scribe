@@ -689,5 +689,31 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create service dependency graph documentation",
+		"steps": [
+			"Create `src/effect/ARCHITECTURE.md`",
+			"Document leaf services (no deps): Database, YouTube, Progress",
+			"Document config-dependent: OpenAI (needs OPENAI_API_KEY)",
+			"Document service-dependent: Transcription->OpenAI, Chat->OpenAI, Auth->Database, Pipeline->Database,YouTube,Transcription,Progress",
+			"Document Layer composition order: leaf -> dependent -> orchestration",
+			"Explain Layer.provide vs Layer.provideMerge vs Layer.merge",
+			"Document layer memoization rules (store in const to share)"
+		],
+		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Document test DI pattern for service replacement",
+		"steps": [
+			"Add Testing with DI section to src/effect/ARCHITECTURE.md",
+			"Explain each service has .Test layer implementing same interface with mock behavior",
+			"Explain tests swap services via Effect.provide(TestLayer) instead of Effect.provide(LiveLayer)",
+			"Document makeTestLayer() factory for partial mocking",
+			"Include example showing same business logic with different implementations"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
