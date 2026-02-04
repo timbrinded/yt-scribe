@@ -12,7 +12,7 @@
 				"Add fallback to index.html for SPA routing",
 				"Test: Build frontend, start server, verify pages load"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

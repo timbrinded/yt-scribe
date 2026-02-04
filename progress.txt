@@ -3854,3 +3854,57 @@ $ bun src/effect/main.ts
 - Graceful shutdown is now properly implemented with logging
 - The Effect-TS migration is nearing completion
 - Consider serving frontend from the Effect-TS server before removing Elysia
+
+---
+
+### 2026-02-04 - Effect-TS Serve Frontend Static Files
+
+**Completed:** [Effect-TS] Serve frontend static files
+
+**What was done:**
+- Created `src/effect/services/Frontend.ts`:
+  - New service that bridges Astro's Node.js SSR handler with Effect-TS HttpApp
+  - Converts Node.js IncomingMessage/ServerResponse patterns to Effect-TS Request/Response
+  - Sets `ASTRO_NODE_AUTOSTART=disabled` to prevent Astro from auto-starting its server
+  - Implements mock ServerResponse with `write()`, `end()`, `writeHead()`, `setHeader()`, and event emitter methods (`on`, `once`, `emit`)
+  - Handles async Astro handler completion via promise resolution
+  - Includes `Frontend.Test` layer returning simple HTML for testing
+
+- Updated `src/effect/main.ts`:
+  - Added `createFrontendFallback` middleware factory
+  - Routes `/api/*` and `/auth/*` paths to the HttpApi router
+  - Routes all other paths to the Astro frontend handler
+  - Uses `Layer.unwrapEffect` to acquire Frontend service at layer construction time
+  - Fixed critical bug: `request.url` is a relative path (e.g., `/auth/me`), not a full URL - was causing `new URL()` to throw
+
+**Technical challenges solved:**
+1. **URL parsing error**: Effect-TS's `HttpServerRequest.url` returns relative paths like `/auth/me`, not full URLs. Using `new URL(request.url)` throws. Fixed by using the path directly.
+2. **Astro handler completion**: The mock ServerResponse promise only resolved when `end()` was called, but Astro might complete via promise resolution. Added `.then()` handler on astro promise to resolve in either case.
+3. **Layer composition**: Initial attempts with `Layer.unwrapEffect` caused silent failures. Fixed by passing the handler as a value to the middleware factory instead of accessing Frontend service per-request.
+
+**Architecture:**
+- Frontend.Live: Loads Astro SSR entry.mjs, creates HttpApp that bridges Node.js handler
+- createFrontendFallback: Factory that creates middleware routing non-API paths to frontend
+- HttpLive: Uses Layer.unwrapEffect to acquire frontend service before server starts
+
+**Files modified:**
+- src/effect/services/Frontend.ts (new file)
+- src/effect/main.ts (added frontend integration)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` - passes (306 pass, 7 skip)
+
+**Verified functionality:**
+- GET / returns Astro home page HTML (200)
+- GET /library redirects to /login (302, protected page)
+- GET /login returns Astro login page HTML (200)
+- GET /auth/me returns 401 (API route, unauthenticated)
+- API routes properly routed to HttpApi handlers
+
+**Notes for next task:**
+- Next priorities: Remove Elysia and old service files, update package.json scripts
+- The Effect-TS server now serves both API and frontend
+- Frontend is fully integrated with SSR support
+- Ready to remove old Elysia implementation
