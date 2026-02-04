@@ -8,6 +8,410 @@
 	"tasks": [
 		{
 			"category": "functional",
+			"description": "[Effect-TS] Install Effect-TS dependencies",
+			"steps": [
+				"Run `bun add effect @effect/platform @effect/platform-bun`",
+				"Verify packages installed in package.json",
+				"Run `bun run typecheck` to confirm no conflicts"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Effect error types with Schema.TaggedError",
+			"steps": [
+				"Create `src/effect/errors/index.ts`",
+				"Define VideoNotFoundError, DownloadFailedError, TranscriptionFailedError, DatabaseError",
+				"Define ChatApiError, InvalidYouTubeUrlError",
+				"Define UnauthorizedError with HttpApiSchema.annotations({ status: 401 })",
+				"Export union types for service boundaries",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Establish service definition pattern with Context.Tag",
+			"steps": [
+				"Create `src/effect/services/_template.ts` as a reference pattern",
+				"Define service interface type (what the service provides)",
+				"Create Context.Tag class extending interface with unique identifier @ytscribe/ServiceName",
+				"Add static Live property using Layer.effect() or Layer.scoped()",
+				"Add static Test property using Layer.succeed() for mock implementations",
+				"Document pattern with comments: why Context.Tag, when to use Layer.effect vs Layer.scoped vs Layer.sync, how to depend on other services",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create service dependency graph documentation",
+			"steps": [
+				"Create `src/effect/ARCHITECTURE.md`",
+				"Document leaf services (no deps): Database, YouTube, Progress",
+				"Document config-dependent: OpenAI (needs OPENAI_API_KEY)",
+				"Document service-dependent: Transcription->OpenAI, Chat->OpenAI, Auth->Database, Pipeline->Database,YouTube,Transcription,Progress",
+				"Document Layer composition order: leaf -> dependent -> orchestration",
+				"Explain Layer.provide vs Layer.provideMerge vs Layer.merge",
+				"Document layer memoization rules (store in const to share)"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create base service types and conventions",
+			"steps": [
+				"Create `src/effect/services/types.ts`",
+				"Define naming conventions: FooService interface, Foo Context.Tag, Foo.Live, Foo.Test",
+				"Define common Result types if needed (e.g., Paginated<T>)",
+				"Export re-usable type utilities",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Document test DI pattern for service replacement",
+			"steps": [
+				"Add Testing with DI section to src/effect/ARCHITECTURE.md",
+				"Explain each service has .Test layer implementing same interface with mock behavior",
+				"Explain tests swap services via Effect.provide(TestLayer) instead of Effect.provide(LiveLayer)",
+				"Document makeTestLayer() factory for partial mocking",
+				"Include example showing same business logic with different implementations"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Database Effect service",
+			"steps": [
+				"Create `src/effect/services/Database.ts`",
+				"Define DatabaseService interface with db property",
+				"Implement Database.Live layer using Layer.scoped with acquireRelease for SQLite connection",
+				"Implement Database.Test layer with in-memory SQLite",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create OpenAI Effect service",
+			"steps": [
+				"Create `src/effect/services/OpenAI.ts`",
+				"Define OpenAIService interface wrapping the client",
+				"Implement OpenAI.Live layer reading OPENAI_API_KEY from Config.string",
+				"Implement OpenAI.Test factory for mock clients",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create YouTube Effect service",
+			"steps": [
+				"Create `src/effect/services/YouTube.ts`",
+				"Define YouTubeService interface: isValidUrl, extractVideoId, getMetadata, downloadAudio",
+				"Port existing URL validation logic from src/services/youtube.ts",
+				"Wrap Bun.spawn calls in Effect.tryPromise",
+				"Return typed errors (InvalidYouTubeUrlError, DownloadFailedError)",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Progress Effect service with PubSub",
+			"steps": [
+				"Create `src/effect/services/Progress.ts`",
+				"Define ProgressEvent schema with videoId, stage, progress, message, timestamp",
+				"Define ProgressService interface: emit, subscribe(videoId), subscribeAll",
+				"Implement using PubSub.unbounded<ProgressEvent>() and Stream.fromPubSub",
+				"Use Layer.scoped for PubSub lifecycle",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Transcription Effect service (first with dependency)",
+			"steps": [
+				"Create `src/effect/services/Transcription.ts`",
+				"Define TranscriptionService interface with transcribe(filePath) method",
+				"Create Transcription Context.Tag class",
+				"Implement Transcription.Live using Layer.effect with yield* OpenAI dependency",
+				"Do NOT call Layer.provide(OpenAI.Live) inside file - happens in layer composition",
+				"Port file validation, compression, and Whisper API call logic",
+				"Use Effect.ensuring for temp file cleanup",
+				"Map OpenAI errors to TranscriptionFailedError",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Chat Effect service",
+			"steps": [
+				"Create `src/effect/services/Chat.ts`",
+				"Define ChatService interface: chat returning Stream.Stream<string, ChatApiError>",
+				"Depend on OpenAI service via yield* OpenAI in Layer.effect",
+				"Implement streaming with Stream.async wrapping OpenAI stream",
+				"Port system prompt and message building from src/services/chat.ts",
+				"Map OpenAI errors to ChatApiError",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "security",
+			"description": "[Effect-TS] Create Auth Effect service",
+			"steps": [
+				"Create `src/effect/services/Auth.ts`",
+				"Define User schema class with id, email, name, avatarUrl",
+				"Define CurrentUser Context.Tag for authenticated user",
+				"Define AuthService interface: validateSession(token), createSession(userId), deleteSession(token)",
+				"Depend on Database service for session queries",
+				"Return UnauthorizedError for invalid/expired sessions",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "security",
+			"description": "[Effect-TS] Create Auth HttpApiMiddleware",
+			"steps": [
+				"Create `src/effect/api/middleware/auth.ts`",
+				"Define Authorization using HttpApiMiddleware.Tag with failure: UnauthorizedError, provides: CurrentUser, security: { bearer: HttpApiSecurity.bearer }",
+				"Implement AuthorizationLive layer that validates bearer token via Auth service",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Pipeline Effect service (orchestration layer)",
+			"steps": [
+				"Create `src/effect/services/Pipeline.ts`",
+				"Define PipelineService interface with processVideo(videoId) method",
+				"Depend on Database, YouTube, Transcription, Progress services",
+				"Port processing flow: fetch video -> emit progress -> download audio -> transcribe -> save transcript",
+				"Use Effect.tapError to mark video as failed on error",
+				"Emit progress events at each stage via Progress.emit",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Define HttpApi schema and groups",
+			"steps": [
+				"Create `src/effect/api/index.ts` with YTScribeApi = HttpApi.make('ytscribe')",
+				"Create `src/effect/api/groups/videos.ts` with POST /videos, GET /videos, GET /videos/:id, POST /videos/:id/retry, GET /videos/:id/status",
+				"Create `src/effect/api/groups/chat.ts` with POST /videos/:id/chat, GET /videos/:id/sessions",
+				"Create `src/effect/api/groups/auth.ts` with GET /auth/google, GET /auth/google/callback, POST /auth/logout",
+				"Apply Authorization middleware to protected groups",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Implement video endpoint handlers",
+			"steps": [
+				"Create `src/effect/api/handlers/videos.ts`",
+				"Implement HttpApiBuilder.group(api, 'videos', handlers => ...)",
+				"createVideo: validate URL, check duplicates, insert video, fork pipeline",
+				"listVideos: query user's videos from Database",
+				"getVideo: query video with transcript, return 404 if not found",
+				"retryVideo: reset status to pending, fork pipeline",
+				"Access CurrentUser from context for user-scoped queries",
+				"Use Effect.forkDaemon for fire-and-forget pipeline execution",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Implement chat endpoint handlers",
+			"steps": [
+				"Create `src/effect/api/handlers/chat.ts`",
+				"Implement HttpApiBuilder.group(api, 'chat', handlers => ...)",
+				"chat: fetch transcript, call Chat.chat, return streaming response",
+				"listSessions: query chat sessions for video",
+				"Convert Stream.Stream<string> to SSE response format",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Implement auth endpoint handlers",
+			"steps": [
+				"Create `src/effect/api/handlers/auth.ts`",
+				"Implement HttpApiBuilder.group(api, 'auth', handlers => ...)",
+				"googleAuth: generate OAuth URL, return redirect",
+				"googleCallback: exchange code for tokens, create/update user, create session",
+				"logout: delete session from database",
+				"Port OAuth logic from src/auth/google.ts",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Implement SSE endpoint for video status",
+			"steps": [
+				"In video handlers, implement status stream endpoint",
+				"Use Progress.subscribe(videoId) to get event stream",
+				"Convert Effect Stream to SSE format with Stream.map to format as data: {...}\\n\\n",
+				"Use HttpServerResponse.stream for streaming response",
+				"Set headers: Content-Type: text/event-stream, Cache-Control: no-cache",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create Live and Test layer compositions (DI wiring)",
+			"steps": [
+				"Create `src/effect/layers/Live.ts`",
+				"Compose leaf services: Layer.mergeAll(Database.Live, OpenAI.Live, YouTube.Live, Progress.Live)",
+				"Compose dependent services: Transcription.Live, Chat.Live, Auth.Live with Layer.provide(LeafLayer)",
+				"Compose orchestration: Pipeline.Live.pipe(Layer.provide(Layer.merge(LeafLayer, DependentLayer)))",
+				"Export LiveLayer and AppRequirements type",
+				"Create `src/effect/layers/Test.ts` with makeTestLayer() factory accepting partial mocks",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create main entry point with BunRuntime",
+			"steps": [
+				"Create `src/effect/main.ts`",
+				"Build HTTP server layer with HttpApiBuilder.serve, middlewareCors, BunHttpServer.layer",
+				"Launch with BunRuntime.runMain(Layer.launch(HttpLive))",
+				"Run `bun run typecheck`",
+				"Test: `bun src/effect/main.ts` starts server on port 3001"
+			],
+			"passes": false
+		},
+		{
+			"category": "reliability",
+			"description": "[Effect-TS] Add graceful shutdown handling",
+			"steps": [
+				"In main.ts, handle SIGINT and SIGTERM signals",
+				"Use Effect.addFinalizer in Database layer to close SQLite connection",
+				"Ensure PubSub is properly cleaned up on shutdown",
+				"Test: Start server, send SIGINT, verify clean shutdown logs"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Serve frontend static files",
+			"steps": [
+				"Add static file serving to API for frontend assets",
+				"Use HttpRouter.mountApp or platform file serving utilities",
+				"Configure to serve from frontend/dist in production",
+				"Add fallback to index.html for SPA routing",
+				"Test: Build frontend, start server, verify pages load"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Remove Elysia and old service files",
+			"steps": [
+				"Delete src/server.ts (old Elysia entry)",
+				"Delete src/routes/*.ts (old Elysia routes)",
+				"Delete src/middleware/*.ts (old Elysia middleware)",
+				"Delete src/services/*.ts (old service implementations)",
+				"Delete src/auth/*.ts (old OAuth implementation)",
+				"Update package.json scripts to use src/effect/main.ts",
+				"Remove elysia and @elysiajs/* from dependencies",
+				"Run `bun run typecheck`",
+				"Run `bun test`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Update package.json scripts",
+			"steps": [
+				"Change dev: bun --hot src/effect/main.ts",
+				"Change start: bun src/effect/main.ts",
+				"Verify `bun run dev` starts Effect server with HMR",
+				"Verify `bun run start` starts production server"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Create test layer infrastructure",
+			"steps": [
+				"Run `bun add -d @effect/vitest`",
+				"Update src/effect/layers/Test.ts to export makeTestLayer factory",
+				"Create default mock implementations: Database.Test, OpenAI.Test, YouTube.Test, Progress.Test, Transcription.Test, Chat.Test",
+				"Run `bun run typecheck`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Add Pipeline service unit tests with mock DI",
+			"steps": [
+				"Create `tests/effect/services/Pipeline.test.ts`",
+				"Create test-specific mock layers for YouTube, Transcription",
+				"Compose test layer replacing real services: makeTestLayer({ youtube: MockYouTube, transcription: MockTranscription })",
+				"Write tests using Effect.provide(TestLayer)",
+				"Test: processVideo succeeds with mocked services",
+				"Test: processVideo returns VideoNotFoundError for missing video",
+				"Test: processVideo marks video as failed on transcription error",
+				"Run `bun test tests/effect/services/`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Add Transcription service tests with OpenAI mock",
+			"steps": [
+				"Create `tests/effect/services/Transcription.test.ts`",
+				"Create mock OpenAI layer that returns canned Whisper response",
+				"Test: transcribe returns expected result with mock",
+				"Test: transcribe returns TranscriptionFailedError when mock throws",
+				"Run `bun test tests/effect/services/`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Add API integration tests with full test layer",
+			"steps": [
+				"Create `tests/effect/api/videos.test.ts`",
+				"Use makeTestLayer() to create fully mocked environment",
+				"Use Effect HttpClient to make requests against test server",
+				"Test: POST /videos creates video and returns 201",
+				"Test: POST /videos returns 400 for invalid YouTube URL",
+				"Test: GET /videos returns user's videos only",
+				"Test: Unauthorized request returns 401",
+				"Run `bun test tests/effect/api/`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
+			"description": "[Effect-TS] Add Chat service streaming tests",
+			"steps": [
+				"Create `tests/effect/services/Chat.test.ts`",
+				"Create mock OpenAI client that yields canned streaming chunks",
+				"Test: chat stream emits expected chunks",
+				"Test: ChatApiError returned for rate limit scenario",
+				"Run `bun test tests/effect/`"
+			],
+			"passes": false
+		},
+		{
+			"category": "functional",
 			"description": "Implement transcript timestamp navigation",
 			"steps": [
 				"Make timestamps in transcript clickable",
