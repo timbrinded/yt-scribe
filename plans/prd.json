@@ -408,20 +408,6 @@
 		},
 		{
 			"category": "functional",
-			"description": "Create Dockerfile for production deployment",
-			"steps": [
-				"Create Dockerfile with multi-stage build",
-				"Use oven/bun:1 as base image",
-				"Install yt-dlp and ffmpeg in runtime stage",
-				"Build both backend and frontend",
-				"Configure for Railway/Fly.io environment variables",
-				"Run `docker build -t ytscribe .` and verify success",
-				"Run container locally and verify health endpoint"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Create docker-compose for local development",
 			"steps": [
 				"Create docker-compose.yml",

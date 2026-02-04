@@ -1,0 +1,68 @@
+# Dependencies
+node_modules
+frontend/node_modules
+
+# Build artifacts
+frontend/dist
+.astro
+
+# Development files
+.git
+.gitignore
+*.md
+!README.md
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests
+frontend/tests
+e2e
+*.test.ts
+*.test.tsx
+*.spec.ts
+vitest.config.ts
+frontend/vitest.config.ts
+playwright.config.ts
+
+# Data directory (mounted as volume in production)
+data
+
+# Environment files (should be provided at runtime)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs
+
+# Lock files are needed for reproducible builds
+# !bun.lock
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Coverage reports
+coverage
+.nyc_output
+
+# PRD and planning files
+plans
+progress.txt
+completed.json

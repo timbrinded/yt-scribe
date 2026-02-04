@@ -2292,3 +2292,61 @@ frontend/
 - Next priorities: Effect-TS migration (large project), Docker setup, E2E testing
 - The Effect-TS migration is a significant undertaking with 28 interconnected tasks
 
+---
+
+### 2026-02-04 - Dockerfile for Production Deployment
+
+**Completed:** Create Dockerfile for production deployment
+
+**What was done:**
+- Created multi-stage Dockerfile with 3 stages:
+  1. `deps`: Install dependencies for both backend and frontend
+  2. `frontend-builder`: Build the Astro frontend
+  3. `runtime`: Production image with minimal dependencies
+- Used oven/bun:1 as build image and oven/bun:1-slim as runtime base
+- Installed runtime dependencies:
+  - yt-dlp (latest release from GitHub)
+  - ffmpeg for audio processing
+  - python3 (required by yt-dlp)
+  - ca-certificates for HTTPS
+  - curl for health checks
+- Created .dockerignore to optimize build context (excludes tests, node_modules, data, etc.)
+- Configured environment variables:
+  - NODE_ENV=production
+  - PORT=3000
+  - DATABASE_URL=/app/data/ytscribe.db
+- Added HEALTHCHECK instruction for container orchestration
+- Created /app/data/downloads directory for audio file storage
+
+**Docker image verification:**
+- `docker build -t ytscribe .` - ✓ builds successfully
+- `yt-dlp --version` - ✓ 2026.02.04
+- `ffmpeg -version` - ✓ 7.1.3
+- Health endpoint test - ✓ returns {"status":"ok","timestamp":"..."}
+
+**Files created:**
+- Dockerfile
+- .dockerignore
+
+**Technical notes:**
+- Multi-stage build keeps final image small (~500MB)
+- yt-dlp installed from GitHub releases (more up-to-date than apt)
+- Runtime uses oven/bun:1-slim (Debian trixie base)
+- Frontend dist is copied to /app/frontend/dist
+- Data directory should be mounted as volume in production for persistence
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+- `bun run build` (frontend) - passes
+- `docker build -t ytscribe .` - passes
+- Container health endpoint - passes
+
+**Notes for next task:**
+- Dockerfile is ready for deployment to Railway, Fly.io, or any Docker-compatible platform
+- Need to create docker-compose.yml for local development (next PRD task)
+- Consider Railway deployment configuration (railway.toml)
+- The Effect-TS migration is a large undertaking that can be done incrementally
+
