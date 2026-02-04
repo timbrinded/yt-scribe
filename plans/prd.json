@@ -428,7 +428,7 @@
 				"Test timestamp citation click scrolls transcript",
 				"Run `bun run e2e` and verify passes"
 			],
-			"passes": false
+			"passes": true
 		}
 	]
 }

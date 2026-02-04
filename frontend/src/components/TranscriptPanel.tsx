@@ -241,6 +241,7 @@ export function TranscriptPanel({
 		<MotionWrapper>
 			<div
 				ref={containerRef}
+				data-testid="transcript-panel"
 				className={`flex flex-col ${className}`}
 				tabIndex={0}
 				onFocus={handleContainerFocus}
