@@ -4,19 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Create Effect error types with Schema.TaggedError",
-			"steps": [
-				"Create `src/effect/errors/index.ts`",
-				"Define VideoNotFoundError, DownloadFailedError, TranscriptionFailedError, DatabaseError",
-				"Define ChatApiError, InvalidYouTubeUrlError",
-				"Define UnauthorizedError with HttpApiSchema.annotations({ status: 401 })",
-				"Export union types for service boundaries",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Establish service definition pattern with Context.Tag",
 			"steps": [
 				"Create `src/effect/services/_template.ts` as a reference pattern",

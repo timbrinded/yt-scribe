@@ -2648,3 +2648,53 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The Effect-TS migration involves 30+ interconnected tasks
 - Services should be migrated incrementally, keeping Elysia running until complete
 - Layer composition follows: leaf services → dependent services → orchestration layers
+
+---
+
+### 2026-02-04 - Effect Error Types with Schema.TaggedError
+
+**Completed:** [Effect-TS] Create Effect error types with Schema.TaggedError
+
+**What was done:**
+- Created `src/effect/errors/index.ts` with comprehensive typed error classes
+- Implemented domain errors using `Schema.TaggedError` pattern:
+  - `VideoNotFoundError` (404) - with videoId and optional message
+  - `DownloadFailedError` (500) - with youtubeUrl and reason
+  - `TranscriptionFailedError` (500) - with videoId and reason
+  - `DatabaseError` (500) - with operation and reason
+  - `ChatApiError` (502) - with reason and retryable flag
+  - `InvalidYouTubeUrlError` (400) - with url
+  - `ConflictError` (409) - for duplicates, with message and optional existingId
+  - `BadRequestError` (400) - generic validation error
+- Implemented HTTP status errors using `HttpApiSchema.EmptyError`:
+  - `UnauthorizedError` (401) - simple auth required error
+  - `ForbiddenError` (403) - permission denied error
+- All errors include `displayMessage` getter for user-facing strings
+- Exported union types for service boundaries:
+  - `YouTubeServiceError` - errors from YouTube service
+  - `TranscriptionServiceError` - errors from Transcription service
+  - `ChatServiceError` - errors from Chat service
+  - `PipelineServiceError` - errors from Pipeline orchestration
+  - `AuthError` - authentication errors
+  - `ApiError` - all API-level errors
+
+**Files created:**
+- src/effect/errors/index.ts
+
+**Technical notes:**
+- `Schema.TaggedError` creates error classes with automatic schema support and `_tag` field for pattern matching
+- `HttpApiSchema.EmptyError` is for simple status-only errors without data payload
+- `HttpApiSchema.annotations({ status: N })` integrates with Effect HTTP API to automatically set response status codes
+- Error classes extend Effect's error system for typed error handling in the Effect pipeline
+- Union types help constrain error types at service boundaries for better type safety
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Establish service definition pattern with Context.Tag
+- The error types are now available for use in Effect services
+- All errors integrate with HttpApi for automatic HTTP status code handling
+- The `_tag` field enables discriminated union pattern matching in error handlers

@@ -662,5 +662,18 @@
 			"Run `bun run typecheck` to confirm no conflicts"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create Effect error types with Schema.TaggedError",
+		"steps": [
+			"Create `src/effect/errors/index.ts`",
+			"Define VideoNotFoundError, DownloadFailedError, TranscriptionFailedError, DatabaseError",
+			"Define ChatApiError, InvalidYouTubeUrlError",
+			"Define UnauthorizedError with HttpApiSchema.annotations({ status: 401 })",
+			"Export union types for service boundaries",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
