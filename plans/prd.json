@@ -4,19 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Implement chat endpoint handlers",
-			"steps": [
-				"Create `src/effect/api/handlers/chat.ts`",
-				"Implement HttpApiBuilder.group(api, 'chat', handlers => ...)",
-				"chat: fetch transcript, call Chat.chat, return streaming response",
-				"listSessions: query chat sessions for video",
-				"Convert Stream.Stream<string> to SSE response format",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Implement auth endpoint handlers",
 			"steps": [
 				"Create `src/effect/api/handlers/auth.ts`",

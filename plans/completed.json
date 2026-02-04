@@ -899,5 +899,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Implement chat endpoint handlers",
+		"steps": [
+			"Create `src/effect/api/handlers/chat.ts`",
+			"Implement HttpApiBuilder.group(api, 'chat', handlers => ...)",
+			"chat: fetch transcript, call Chat.chat, return streaming response",
+			"listSessions: query chat sessions for video",
+			"Convert Stream.Stream<string> to SSE response format",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

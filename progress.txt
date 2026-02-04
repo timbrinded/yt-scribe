@@ -3537,3 +3537,62 @@ Layer.provide(Database.Live),
 - Video handlers are ready for HttpApi composition
 - Chat handlers will follow the same pattern with Stream for chat response
 - Layer composition will happen in src/effect/layers/Live.ts
+
+---
+
+### 2026-02-04 - Effect-TS Chat Endpoint Handlers
+
+**Completed:** [Effect-TS] Implement chat endpoint handlers
+
+**What was done:**
+- Created `src/effect/api/handlers/chat.ts` with all chat endpoint handlers:
+  - `sendMessageHandler` - POST /videos/:id/chat: sends message, gets AI response
+  - `listSessionsHandler` - GET /videos/:id/sessions: lists chat sessions with message counts
+- Implemented HttpApiBuilder.group pattern:
+  - Handlers receive typed arguments: `{ path, payload }` based on endpoint schema
+  - CurrentUser accessed via `yield* CurrentUser` for authenticated user context
+  - Services accessed via `yield* Database`, `yield* Chat`
+- sendMessage handler flow:
+  - Validates video exists and belongs to user
+  - Validates video is in 'completed' status with transcript
+  - Creates new session or validates existing session ownership
+  - Loads previous messages for context
+  - Calls Chat.chatComplete for AI response
+  - Saves both user and assistant messages to database
+  - Updates session timestamp
+- listSessions handler flow:
+  - Validates video exists and belongs to user
+  - Uses LEFT JOIN with groupBy to count messages per session
+  - Returns sessions ordered by most recently updated
+- Effect-TS patterns used:
+  - `Option.getOrNull` for extracting optional sessionId from payload
+  - `Effect.gen` for sequential computation with typed errors
+  - Drizzle ORM queries with and(), eq(), desc(), count() aggregations
+- Error handling:
+  - `VideoNotFoundError` (404) for missing video
+  - `ForbiddenError` (403) for accessing another user's video
+  - `BadRequestError` (400) for non-completed video or invalid session
+  - `ChatApiError` propagated from Chat service for API failures
+- Exported `ChatGroupLive` layer for HttpApi composition
+
+**Files created:**
+- src/effect/api/handlers/chat.ts
+
+**Technical notes:**
+- Uses chatComplete() (non-streaming) for simplicity - streaming can be added later
+- Session ownership validated at multiple levels (video, session)
+- Message ordering preserved via createdAt timestamp in queries
+- LEFT JOIN ensures sessions with zero messages are included in count
+- Response types use `satisfies` for type safety without casting
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+- `bun run test` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Implement auth endpoint handlers
+- Chat handlers are ready for HttpApi composition alongside video handlers
+- Auth handlers will need to port OAuth logic from src/auth/google.ts
+- Layer composition will happen in src/effect/layers/Live.ts
