@@ -2461,3 +2461,60 @@ frontend/
 - Next priorities: E2E testing with Playwright, basic analytics tracking, or Effect-TS migration
 - The Effect-TS migration is a large undertaking (28 tasks) - should be done incrementally
 
+---
+
+### 2026-02-04 - E2E Testing Setup with Playwright
+
+**Completed:** Set up E2E testing with Playwright
+
+**What was done:**
+- Installed @playwright/test v1.58.1 in frontend directory
+- Installed Chromium browser for E2E tests via `bunx playwright install chromium`
+- Created frontend/playwright.config.ts with:
+  - Test directory: ./tests/e2e
+  - Base URL: http://localhost:4321 (Astro dev server)
+  - Chromium-only project for simplicity
+  - WebServer config to auto-start Astro dev server
+  - Trace and screenshot on failure for debugging
+  - GitHub reporter for CI, list reporter for local
+- Created frontend/tests/e2e/home.spec.ts with 7 tests:
+  - Loads successfully and displays hero section
+  - Displays header with logo and navigation
+  - Displays primary and secondary CTA buttons
+  - Displays features section (scroll-triggered)
+  - Navigates to login when clicking Get Started
+  - Is responsive on mobile viewport
+  - Mobile menu opens and shows navigation links
+- Added scripts to frontend/package.json:
+  - `e2e`: Runs Playwright tests
+  - `e2e:ui`: Runs Playwright tests with interactive UI
+
+**Files created:**
+- frontend/playwright.config.ts
+- frontend/tests/e2e/home.spec.ts
+
+**Files modified:**
+- frontend/package.json (added e2e scripts, @playwright/test dependency)
+
+**Technical notes:**
+- Tests use Playwright's recommended locator strategies: getByRole, getByTestId
+- Tests avoid ambiguous locators by using specific aria-labels and test IDs
+- Mobile tests use setViewportSize to simulate mobile devices
+- Features section test scrolls to trigger client:visible hydration
+- WebServer config ensures Astro dev server is started automatically
+- Tests reuse existing server in local dev, start fresh in CI
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+- `bun run e2e` - passes (7 tests)
+- `bun run build` (frontend) - passes
+
+**Notes for next task:**
+- E2E testing infrastructure is now in place
+- Tests can be extended for authenticated flows (add-video, chat)
+- Consider adding fixtures for authenticated user state
+- Next priorities: Write E2E test for video add flow, Write E2E test for chat flow, basic analytics tracking, or Effect-TS migration
+

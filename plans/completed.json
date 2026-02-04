@@ -615,5 +615,18 @@
 			"Document deployment steps in README"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Set up E2E testing with Playwright",
+		"steps": [
+			"Install Playwright: `cd frontend && bun add -d @playwright/test`",
+			"Run `bunx playwright install` to get browsers",
+			"Create playwright.config.ts",
+			"Create tests/e2e/home.spec.ts testing landing page loads",
+			"Add e2e script to package.json",
+			"Run `bun run e2e` and verify test passes"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
