@@ -1,4 +1,4 @@
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import { getDb } from "../db";
 import { type Session, sessions, users } from "../db/schema";
 
@@ -63,7 +63,13 @@ export function validateSession(token: string): SessionWithUser | null {
 		})
 		.from(sessions)
 		.innerJoin(users, eq(sessions.userId, users.id))
-		.where(and(eq(sessions.token, token), gt(sessions.expiresAt, now)))
+		.where(
+			and(
+				eq(sessions.token, token),
+				gt(sessions.expiresAt, now),
+				isNull(users.deletedAt),
+			),
+		)
 		.get();
 
 	if (!result) {

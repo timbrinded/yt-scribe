@@ -44,7 +44,8 @@ describe("Pipeline Service", () => {
 				email TEXT NOT NULL UNIQUE,
 				name TEXT,
 				avatar_url TEXT,
-				created_at INTEGER NOT NULL DEFAULT (unixepoch())
+				created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+				deleted_at INTEGER
 			);
 
 			CREATE TABLE videos (

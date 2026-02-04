@@ -215,4 +215,43 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 				session: t.Optional(t.String()),
 			}),
 		},
+	)
+	.delete(
+		"/account",
+		({ cookie: { session }, set }) => {
+			const db = getDb();
+			const sessionToken = session.value;
+
+			if (!sessionToken) {
+				set.status = 401;
+				return { error: "Not authenticated" };
+			}
+
+			const result = validateSession(sessionToken);
+
+			if (!result) {
+				session.remove();
+				set.status = 401;
+				return { error: "Invalid or expired session" };
+			}
+
+			// Soft delete: set deletedAt timestamp
+			db.update(users)
+				.set({ deletedAt: new Date() })
+				.where(eq(users.id, result.user.id))
+				.run();
+
+			// Delete all sessions for this user
+			deleteSession(sessionToken);
+
+			// Clear the cookie
+			session.remove();
+
+			return { message: "Account deleted successfully" };
+		},
+		{
+			cookie: t.Cookie({
+				session: t.Optional(t.String()),
+			}),
+		},
 	);

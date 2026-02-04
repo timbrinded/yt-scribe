@@ -4,6 +4,10 @@ import { getDb } from "../db";
 import { transcripts, videos } from "../db/schema";
 import { authMiddleware } from "../middleware/auth";
 import { processVideo } from "../services/pipeline";
+import {
+	type ProgressEvent,
+	progressEmitter,
+} from "../services/progress";
 import { extractVideoId, isValidYouTubeUrl } from "../services/youtube";
 
 /**
@@ -244,6 +248,117 @@ export const videoRoutes = new Elysia({ prefix: "/api/videos" })
 				status: "pending",
 				message: "Video processing retry initiated",
 			};
+		},
+		{
+			auth: true,
+			params: t.Object({
+				id: t.Numeric(),
+			}),
+		},
+	)
+	.get(
+		"/:id/status/stream",
+		({ params, user, set }) => {
+			const db = getDb();
+			const videoId = params.id;
+
+			// Fetch the video
+			const video = db
+				.select()
+				.from(videos)
+				.where(eq(videos.id, videoId))
+				.get();
+
+			// Return 404 if video doesn't exist
+			if (!video) {
+				set.status = 404;
+				return { error: "Video not found" };
+			}
+
+			// Return 403 if video belongs to a different user
+			if (video.userId !== user.id) {
+				set.status = 403;
+				return { error: "Access denied" };
+			}
+
+			// Return SSE stream
+			const encoder = new TextEncoder();
+
+			const stream = new ReadableStream({
+				start(controller) {
+					// Send initial status
+					const initialEvent: ProgressEvent = {
+						videoId,
+						stage:
+							video.status === "completed"
+								? "complete"
+								: video.status === "failed"
+									? "error"
+									: video.status === "processing"
+										? "pending"
+										: "pending",
+						message: `Current status: ${video.status}`,
+						timestamp: new Date().toISOString(),
+					};
+					controller.enqueue(
+						encoder.encode(`data: ${JSON.stringify(initialEvent)}\n\n`),
+					);
+
+					// If video is already complete or failed, close the stream
+					if (video.status === "completed" || video.status === "failed") {
+						controller.close();
+						return;
+					}
+
+					// Subscribe to progress events for this video
+					const unsubscribe = progressEmitter.onVideoProgress(
+						videoId,
+						(event) => {
+							try {
+								controller.enqueue(
+									encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+								);
+								// Close stream when processing is complete or errored
+								if (event.stage === "complete" || event.stage === "error") {
+									unsubscribe();
+									controller.close();
+								}
+							} catch {
+								// Stream may have been closed by client
+								unsubscribe();
+							}
+						},
+					);
+
+					// Send keepalive every 30 seconds
+					const keepaliveInterval = setInterval(() => {
+						try {
+							controller.enqueue(encoder.encode(": keepalive\n\n"));
+						} catch {
+							clearInterval(keepaliveInterval);
+							unsubscribe();
+						}
+					}, 30000);
+
+					// Cleanup on cancel
+					return () => {
+						clearInterval(keepaliveInterval);
+						unsubscribe();
+					};
+				},
+				cancel() {
+					// Stream was cancelled by client - cleanup handled in start()
+				},
+			});
+
+			set.headers = {
+				"Content-Type": "text/event-stream",
+				"Cache-Control": "no-cache",
+				Connection: "keep-alive",
+				"X-Accel-Buffering": "no", // Disable nginx buffering
+			};
+
+			return stream;
 		},
 		{
 			auth: true,

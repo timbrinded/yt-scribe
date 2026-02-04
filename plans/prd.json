@@ -8,19 +8,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "Add real-time status updates during video processing using SSE",
-			"steps": [
-				"Add GET /api/videos/:id/status/stream SSE endpoint",
-				"Emit events: status changes, progress percentage, errors",
-				"Create src/hooks/useVideoStatus.ts to consume SSE",
-				"Update VideoCard status in real-time",
-				"Update ProcessingAnimation from SSE events",
-				"Verify status updates propagate to UI"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Implement transcript timestamp navigation",
 			"steps": [
 				"Make timestamps in transcript clickable",
@@ -40,18 +27,6 @@
 				"Render citations as clickable links",
 				"Clicking citation scrolls transcript to that timestamp",
 				"Highlight cited sections in transcript"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "Create user settings page",
-			"steps": [
-				"Create src/pages/settings.astro",
-				"Show user profile info from OAuth",
-				"Add logout button calling POST /auth/logout",
-				"Add account deletion option (soft delete)",
-				"Style consistently with app design"
 			],
 			"passes": false
 		},
