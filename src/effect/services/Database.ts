@@ -179,6 +179,14 @@ export class Database extends Context.Tag("@ytscribe/Database")<
 					content TEXT NOT NULL,
 					created_at TEXT DEFAULT CURRENT_TIMESTAMP
 				);
+
+				CREATE TABLE analytics (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					user_id INTEGER NOT NULL REFERENCES users(id),
+					event TEXT NOT NULL CHECK(event IN ('video_added', 'transcription_completed', 'chat_message_sent')),
+					properties TEXT,
+					created_at TEXT DEFAULT CURRENT_TIMESTAMP
+				);
 			`);
 
 			// Create Drizzle instance
@@ -279,6 +287,14 @@ export function makeDatabaseTestLayer(
 					session_id INTEGER NOT NULL REFERENCES chat_sessions(id),
 					role TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
 					content TEXT NOT NULL,
+					created_at TEXT DEFAULT CURRENT_TIMESTAMP
+				);
+
+				CREATE TABLE analytics (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					user_id INTEGER NOT NULL REFERENCES users(id),
+					event TEXT NOT NULL CHECK(event IN ('video_added', 'transcription_completed', 'chat_message_sent')),
+					properties TEXT,
 					created_at TEXT DEFAULT CURRENT_TIMESTAMP
 				);
 			`);

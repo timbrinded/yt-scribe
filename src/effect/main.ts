@@ -35,6 +35,7 @@ import { YTScribeApi } from "./api";
 import { VideosGroupLive } from "./api/handlers/videos";
 import { ChatGroupLive } from "./api/handlers/chat";
 import { AuthGroupLive } from "./api/handlers/auth";
+import { AdminGroupLive } from "./api/handlers/admin";
 import { AuthorizationLive } from "./api/middleware/auth";
 import { LiveLayer } from "./layers/Live";
 import { Frontend } from "./services/Frontend";
@@ -67,6 +68,7 @@ const HandlersLive = Layer.mergeAll(
 	VideosGroupLive,
 	ChatGroupLive,
 	AuthGroupLive,
+	AdminGroupLive,
 );
 
 /**

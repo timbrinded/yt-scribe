@@ -33,6 +33,7 @@ import { Database } from "../../services/Database";
 import { YouTube } from "../../services/YouTube";
 import { Pipeline } from "../../services/Pipeline";
 import { Progress } from "../../services/Progress";
+import { Analytics } from "../../services/Analytics";
 import {
 	InvalidYouTubeUrlError,
 	ConflictError,
@@ -70,6 +71,7 @@ const createVideoHandler = ({ payload }: { payload: { url: string } }) =>
 		const { db } = yield* Database;
 		const youtube = yield* YouTube;
 		const pipeline = yield* Pipeline;
+		const analyticsService = yield* Analytics;
 
 		// Validate YouTube URL format
 		if (!youtube.isValidUrl(url)) {
@@ -107,6 +109,14 @@ const createVideoHandler = ({ payload }: { payload: { url: string } }) =>
 			})
 			.returning()
 			.get();
+
+		// Track video_added event
+		yield* analyticsService
+			.trackEvent(user.id, "video_added", {
+				videoId: video.id,
+				youtubeId: video.youtubeId,
+			})
+			.pipe(Effect.catchAll(() => Effect.void)); // Don't fail on analytics errors
 
 		// Trigger pipeline processing (fire-and-forget via forkDaemon)
 		yield* Effect.forkDaemon(

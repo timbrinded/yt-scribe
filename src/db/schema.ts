@@ -122,3 +122,26 @@ export const sessions = sqliteTable("sessions", {
 
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
+
+// Analytics events for tracking user activity
+export const analyticsEventEnum = [
+	"video_added",
+	"transcription_completed",
+	"chat_message_sent",
+] as const;
+export type AnalyticsEventType = (typeof analyticsEventEnum)[number];
+
+export const analytics = sqliteTable("analytics", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	userId: integer("user_id")
+		.notNull()
+		.references(() => users.id),
+	event: text("event", { enum: analyticsEventEnum }).notNull(),
+	properties: text("properties", { mode: "json" }).$type<Record<string, unknown>>(),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
+export type AnalyticsEvent = typeof analytics.$inferSelect;
+export type NewAnalyticsEvent = typeof analytics.$inferInsert;

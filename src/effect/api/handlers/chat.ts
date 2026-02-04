@@ -26,6 +26,7 @@ import { YTScribeApi } from "../index";
 import { CurrentUser } from "../middleware/auth";
 import { Database } from "../../services/Database";
 import { Chat } from "../../services/Chat";
+import { Analytics } from "../../services/Analytics";
 import {
 	BadRequestError,
 	ForbiddenError,
@@ -67,6 +68,7 @@ const sendMessageHandler = ({
 		const user = yield* CurrentUser;
 		const { db } = yield* Database;
 		const chat = yield* Chat;
+		const analyticsService = yield* Analytics;
 
 		// Fetch the video
 		const video = db.select().from(videos).where(eq(videos.id, videoId)).get();
@@ -188,6 +190,15 @@ const sendMessageHandler = ({
 			.set({ updatedAt: new Date() })
 			.where(eq(chatSessions.id, sessionId))
 			.run();
+
+		// Track chat_message_sent event
+		yield* analyticsService
+			.trackEvent(user.id, "chat_message_sent", {
+				videoId,
+				sessionId,
+				messageLength: userMessage.length,
+			})
+			.pipe(Effect.catchAll(() => Effect.void)); // Don't fail on analytics errors
 
 		return {
 			sessionId,

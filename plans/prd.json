@@ -1,18 +1,5 @@
 {
 	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
 	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
-	"tasks": [
-		{
-			"category": "observability",
-			"description": "Add basic analytics tracking",
-			"steps": [
-				"Create analytics table: id, userId, event, properties (JSON), createdAt",
-				"Add trackEvent(userId, event, properties) function",
-				"Track: video_added, transcription_completed, chat_message_sent",
-				"Create admin endpoint GET /api/admin/analytics (protected)",
-				"Verify events are recorded"
-			],
-			"passes": false
-		}
-	]
+	"tasks": []
 }

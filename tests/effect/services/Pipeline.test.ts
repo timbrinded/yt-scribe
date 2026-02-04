@@ -19,6 +19,7 @@ import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Da
 import { makeYouTubeTestLayer } from "../../../src/effect/services/YouTube";
 import { makeTranscriptionTestLayer } from "../../../src/effect/services/Transcription";
 import { makeProgressTestLayer } from "../../../src/effect/services/Progress";
+import { Analytics } from "../../../src/effect/services/Analytics";
 import {
 	VideoNotFoundError,
 	DownloadFailedError,
@@ -111,15 +112,18 @@ function createPipelineTestLayer(options: {
 		options.progressOverrides ?? progressLayer,
 	);
 
-	// Pipeline.Live depends on Database, YouTube, Transcription, Progress
+	// Analytics test layer (no-op implementation)
+	const analyticsLayer = Analytics.Test;
+
+	// Pipeline.Live depends on Database, YouTube, Transcription, Progress, Analytics
 	// We provide those dependencies to Pipeline.Live
 	const pipelineLayer = Layer.provide(
 		Pipeline.Live,
-		Layer.merge(leafLayer, transcriptionLayer),
+		Layer.mergeAll(leafLayer, transcriptionLayer, analyticsLayer),
 	);
 
 	// Final composed layer
-	const testLayer = Layer.mergeAll(leafLayer, transcriptionLayer, pipelineLayer);
+	const testLayer = Layer.mergeAll(leafLayer, transcriptionLayer, analyticsLayer, pipelineLayer);
 
 	return { layer: testLayer, getProgressEvents: getEvents };
 }

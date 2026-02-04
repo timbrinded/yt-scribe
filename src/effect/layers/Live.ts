@@ -31,6 +31,7 @@ import { Transcription } from "../services/Transcription";
 import { Chat } from "../services/Chat";
 import { Auth } from "../services/Auth";
 import { Pipeline } from "../services/Pipeline";
+import { Analytics } from "../services/Analytics";
 
 // =============================================================================
 // TYPE EXPORTS
@@ -57,7 +58,8 @@ export type AppRequirements =
 	| Transcription
 	| Chat
 	| Auth
-	| Pipeline;
+	| Pipeline
+	| Analytics;
 
 // =============================================================================
 // LEAF LAYER
@@ -99,6 +101,11 @@ const ChatLayer = Chat.Live.pipe(Layer.provide(OpenAI.Live));
 const AuthLayer = Auth.Live.pipe(Layer.provide(Database.Live));
 
 /**
+ * Analytics service depends on Database for event storage.
+ */
+const AnalyticsLayer = Analytics.Live.pipe(Layer.provide(Database.Live));
+
+/**
  * Dependent services that require other services to function.
  * These are composed with their dependencies already provided.
  */
@@ -106,6 +113,7 @@ export const DependentLayer = Layer.mergeAll(
 	TranscriptionLayer,
 	ChatLayer,
 	AuthLayer,
+	AnalyticsLayer,
 );
 
 // =============================================================================

@@ -26,6 +26,7 @@ import { HttpApi, OpenApi } from "@effect/platform";
 import { VideosGroup } from "./groups/videos";
 import { ChatGroup } from "./groups/chat";
 import { AuthGroup } from "./groups/auth";
+import { AdminGroup } from "./groups/admin";
 
 /**
  * YTScribe API definition.
@@ -37,6 +38,7 @@ export const YTScribeApi = HttpApi.make("ytscribe")
 	.add(VideosGroup)
 	.add(ChatGroup)
 	.add(AuthGroup)
+	.add(AdminGroup)
 	.annotate(OpenApi.Title, "YTScribe API")
 	.annotate(
 		OpenApi.Description,
@@ -48,3 +50,4 @@ export const YTScribeApi = HttpApi.make("ytscribe")
 export { VideosGroup } from "./groups/videos";
 export { ChatGroup } from "./groups/chat";
 export { AuthGroup } from "./groups/auth";
+export { AdminGroup } from "./groups/admin";

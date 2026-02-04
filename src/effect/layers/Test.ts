@@ -40,6 +40,7 @@ import { Transcription, makeTranscriptionTestLayer } from "../services/Transcrip
 import { Chat, makeChatTestLayer } from "../services/Chat";
 import { Auth, makeAuthTestLayer } from "../services/Auth";
 import { Pipeline, makePipelineTestLayer } from "../services/Pipeline";
+import { Analytics, makeAnalyticsTestLayer } from "../services/Analytics";
 import type { AppRequirements } from "./Live";
 
 // =============================================================================
@@ -57,6 +58,7 @@ export {
 	makeChatTestLayer,
 	makeAuthTestLayer,
 	makePipelineTestLayer,
+	makeAnalyticsTestLayer,
 };
 
 // =============================================================================
@@ -84,11 +86,13 @@ export const TestLeafLayer = Layer.mergeAll(
 const TestTranscriptionLayer = Transcription.Test;
 const TestChatLayer = Chat.Test;
 const TestAuthLayer = Auth.Test;
+const TestAnalyticsLayer = Analytics.Test;
 
 export const TestDependentLayer = Layer.mergeAll(
 	TestTranscriptionLayer,
 	TestChatLayer,
 	TestAuthLayer,
+	TestAnalyticsLayer,
 );
 
 /**
@@ -142,6 +146,8 @@ export interface TestLayerOptions {
 	auth?: Layer.Layer<Auth>;
 	/** Override Pipeline service */
 	pipeline?: Layer.Layer<Pipeline>;
+	/** Override Analytics service */
+	analytics?: Layer.Layer<Analytics>;
 }
 
 /**
@@ -213,6 +219,7 @@ export function makeTestLayer(
 		options.transcription ?? Transcription.Test,
 		options.chat ?? Chat.Test,
 		options.auth ?? Auth.Test,
+		options.analytics ?? Analytics.Test,
 	);
 
 	// Orchestration layer with override

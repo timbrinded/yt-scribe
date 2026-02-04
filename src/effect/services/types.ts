@@ -425,3 +425,62 @@ export interface ProcessVideoResult {
 	readonly status: VideoStatus;
 	readonly transcriptId?: number;
 }
+
+// =============================================================================
+// Analytics Service Types
+// =============================================================================
+
+/**
+ * Analytics event types that can be tracked.
+ */
+export type AnalyticsEventType =
+	| "video_added"
+	| "transcription_completed"
+	| "chat_message_sent";
+
+/**
+ * Analytics event properties - varies by event type.
+ */
+export type AnalyticsProperties = Record<string, unknown>;
+
+/**
+ * Recorded analytics event as stored in the database.
+ */
+export interface AnalyticsRecord {
+	readonly id: number;
+	readonly userId: number;
+	readonly event: AnalyticsEventType;
+	readonly properties: AnalyticsProperties | null;
+	readonly createdAt: Date;
+}
+
+/**
+ * Analytics service interface.
+ * Provides event tracking for user activity monitoring.
+ */
+export interface AnalyticsService {
+	/**
+	 * Tracks an analytics event.
+	 *
+	 * @param userId The ID of the user performing the action
+	 * @param event The type of event being tracked
+	 * @param properties Optional additional properties about the event
+	 */
+	readonly trackEvent: (
+		userId: number,
+		event: AnalyticsEventType,
+		properties?: AnalyticsProperties,
+	) => Effect.Effect<void>;
+
+	/**
+	 * Retrieves analytics events with optional filtering.
+	 *
+	 * @param options Query options (userId filter, pagination, date range)
+	 */
+	readonly getEvents: (options?: {
+		userId?: number;
+		event?: AnalyticsEventType;
+		limit?: number;
+		offset?: number;
+	}) => Effect.Effect<Paginated<AnalyticsRecord>>;
+}

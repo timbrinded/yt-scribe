@@ -4166,3 +4166,88 @@ Service test factories (per service):
 - Next priority: Task - Add basic analytics tracking
 - The test patterns can be extended for chat and auth endpoint tests
 - HttpApiBuilder.toWebHandler is the preferred pattern for API integration testing
+
+---
+
+### 2026-02-04 - Basic Analytics Tracking
+
+**Completed:** Task - Add basic analytics tracking (observability)
+
+**What was done:**
+1. Created analytics table in database schema (src/db/schema.ts):
+   - id (autoincrement primary key)
+   - userId (foreign key to users)
+   - event (enum: video_added, transcription_completed, chat_message_sent)
+   - properties (JSON blob for flexible metadata)
+   - createdAt (timestamp)
+
+2. Created Analytics Effect Service (src/effect/services/Analytics.ts):
+   - Context.Tag "@ytscribe/Analytics" for DI
+   - Analytics.Live layer with Database dependency
+   - Analytics.Test layer with no-op implementation
+   - makeAnalyticsTestLayer() factory for custom mocks
+   - trackEvent(userId, event, properties) method
+   - getEvents(options) method with pagination and filtering
+
+3. Added event tracking types (src/effect/services/types.ts):
+   - AnalyticsEventType, AnalyticsProperties, AnalyticsRecord
+   - AnalyticsService interface
+
+4. Integrated tracking into handlers:
+   - video_added: tracked in POST /api/videos handler (videos.ts:74)
+   - transcription_completed: tracked in Pipeline service (Pipeline.ts:310)
+   - chat_message_sent: tracked in POST /api/chat handler (chat.ts)
+
+5. Created admin API group (src/effect/api/groups/admin.ts):
+   - GET /api/admin/analytics endpoint
+   - Query params: limit, offset, userId, event (all optional)
+   - Response: { events, total, limit, offset }
+   - Protected with Authorization middleware
+
+6. Created admin handler (src/effect/api/handlers/admin.ts):
+   - getAnalyticsHandler implementation
+   - AdminGroupLive layer for HttpApiBuilder
+
+7. Updated layer composition:
+   - Added Analytics to AppRequirements type in Live.ts
+   - Created AnalyticsLayer with Database dependency
+   - Added to DependentLayer composition
+   - Updated Test.ts with Analytics test layer
+
+8. Fixed test files:
+   - Pipeline.test.ts: Added Analytics.Test to layer composition
+   - videos.test.ts: Added AdminGroupLive to HandlersLive
+
+**Key Effect-TS patterns demonstrated:**
+- Dependent service pattern: Analytics depends on Database
+- Non-blocking fire-and-forget tracking with Effect.catchAll(() => Effect.void)
+- Layer composition with Layer.provide for dependency wiring
+- Test layer factory pattern with makeAnalyticsTestLayer()
+- Admin endpoint with authorization middleware
+
+**Files created/modified:**
+- src/db/schema.ts (added analytics table)
+- src/effect/services/types.ts (added analytics types)
+- src/effect/services/Analytics.ts (new service)
+- src/effect/api/groups/admin.ts (new admin API group)
+- src/effect/api/handlers/admin.ts (new admin handlers)
+- src/effect/api/index.ts (added AdminGroup)
+- src/effect/api/handlers/videos.ts (video_added tracking)
+- src/effect/api/handlers/chat.ts (chat_message_sent tracking)
+- src/effect/services/Pipeline.ts (transcription_completed tracking)
+- src/effect/layers/Live.ts (Analytics layer composition)
+- src/effect/layers/Test.ts (Analytics test layer)
+- src/effect/main.ts (AdminGroupLive handler)
+- tests/effect/services/Pipeline.test.ts (Analytics test fix)
+- tests/effect/api/videos.test.ts (AdminGroupLive test fix)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun test` - passes (189 pass, 2 skip)
+- `bun run lint` - passes (1 pre-existing Astro warning)
+
+**Notes:**
+- Analytics tracking is fire-and-forget (errors don't affect main flows)
+- The admin endpoint is protected but doesn't verify admin role (enhancement for later)
+- Event properties are flexible JSON, allowing future expansion
+- All PRD tasks are now complete!

@@ -45,6 +45,7 @@ import { Database } from "./Database";
 import { YouTube } from "./YouTube";
 import { Transcription } from "./Transcription";
 import { Progress, createProgressEvent } from "./Progress";
+import { Analytics } from "./Analytics";
 import {
 	VideoNotFoundError,
 	DownloadFailedError,
@@ -59,6 +60,7 @@ import type {
 	YouTubeService,
 	TranscriptionService,
 	ProgressService,
+	AnalyticsService,
 } from "./types";
 import { videos, transcripts } from "../../db/schema";
 
@@ -131,10 +133,11 @@ export class Pipeline extends Context.Tag("@ytscribe/Pipeline")<
 			const youtube = yield* YouTube;
 			const transcription = yield* Transcription;
 			const progress = yield* Progress;
+			const analyticsService = yield* Analytics;
 
 			return {
 				processVideo: (videoId: number) =>
-					processVideoWithDeps(db, youtube, transcription, progress, videoId),
+					processVideoWithDeps(db, youtube, transcription, progress, analyticsService, videoId),
 			} satisfies PipelineService;
 		}),
 	);
@@ -173,6 +176,7 @@ function processVideoWithDeps(
 	youtube: YouTubeService,
 	transcription: TranscriptionService,
 	progress: ProgressService,
+	analyticsService: AnalyticsService,
 	videoId: number,
 ): Effect.Effect<ProcessVideoResult, PipelineServiceError> {
 	let audioPath: string | null = null;
@@ -301,6 +305,16 @@ function processVideoWithDeps(
 
 		// 7. Update video status to completed
 		yield* updateVideoStatus(db, videoId, "completed");
+
+		// Track transcription_completed event (get userId from video)
+		yield* analyticsService
+			.trackEvent(video.userId, "transcription_completed", {
+				videoId,
+				transcriptId: transcriptResult?.id,
+				language: transcriptionResult.language,
+				duration: transcriptionResult.duration,
+			})
+			.pipe(Effect.catchAll(() => Effect.void)); // Don't fail on analytics errors
 
 		// Emit complete progress
 		yield* progress.emit(

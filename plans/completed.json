@@ -1056,5 +1056,17 @@
 			"Run `bun test tests/effect/api/`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "observability",
+		"description": "Add basic analytics tracking",
+		"steps": [
+			"Create analytics table: id, userId, event, properties (JSON), createdAt",
+			"Add trackEvent(userId, event, properties) function",
+			"Track: video_added, transcription_completed, chat_message_sent",
+			"Create admin endpoint GET /api/admin/analytics (protected)",
+			"Verify events are recorded"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

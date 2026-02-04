@@ -22,6 +22,7 @@ import { YTScribeApi } from "../../../src/effect/api";
 import { VideosGroupLive } from "../../../src/effect/api/handlers/videos";
 import { ChatGroupLive } from "../../../src/effect/api/handlers/chat";
 import { AuthGroupLive } from "../../../src/effect/api/handlers/auth";
+import { AdminGroupLive } from "../../../src/effect/api/handlers/admin";
 import { makeAuthorizationTestLayer } from "../../../src/effect/api/middleware/auth";
 import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
 import { makeYouTubeTestLayer } from "../../../src/effect/services/YouTube";
@@ -187,11 +188,12 @@ function createTestHandler(options: {
 		auth: authServiceLayer,
 	});
 
-	// All handler groups (YTScribeApi requires all three)
+	// All handler groups (YTScribeApi requires all four)
 	const HandlersLive = Layer.mergeAll(
 		VideosGroupLive,
 		ChatGroupLive,
 		AuthGroupLive,
+		AdminGroupLive,
 	);
 
 	// Build the API layer
