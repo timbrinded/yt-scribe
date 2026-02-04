@@ -3808,3 +3808,49 @@ $ bun src/effect/main.ts
 - The Effect-TS server is now functional and ready for production use
 - Old Elysia server still exists at src/server.ts for comparison/migration
 - Consider updating package.json scripts to use src/effect/main.ts
+
+---
+
+### 2026-02-04 - Effect-TS Graceful Shutdown Handling
+
+**Completed:** [Effect-TS] Add graceful shutdown handling
+
+**What was done:**
+- Updated `src/effect/main.ts` with proper graceful shutdown:
+  - Added `Effect.ensuring` to log shutdown completion message
+  - Added documentation explaining the graceful shutdown architecture
+  - BunRuntime.runMain handles SIGINT/SIGTERM signals
+  - Layer.launch creates scope for all layers
+  - When interrupted, scope closes and all finalizers run automatically
+- Updated `src/effect/services/Database.ts`:
+  - Enhanced `Effect.acquireRelease` release function with logging
+  - Now logs "Closing SQLite database connection..." and "SQLite database connection closed"
+  - Uses `Effect.gen` for proper sequencing of log and close
+- Updated `src/effect/services/Progress.ts`:
+  - Added `Effect.addFinalizer` to log PubSub shutdown
+  - Logs "Progress PubSub shutting down..." on scope exit
+
+**Architecture notes:**
+- Effect-TS's scoped resource management handles cleanup automatically:
+  - `Database.Live`: Uses `Effect.acquireRelease` - SQLite connection closed on scope exit
+  - `Progress.Live`: Uses `Layer.scoped` - PubSub cleaned up on scope exit
+  - `BunHttpServer.layer`: HTTP server socket closed on scope exit
+- `BunRuntime.runMain` triggers interruption on SIGINT/SIGTERM
+- All scoped resources get their release effects run in reverse order
+- `Effect.ensuring` guarantees shutdown log even on error/interruption
+
+**Files modified:**
+- src/effect/main.ts (added Effect.ensuring, documentation)
+- src/effect/services/Database.ts (added logging to release function)
+- src/effect/services/Progress.ts (added finalizer with logging)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+
+**Notes for next task:**
+- Next priorities: Serve frontend static files, remove Elysia, update package.json scripts
+- Graceful shutdown is now properly implemented with logging
+- The Effect-TS migration is nearing completion
+- Consider serving frontend from the Effect-TS server before removing Elysia

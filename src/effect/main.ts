@@ -111,6 +111,16 @@ const HttpLive = HttpApiBuilder.serve(HttpMiddleware.logger).pipe(
  * 3. Launches the HTTP server layer
  *
  * The server runs until interrupted (SIGINT/SIGTERM).
+ * On interruption, all scoped resources (database connections, PubSub, etc.)
+ * are properly cleaned up via Effect's acquireRelease pattern.
+ *
+ * Graceful Shutdown:
+ * - BunRuntime.runMain handles SIGINT/SIGTERM signals
+ * - Layer.launch creates a scope for all layers
+ * - When interrupted, the scope closes and all finalizers run:
+ *   - Database: closes SQLite connection (via Effect.acquireRelease)
+ *   - Progress: cleans up PubSub (via Layer.scoped)
+ *   - HTTP Server: closes listening socket (via BunHttpServer.layer)
  */
 const main = Effect.gen(function* () {
 	const config = yield* ServerConfig;
@@ -119,8 +129,14 @@ const main = Effect.gen(function* () {
 	yield* Effect.logInfo(`Listening on http://${config.host}:${config.port}`);
 
 	// Launch the HTTP server
+	// Layer.launch keeps the server running until interrupted
+	// When interrupted, all scoped layers get their release effects run
 	yield* Layer.launch(HttpLive);
 }).pipe(
+	// Log shutdown message after server stops (on success, error, or interruption)
+	Effect.ensuring(
+		Effect.logInfo("Server shutdown complete. All resources cleaned up."),
+	),
 	// Provide the BunHttpServer layer with config
 	Effect.provide(
 		Layer.unwrapEffect(

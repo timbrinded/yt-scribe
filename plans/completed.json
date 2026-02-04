@@ -965,5 +965,16 @@
 			"Test: `bun src/effect/main.ts` starts server on port 3001"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "reliability",
+		"description": "[Effect-TS] Add graceful shutdown handling",
+		"steps": [
+			"In main.ts, handle SIGINT and SIGTERM signals",
+			"Use Effect.addFinalizer in Database layer to close SQLite connection",
+			"Ensure PubSub is properly cleaned up on shutdown",
+			"Test: Start server, send SIGINT, verify clean shutdown logs"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

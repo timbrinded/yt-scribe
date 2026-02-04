@@ -77,10 +77,12 @@ export class Database extends Context.Tag("@ytscribe/Database")<
 					db.exec("PRAGMA foreign_keys = ON;");
 					return db;
 				}),
-				// Release: Close connection
+				// Release: Close connection with logging
 				(db) =>
-					Effect.sync(() => {
+					Effect.gen(function* () {
+						yield* Effect.logDebug("Closing SQLite database connection...");
 						db.close();
+						yield* Effect.logDebug("SQLite database connection closed");
 					}),
 			);
 

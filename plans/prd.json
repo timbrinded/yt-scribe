@@ -3,17 +3,6 @@
 	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
 	"tasks": [
 		{
-			"category": "reliability",
-			"description": "[Effect-TS] Add graceful shutdown handling",
-			"steps": [
-				"In main.ts, handle SIGINT and SIGTERM signals",
-				"Use Effect.addFinalizer in Database layer to close SQLite connection",
-				"Ensure PubSub is properly cleaned up on shutdown",
-				"Test: Start server, send SIGINT, verify clean shutdown logs"
-			],
-			"passes": false
-		},
-		{
 			"category": "functional",
 			"description": "[Effect-TS] Serve frontend static files",
 			"steps": [

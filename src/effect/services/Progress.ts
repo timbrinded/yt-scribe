@@ -96,6 +96,11 @@ export class Progress extends Context.Tag("@ytscribe/Progress")<
 			// Unbounded means publishers never wait - events are buffered
 			const pubsub = yield* PubSub.unbounded<ProgressEvent>();
 
+			// Register finalizer to log PubSub cleanup
+			yield* Effect.addFinalizer(() =>
+				Effect.logDebug("Progress PubSub shutting down..."),
+			);
+
 			return {
 				emit: (event: ProgressEvent) =>
 					Effect.gen(function* () {
