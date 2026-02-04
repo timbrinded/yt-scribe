@@ -30,22 +30,40 @@ vi.mock("framer-motion", () => ({
 				{children}
 			</article>
 		),
-		div: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-			<div className={className}>{children}</div>
-		),
-		img: ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
-			<img src={src} alt={alt} className={className} />
-		),
-		span: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-			<span className={className}>{children}</span>
-		),
+		div: ({
+			children,
+			className,
+		}: {
+			children: React.ReactNode;
+			className?: string;
+		}) => <div className={className}>{children}</div>,
+		img: ({
+			src,
+			alt,
+			className,
+		}: {
+			src: string;
+			alt: string;
+			className?: string;
+		}) => <img src={src} alt={alt} className={className} />,
+		span: ({
+			children,
+			className,
+		}: {
+			children: React.ReactNode;
+			className?: string;
+		}) => <span className={className}>{children}</span>,
 	},
-	AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 // Mock MotionWrapper to just render children
 vi.mock("../src/components/MotionWrapper", () => ({
-	MotionWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	MotionWrapper: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 describe("VideoCard", () => {
@@ -63,7 +81,10 @@ describe("VideoCard", () => {
 
 		expect(screen.getByTestId("video-card")).toBeDefined();
 		expect(screen.getByText("Test Video Title")).toBeDefined();
-		expect(screen.getByRole("img")).toHaveProperty("src", defaultProps.thumbnailUrl);
+		expect(screen.getByRole("img")).toHaveProperty(
+			"src",
+			defaultProps.thumbnailUrl,
+		);
 	});
 
 	test("displays correct title", () => {
@@ -115,13 +136,15 @@ describe("VideoCard", () => {
 		render(<VideoCard {...defaultProps} thumbnailUrl={null} />);
 		const img = screen.getByRole("img");
 		expect(img.getAttribute("src")).toBe(
-			`https://img.youtube.com/vi/${defaultProps.youtubeId}/hqdefault.jpg`
+			`https://img.youtube.com/vi/${defaultProps.youtubeId}/hqdefault.jpg`,
 		);
 	});
 
 	test("calls onClick handler when completed video is clicked", () => {
 		const onClick = vi.fn();
-		render(<VideoCard {...defaultProps} status="completed" onClick={onClick} />);
+		render(
+			<VideoCard {...defaultProps} status="completed" onClick={onClick} />,
+		);
 
 		fireEvent.click(screen.getByTestId("video-card"));
 		expect(onClick).toHaveBeenCalledTimes(1);
@@ -137,7 +160,9 @@ describe("VideoCard", () => {
 
 	test("does not call onClick handler when processing video is clicked", () => {
 		const onClick = vi.fn();
-		render(<VideoCard {...defaultProps} status="processing" onClick={onClick} />);
+		render(
+			<VideoCard {...defaultProps} status="processing" onClick={onClick} />,
+		);
 
 		fireEvent.click(screen.getByTestId("video-card"));
 		expect(onClick).not.toHaveBeenCalled();

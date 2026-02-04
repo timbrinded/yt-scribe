@@ -28,24 +28,25 @@ export interface VideoCardProps {
 /**
  * Status badge configuration
  */
-const statusConfig: Record<VideoStatus, { label: string; className: string }> = {
-	pending: {
-		label: "Pending",
-		className: "bg-neutral-100 text-neutral-600 border-neutral-200",
-	},
-	processing: {
-		label: "Processing",
-		className: "bg-primary-50 text-primary-700 border-primary-200",
-	},
-	completed: {
-		label: "Ready",
-		className: "bg-success-500/10 text-success-500 border-success-500/20",
-	},
-	failed: {
-		label: "Failed",
-		className: "bg-error-500/10 text-error-500 border-error-500/20",
-	},
-};
+const statusConfig: Record<VideoStatus, { label: string; className: string }> =
+	{
+		pending: {
+			label: "Pending",
+			className: "bg-neutral-100 text-neutral-600 border-neutral-200",
+		},
+		processing: {
+			label: "Processing",
+			className: "bg-primary-50 text-primary-700 border-primary-200",
+		},
+		completed: {
+			label: "Ready",
+			className: "bg-success-500/10 text-success-500 border-success-500/20",
+		},
+		failed: {
+			label: "Failed",
+			className: "bg-error-500/10 text-error-500 border-error-500/20",
+		},
+	};
 
 /**
  * Format duration from seconds to MM:SS or HH:MM:SS
@@ -64,7 +65,10 @@ function formatDuration(seconds: number): string {
 /**
  * Generate YouTube thumbnail URL from video ID
  */
-function getThumbnailUrl(youtubeId: string, quality: "default" | "mq" | "hq" | "maxres" = "hq"): string {
+function getThumbnailUrl(
+	youtubeId: string,
+	quality: "default" | "mq" | "hq" | "maxres" = "hq",
+): string {
 	const qualityMap = {
 		default: "default",
 		mq: "mqdefault",
@@ -178,7 +182,11 @@ export function VideoCard({
 							animate={
 								status === "processing"
 									? {
-											borderColor: ["rgba(var(--color-primary-300))", "rgba(var(--color-primary-500))", "rgba(var(--color-primary-300))"],
+											borderColor: [
+												"rgba(var(--color-primary-300))",
+												"rgba(var(--color-primary-500))",
+												"rgba(var(--color-primary-300))",
+											],
 										}
 									: undefined
 							}

@@ -92,7 +92,9 @@ export async function processVideo(videoId: number): Promise<void> {
 
 		// 2. Update status to processing
 		await updateVideoStatus(videoId, "processing");
-		emitVideoProgress(videoId, "pending", { message: "Starting video processing..." });
+		emitVideoProgress(videoId, "pending", {
+			message: "Starting video processing...",
+		});
 
 		// 3. Fetch metadata if not already present (title, duration, thumbnail)
 		if (!video.title || !video.duration) {
@@ -108,7 +110,10 @@ export async function processVideo(videoId: number): Promise<void> {
 					})
 					.where(eq(videos.id, videoId))
 					.run();
-				metadataTimer.success({ title: metadata.title, duration: metadata.duration });
+				metadataTimer.success({
+					title: metadata.title,
+					duration: metadata.duration,
+				});
 			} catch (error) {
 				metadataTimer.failure(error);
 				// Metadata fetch failed - continue anyway, not critical
@@ -116,12 +121,21 @@ export async function processVideo(videoId: number): Promise<void> {
 		}
 
 		// 4. Download audio
-		emitVideoProgress(videoId, "downloading", { progress: 0, message: "Downloading video..." });
-		const downloadTimer = logWithTiming("download-audio", { videoId, youtubeId: video.youtubeId });
+		emitVideoProgress(videoId, "downloading", {
+			progress: 0,
+			message: "Downloading video...",
+		});
+		const downloadTimer = logWithTiming("download-audio", {
+			videoId,
+			youtubeId: video.youtubeId,
+		});
 		try {
 			audioPath = await downloadAudio(video.youtubeUrl);
 			downloadTimer.success({ audioPath });
-			emitVideoProgress(videoId, "downloading", { progress: 100, message: "Download complete" });
+			emitVideoProgress(videoId, "downloading", {
+				progress: 100,
+				message: "Download complete",
+			});
 		} catch (error) {
 			downloadTimer.failure(error);
 			emitVideoProgress(videoId, "error", {
@@ -134,11 +148,20 @@ export async function processVideo(videoId: number): Promise<void> {
 		}
 
 		// 4.5 Extract audio (yt-dlp does this as part of download, but emit event for UI)
-		emitVideoProgress(videoId, "extracting", { progress: 100, message: "Audio extracted" });
+		emitVideoProgress(videoId, "extracting", {
+			progress: 100,
+			message: "Audio extracted",
+		});
 
 		// 5. Transcribe audio
-		emitVideoProgress(videoId, "transcribing", { progress: 0, message: "Transcribing audio..." });
-		const transcribeTimer = logWithTiming("transcribe-audio", { videoId, audioPath });
+		emitVideoProgress(videoId, "transcribing", {
+			progress: 0,
+			message: "Transcribing audio...",
+		});
+		const transcribeTimer = logWithTiming("transcribe-audio", {
+			videoId,
+			audioPath,
+		});
 		let transcriptionResult: Awaited<ReturnType<typeof transcribeAudio>>;
 		try {
 			transcriptionResult = await transcribeAudio(audioPath);
@@ -147,7 +170,10 @@ export async function processVideo(videoId: number): Promise<void> {
 				duration: transcriptionResult.duration,
 				segmentCount: transcriptionResult.segments.length,
 			});
-			emitVideoProgress(videoId, "transcribing", { progress: 100, message: "Transcription complete" });
+			emitVideoProgress(videoId, "transcribing", {
+				progress: 100,
+				message: "Transcription complete",
+			});
 		} catch (error) {
 			transcribeTimer.failure(error);
 			emitVideoProgress(videoId, "error", {
@@ -196,7 +222,13 @@ export async function processVideo(videoId: number): Promise<void> {
 				logger.debug({ audioPath }, "Cleaned up audio file");
 			} catch (cleanupError) {
 				logger.warn(
-					{ audioPath, error: cleanupError instanceof Error ? cleanupError.message : String(cleanupError) },
+					{
+						audioPath,
+						error:
+							cleanupError instanceof Error
+								? cleanupError.message
+								: String(cleanupError),
+					},
 					"Failed to clean up audio file",
 				);
 			}

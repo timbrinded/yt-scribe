@@ -31,23 +31,26 @@ export const loggingMiddleware = new Elysia({ name: "logging-middleware" })
 			requestStartTime: startTime,
 		};
 	})
-	.onAfterResponse(
-		({ request, requestLogger, requestStartTime, set }) => {
-			const durationMs = Math.round(performance.now() - requestStartTime);
-			const status = typeof set.status === "number" ? set.status : 200;
-			const method = request.method;
-			const url = new URL(request.url);
-			const path = url.pathname;
+	.onAfterResponse(({ request, requestLogger, requestStartTime, set }) => {
+		const durationMs = Math.round(performance.now() - requestStartTime);
+		const status = typeof set.status === "number" ? set.status : 200;
+		const method = request.method;
+		const url = new URL(request.url);
+		const path = url.pathname;
 
-			const logFn = status >= 500 ? requestLogger.error : status >= 400 ? requestLogger.warn : requestLogger.info;
+		const logFn =
+			status >= 500
+				? requestLogger.error
+				: status >= 400
+					? requestLogger.warn
+					: requestLogger.info;
 
-			logFn.call(
-				requestLogger,
-				{ status, durationMs },
-				`← ${method} ${path} ${status} (${durationMs}ms)`,
-			);
-		},
-	)
+		logFn.call(
+			requestLogger,
+			{ status, durationMs },
+			`← ${method} ${path} ${status} (${durationMs}ms)`,
+		);
+	})
 	.onError(({ error, request, requestLogger, requestStartTime, set }) => {
 		const durationMs = Math.round(performance.now() - (requestStartTime || 0));
 		const status = typeof set.status === "number" ? set.status : 500;

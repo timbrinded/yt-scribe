@@ -9,18 +9,32 @@ vi.mock("framer-motion", () => ({
 			<div {...props}>{children}</div>
 		),
 	},
-	AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 // Mock MotionWrapper
 vi.mock("../src/components/MotionWrapper", () => ({
-	MotionWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	MotionWrapper: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 // Mock ChatInterface since it has complex dependencies
 vi.mock("../src/components/ChatInterface", () => ({
-	ChatInterface: ({ videoId, className }: { videoId: number; className?: string }) => (
-		<div data-testid="chat-interface" data-video-id={videoId} className={className}>
+	ChatInterface: ({
+		videoId,
+		className,
+	}: {
+		videoId: number;
+		className?: string;
+	}) => (
+		<div
+			data-testid="chat-interface"
+			data-video-id={videoId}
+			className={className}
+		>
 			Chat Interface Mock
 		</div>
 	),
@@ -28,17 +42,35 @@ vi.mock("../src/components/ChatInterface", () => ({
 
 // Mock TranscriptPanel
 vi.mock("../src/components/TranscriptPanel", () => ({
-	TranscriptPanel: ({ segments, className }: { segments: unknown[]; className?: string }) => (
-		<div data-testid="transcript-panel" data-segments={segments.length} className={className}>
+	TranscriptPanel: ({
+		segments,
+		className,
+	}: {
+		segments: unknown[];
+		className?: string;
+	}) => (
+		<div
+			data-testid="transcript-panel"
+			data-segments={segments.length}
+			className={className}
+		>
 			Transcript Panel Mock
 		</div>
 	),
-	TranscriptSkeleton: () => <div data-testid="transcript-skeleton">Loading...</div>,
+	TranscriptSkeleton: () => (
+		<div data-testid="transcript-skeleton">Loading...</div>
+	),
 }));
 
 // Mock ProcessingAnimation
 vi.mock("../src/components/ProcessingAnimation", () => ({
-	ProcessingAnimation: ({ currentStage, errorMessage }: { currentStage: string; errorMessage?: string }) => (
+	ProcessingAnimation: ({
+		currentStage,
+		errorMessage,
+	}: {
+		currentStage: string;
+		errorMessage?: string;
+	}) => (
 		<div data-testid="processing-animation" data-stage={currentStage}>
 			{currentStage === "error" ? "Processing Failed" : "Processing Video"}
 			{errorMessage && <span>{errorMessage}</span>}
@@ -49,7 +81,12 @@ vi.mock("../src/components/ProcessingAnimation", () => ({
 // Mock useVideoStatus hook
 vi.mock("../src/hooks/useVideoStatus", () => ({
 	useVideoStatus: (videoId: number, initialStatus?: string) => ({
-		stage: initialStatus === "completed" ? "complete" : initialStatus === "failed" ? "error" : "downloading",
+		stage:
+			initialStatus === "completed"
+				? "complete"
+				: initialStatus === "failed"
+					? "error"
+					: "downloading",
 		progress: undefined,
 		message: undefined,
 		error: undefined,
@@ -357,7 +394,9 @@ describe("VideoDetailView", () => {
 			render(<VideoDetailView videoId={1} />);
 
 			await waitFor(() => {
-				expect(screen.getByText("You don't have access to this video")).toBeDefined();
+				expect(
+					screen.getByText("You don't have access to this video"),
+				).toBeDefined();
 			});
 		});
 
@@ -390,7 +429,7 @@ describe("VideoDetailView", () => {
 			await waitFor(() => {
 				expect(mockFetch).toHaveBeenCalledWith(
 					expect.stringContaining("/api/videos/42"),
-					expect.objectContaining({ credentials: "include" })
+					expect.objectContaining({ credentials: "include" }),
 				);
 			});
 		});

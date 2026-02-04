@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
-import { ProcessingAnimation, type ProcessingStage } from "./ProcessingAnimation";
+import {
+	ProcessingAnimation,
+	type ProcessingStage,
+} from "./ProcessingAnimation";
 
-const stages: ProcessingStage[] = ["downloading", "extracting", "transcribing", "complete"];
+const stages: ProcessingStage[] = [
+	"downloading",
+	"extracting",
+	"transcribing",
+	"complete",
+];
 
 /**
  * Demo component to showcase the ProcessingAnimation with interactive controls
@@ -64,17 +72,23 @@ export function ProcessingDemo() {
 
 	return (
 		<div className="flex flex-col items-center gap-8 p-8">
-			<h2 className="text-2xl font-bold text-neutral-900">Processing Animation Demo</h2>
+			<h2 className="text-2xl font-bold text-neutral-900">
+				Processing Animation Demo
+			</h2>
 
 			{/* Animation display */}
 			<div className="flex min-h-[400px] items-center justify-center">
 				{currentStage === "idle" ? (
-					<p className="text-neutral-500">Click "Start Demo" to see the animation</p>
+					<p className="text-neutral-500">
+						Click "Start Demo" to see the animation
+					</p>
 				) : (
 					<ProcessingAnimation
 						currentStage={currentStage}
 						progress={progress}
-						errorMessage={showError ? "Network error: Unable to download video" : undefined}
+						errorMessage={
+							showError ? "Network error: Unable to download video" : undefined
+						}
 					/>
 				)}
 			</div>
@@ -111,7 +125,11 @@ export function ProcessingDemo() {
 							setCurrentStage(stage);
 							setIsAutoPlaying(false);
 							setShowError(stage === "error");
-							setProgress(stage !== "idle" && stage !== "complete" && stage !== "error" ? 45 : undefined);
+							setProgress(
+								stage !== "idle" && stage !== "complete" && stage !== "error"
+									? 45
+									: undefined,
+							);
 						}}
 						className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
 							currentStage === stage

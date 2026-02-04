@@ -81,25 +81,31 @@ const SUPPORTED_FORMATS = [
  * @param inputPath - Path to the original audio file
  * @returns Path to the compressed temporary file
  */
-async function compressAudioForTranscription(inputPath: string): Promise<string> {
+async function compressAudioForTranscription(
+	inputPath: string,
+): Promise<string> {
 	const outputPath = join(tmpdir(), `transcribe-${Date.now()}.mp3`);
 
-	logger.info(
-		{ inputPath, outputPath },
-		"Compressing audio for transcription",
-	);
+	logger.info({ inputPath, outputPath }, "Compressing audio for transcription");
 
-	const proc = Bun.spawn([
-		"ffmpeg",
-		"-i", inputPath,
-		"-ac", "1",        // Mono
-		"-ar", "16000",    // 16kHz sample rate
-		"-b:a", "64k",     // 64kbps bitrate
-		"-y",              // Overwrite output
-		outputPath,
-	], {
-		stderr: "pipe",
-	});
+	const proc = Bun.spawn(
+		[
+			"ffmpeg",
+			"-i",
+			inputPath,
+			"-ac",
+			"1", // Mono
+			"-ar",
+			"16000", // 16kHz sample rate
+			"-b:a",
+			"64k", // 64kbps bitrate
+			"-y", // Overwrite output
+			outputPath,
+		],
+		{
+			stderr: "pipe",
+		},
+	);
 
 	const exitCode = await proc.exited;
 
@@ -171,7 +177,12 @@ export async function transcribeAudio(
 	}
 
 	logger.debug(
-		{ filePath, fileSize: fileSize / 1024 / 1024, extension, compressed: needsCompression },
+		{
+			filePath,
+			fileSize: fileSize / 1024 / 1024,
+			extension,
+			compressed: needsCompression,
+		},
 		"Starting audio transcription",
 	);
 
@@ -240,7 +251,10 @@ export async function transcribeAudio(
 
 		// Unknown errors
 		logger.error(
-			{ error: error instanceof Error ? error.message : String(error), filePath },
+			{
+				error: error instanceof Error ? error.message : String(error),
+				filePath,
+			},
 			"Unknown transcription error",
 		);
 		throw new TranscriptionError(
@@ -251,7 +265,10 @@ export async function transcribeAudio(
 		// Clean up temp file if we compressed (in case of errors)
 		if (tempFilePath) {
 			await unlink(tempFilePath).catch((err) =>
-				logger.warn({ tempFilePath, error: err.message }, "Failed to clean up temp file"),
+				logger.warn(
+					{ tempFilePath, error: err.message },
+					"Failed to clean up temp file",
+				),
 			);
 		}
 	}

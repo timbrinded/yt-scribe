@@ -184,18 +184,22 @@ describe("YouTube Metadata Extraction", () => {
 	// Integration test - requires network access and may fail due to YouTube bot detection
 	const runIntegrationTests = !!process.env.YOUTUBE_INTEGRATION_TESTS;
 
-	test.skipIf(!runIntegrationTests)("fetches metadata for a real public video", async () => {
-		const metadata = await getVideoMetadata(TEST_VIDEO_URL);
+	test.skipIf(!runIntegrationTests)(
+		"fetches metadata for a real public video",
+		async () => {
+			const metadata = await getVideoMetadata(TEST_VIDEO_URL);
 
-		expect(metadata.id).toBe("aqz-KE-bpKQ");
-		expect(typeof metadata.title).toBe("string");
-		expect(metadata.title.length).toBeGreaterThan(0);
-		expect(typeof metadata.duration).toBe("number");
-		expect(metadata.duration).toBeGreaterThan(0);
-		expect(metadata.thumbnailUrl).toMatch(/^https?:\/\//);
-		expect(typeof metadata.channelName).toBe("string");
-		expect(typeof metadata.uploadDate).toBe("string");
-	}, 30000); // 30s timeout for network request
+			expect(metadata.id).toBe("aqz-KE-bpKQ");
+			expect(typeof metadata.title).toBe("string");
+			expect(metadata.title.length).toBeGreaterThan(0);
+			expect(typeof metadata.duration).toBe("number");
+			expect(metadata.duration).toBeGreaterThan(0);
+			expect(metadata.thumbnailUrl).toMatch(/^https?:\/\//);
+			expect(typeof metadata.channelName).toBe("string");
+			expect(typeof metadata.uploadDate).toBe("string");
+		},
+		30000,
+	); // 30s timeout for network request
 
 	test("throws error for invalid URL", async () => {
 		await expect(getVideoMetadata("https://google.com")).rejects.toThrow(
@@ -230,21 +234,25 @@ describe("YouTube Audio Download", () => {
 		}
 	});
 
-	test.skipIf(!runIntegrationTests)("downloads audio from a real public video", async () => {
-		const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
-		const result = await downloadAudio(TEST_VIDEO_URL, outputPath);
+	test.skipIf(!runIntegrationTests)(
+		"downloads audio from a real public video",
+		async () => {
+			const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
+			const result = await downloadAudio(TEST_VIDEO_URL, outputPath);
 
-		// Should return the path to the downloaded file
-		expect(result).toBe(outputPath);
+			// Should return the path to the downloaded file
+			expect(result).toBe(outputPath);
 
-		// File should exist
-		expect(existsSync(result)).toBe(true);
+			// File should exist
+			expect(existsSync(result)).toBe(true);
 
-		// File should have content (not be empty)
-		const file = Bun.file(result);
-		const size = file.size;
-		expect(size).toBeGreaterThan(0);
-	}, 120000); // 120s timeout - downloads can take time
+			// File should have content (not be empty)
+			const file = Bun.file(result);
+			const size = file.size;
+			expect(size).toBeGreaterThan(0);
+		},
+		120000,
+	); // 120s timeout - downloads can take time
 
 	test.skip("uses default path when outputPath not provided", async () => {
 		const expectedPath = `data/downloads/${TEST_VIDEO_ID}.m4a`;

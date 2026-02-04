@@ -57,9 +57,7 @@ async function main() {
 		const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
 		// Delete any existing sessions for this user (clean slate)
-		db.delete(schema.sessions)
-			.where(eq(schema.sessions.userId, user.id))
-			.run();
+		db.delete(schema.sessions).where(eq(schema.sessions.userId, user.id)).run();
 
 		// Create new session
 		db.insert(schema.sessions)

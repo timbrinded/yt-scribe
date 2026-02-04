@@ -26,7 +26,9 @@ function isValidYouTubeUrl(url: string): boolean {
 				return parsed.searchParams.get("v")?.length === 11;
 			}
 			// /embed/ID, /v/ID, /shorts/ID, /live/ID
-			const pathMatch = parsed.pathname.match(/^\/(embed|v|shorts|live)\/([a-zA-Z0-9_-]{11})/);
+			const pathMatch = parsed.pathname.match(
+				/^\/(embed|v|shorts|live)\/([a-zA-Z0-9_-]{11})/,
+			);
 			if (pathMatch) return true;
 		}
 
@@ -53,7 +55,11 @@ interface AddVideoModalProps {
 /**
  * Modal component for adding a new YouTube video to the library
  */
-export function AddVideoModal({ isOpen, onClose, onSuccess }: AddVideoModalProps) {
+export function AddVideoModal({
+	isOpen,
+	onClose,
+	onSuccess,
+}: AddVideoModalProps) {
 	const [url, setUrl] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,7 +149,9 @@ export function AddVideoModal({ isOpen, onClose, onSuccess }: AddVideoModalProps
 
 			if (response.status === 409) {
 				const data = await response.json();
-				setError(`This video is already in your library (ID: ${data.existingVideoId})`);
+				setError(
+					`This video is already in your library (ID: ${data.existingVideoId})`,
+				);
 				return;
 			}
 
@@ -200,15 +208,27 @@ export function AddVideoModal({ isOpen, onClose, onSuccess }: AddVideoModalProps
 							{/* Header */}
 							<div className="border-b border-neutral-100 px-6 py-4">
 								<div className="flex items-center justify-between">
-									<h2 className="text-lg font-semibold text-neutral-900">Add Video</h2>
+									<h2 className="text-lg font-semibold text-neutral-900">
+										Add Video
+									</h2>
 									<button
 										onClick={onClose}
 										disabled={isSubmitting}
 										className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 disabled:opacity-50"
 										aria-label="Close modal"
 									>
-										<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+										<svg
+											className="h-5 w-5"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											strokeWidth={2}
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												d="M6 18L18 6M6 6l12 12"
+											/>
 										</svg>
 									</button>
 								</div>
@@ -222,14 +242,21 @@ export function AddVideoModal({ isOpen, onClose, onSuccess }: AddVideoModalProps
 								<div className="space-y-4">
 									{/* URL Input */}
 									<div>
-										<label htmlFor="youtube-url" className="block text-sm font-medium text-neutral-700">
+										<label
+											htmlFor="youtube-url"
+											className="block text-sm font-medium text-neutral-700"
+										>
 											YouTube URL
 										</label>
 										<div className="relative mt-1.5">
 											<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 												<svg
 													className={`h-5 w-5 transition-colors ${
-														isValidated ? "text-success-500" : error ? "text-error-500" : "text-neutral-400"
+														isValidated
+															? "text-success-500"
+															: error
+																? "text-error-500"
+																: "text-neutral-400"
 													}`}
 													fill="none"
 													viewBox="0 0 24 24"
@@ -275,12 +302,32 @@ export function AddVideoModal({ isOpen, onClose, onSuccess }: AddVideoModalProps
 														className="absolute inset-y-0 right-0 flex items-center pr-3"
 													>
 														{isValidated ? (
-															<svg className="h-5 w-5 text-success-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-																<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+															<svg
+																className="h-5 w-5 text-success-500"
+																fill="none"
+																viewBox="0 0 24 24"
+																stroke="currentColor"
+																strokeWidth={2}
+															>
+																<path
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	d="M5 13l4 4L19 7"
+																/>
 															</svg>
 														) : error ? (
-															<svg className="h-5 w-5 text-error-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-																<path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+															<svg
+																className="h-5 w-5 text-error-500"
+																fill="none"
+																viewBox="0 0 24 24"
+																stroke="currentColor"
+																strokeWidth={2}
+															>
+																<path
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+																/>
 															</svg>
 														) : null}
 													</m.div>
@@ -328,9 +375,24 @@ export function AddVideoModal({ isOpen, onClose, onSuccess }: AddVideoModalProps
 									>
 										{isSubmitting ? (
 											<span className="flex items-center justify-center gap-2">
-												<svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-													<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-													<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+												<svg
+													className="h-4 w-4 animate-spin"
+													fill="none"
+													viewBox="0 0 24 24"
+												>
+													<circle
+														className="opacity-25"
+														cx="12"
+														cy="12"
+														r="10"
+														stroke="currentColor"
+														strokeWidth="4"
+													/>
+													<path
+														className="opacity-75"
+														fill="currentColor"
+														d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+													/>
 												</svg>
 												Adding...
 											</span>

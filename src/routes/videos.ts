@@ -4,10 +4,7 @@ import { getDb } from "../db";
 import { transcripts, videos } from "../db/schema";
 import { authMiddleware } from "../middleware/auth";
 import { processVideo } from "../services/pipeline";
-import {
-	type ProgressEvent,
-	progressEmitter,
-} from "../services/progress";
+import { type ProgressEvent, progressEmitter } from "../services/progress";
 import { extractVideoId, isValidYouTubeUrl } from "../services/youtube";
 
 /**

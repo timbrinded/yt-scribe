@@ -2,7 +2,11 @@
 import cac from "cac";
 import { ApiClient, ApiRequestError } from "./api";
 import { getConfig } from "./config";
-import { clearCredentials, getSessionToken, saveCredentials } from "./credentials";
+import {
+	clearCredentials,
+	getSessionToken,
+	saveCredentials,
+} from "./credentials";
 
 /**
  * Format duration in seconds to HH:MM:SS or MM:SS
@@ -30,7 +34,9 @@ cli
 		const sessionToken = getSessionToken();
 
 		if (!sessionToken) {
-			console.error("Error: Not authenticated. Please run 'ytscribe login' first.");
+			console.error(
+				"Error: Not authenticated. Please run 'ytscribe login' first.",
+			);
 			process.exit(1);
 		}
 
@@ -47,9 +53,13 @@ cli
 		} catch (error) {
 			if (error instanceof ApiRequestError) {
 				if (error.statusCode === 401) {
-					console.error("Error: Session expired. Please run 'ytscribe login' again.");
+					console.error(
+						"Error: Session expired. Please run 'ytscribe login' again.",
+					);
 				} else if (error.statusCode === 409) {
-					console.error(`Error: This video is already in your library (ID: ${error.response.existingVideoId})`);
+					console.error(
+						`Error: This video is already in your library (ID: ${error.response.existingVideoId})`,
+					);
 				} else if (error.statusCode === 400) {
 					console.error(`Error: Invalid YouTube URL`);
 				} else {
@@ -64,12 +74,17 @@ cli
 // List command - show video library
 cli
 	.command("list", "List all videos in your library")
-	.option("--status <status>", "Filter by status (pending, processing, completed, failed)")
+	.option(
+		"--status <status>",
+		"Filter by status (pending, processing, completed, failed)",
+	)
 	.action(async (options: { status?: string }) => {
 		const sessionToken = getSessionToken();
 
 		if (!sessionToken) {
-			console.error("Error: Not authenticated. Please run 'ytscribe login' first.");
+			console.error(
+				"Error: Not authenticated. Please run 'ytscribe login' first.",
+			);
 			process.exit(1);
 		}
 
@@ -84,25 +99,43 @@ cli
 			if (options.status) {
 				const validStatuses = ["pending", "processing", "completed", "failed"];
 				if (!validStatuses.includes(options.status)) {
-					console.error(`Error: Invalid status. Must be one of: ${validStatuses.join(", ")}`);
+					console.error(
+						`Error: Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+					);
 					process.exit(1);
 				}
-				filteredVideos = filteredVideos.filter((v) => v.status === options.status);
+				filteredVideos = filteredVideos.filter(
+					(v) => v.status === options.status,
+				);
 			}
 
 			if (filteredVideos.length === 0) {
 				if (options.status) {
 					console.log(`No videos with status '${options.status}' found.`);
 				} else {
-					console.log("No videos in your library. Use 'ytscribe add <url>' to add one.");
+					console.log(
+						"No videos in your library. Use 'ytscribe add <url>' to add one.",
+					);
 				}
 				return;
 			}
 
 			// Calculate column widths
-			const idWidth = Math.max(2, ...filteredVideos.map((v) => String(v.id).length));
-			const titleWidth = Math.min(40, Math.max(5, ...filteredVideos.map((v) => (v.title || v.youtubeId).length)));
-			const statusWidth = Math.max(6, ...filteredVideos.map((v) => v.status.length));
+			const idWidth = Math.max(
+				2,
+				...filteredVideos.map((v) => String(v.id).length),
+			);
+			const titleWidth = Math.min(
+				40,
+				Math.max(
+					5,
+					...filteredVideos.map((v) => (v.title || v.youtubeId).length),
+				),
+			);
+			const statusWidth = Math.max(
+				6,
+				...filteredVideos.map((v) => v.status.length),
+			);
 			const durationWidth = 8;
 			const dateWidth = 10;
 
@@ -120,7 +153,10 @@ cli
 			// Print rows
 			for (const video of filteredVideos) {
 				const title = video.title || video.youtubeId;
-				const truncatedTitle = title.length > titleWidth ? title.slice(0, titleWidth - 3) + "..." : title;
+				const truncatedTitle =
+					title.length > titleWidth
+						? title.slice(0, titleWidth - 3) + "..."
+						: title;
 				const duration = video.duration ? formatDuration(video.duration) : "-";
 				const date = new Date(video.createdAt).toISOString().slice(0, 10);
 
@@ -135,11 +171,15 @@ cli
 			}
 
 			console.log("");
-			console.log(`Total: ${filteredVideos.length} video${filteredVideos.length !== 1 ? "s" : ""}`);
+			console.log(
+				`Total: ${filteredVideos.length} video${filteredVideos.length !== 1 ? "s" : ""}`,
+			);
 		} catch (error) {
 			if (error instanceof ApiRequestError) {
 				if (error.statusCode === 401) {
-					console.error("Error: Session expired. Please run 'ytscribe login' again.");
+					console.error(
+						"Error: Session expired. Please run 'ytscribe login' again.",
+					);
 				} else {
 					console.error(`Error: ${error.message}`);
 				}
@@ -156,7 +196,9 @@ cli
 		const sessionToken = getSessionToken();
 
 		if (!sessionToken) {
-			console.error("Error: Not authenticated. Please run 'ytscribe login' first.");
+			console.error(
+				"Error: Not authenticated. Please run 'ytscribe login' first.",
+			);
 			process.exit(1);
 		}
 
@@ -171,7 +213,9 @@ cli
 		client.setSessionToken(sessionToken);
 
 		console.log(`Starting chat for video ${parsedVideoId}...`);
-		console.log('Type your message and press Enter. Type "exit" or "quit" to end the session.\n');
+		console.log(
+			'Type your message and press Enter. Type "exit" or "quit" to end the session.\n',
+		);
 
 		let currentSessionId: number | undefined;
 
@@ -187,7 +231,10 @@ cli
 				const trimmedInput = input.trim();
 
 				// Check for exit commands
-				if (trimmedInput.toLowerCase() === "exit" || trimmedInput.toLowerCase() === "quit") {
+				if (
+					trimmedInput.toLowerCase() === "exit" ||
+					trimmedInput.toLowerCase() === "quit"
+				) {
 					console.log("\nGoodbye!");
 					readline.close();
 					process.exit(0);
@@ -200,9 +247,13 @@ cli
 				}
 
 				try {
-					const result = await client.sendChatMessage(parsedVideoId, trimmedInput, {
-						sessionId: currentSessionId,
-					});
+					const result = await client.sendChatMessage(
+						parsedVideoId,
+						trimmedInput,
+						{
+							sessionId: currentSessionId,
+						},
+					);
 
 					// Store session ID for subsequent messages
 					currentSessionId = result.sessionId;
@@ -212,7 +263,9 @@ cli
 				} catch (error) {
 					if (error instanceof ApiRequestError) {
 						if (error.statusCode === 401) {
-							console.error("\nError: Session expired. Please run 'ytscribe login' again.");
+							console.error(
+								"\nError: Session expired. Please run 'ytscribe login' again.",
+							);
 							readline.close();
 							process.exit(1);
 						} else if (error.statusCode === 404) {
@@ -265,9 +318,14 @@ cli
 					headers: { Cookie: `session=${existingToken}` },
 				});
 				if (response.ok) {
-					const user = (await response.json()) as { name?: string; email: string };
+					const user = (await response.json()) as {
+						name?: string;
+						email: string;
+					};
 					console.log(`Already logged in as ${user.name || user.email}`);
-					console.log("Use 'ytscribe logout' first if you want to switch accounts.");
+					console.log(
+						"Use 'ytscribe logout' first if you want to switch accounts.",
+					);
 					return;
 				}
 			} catch {
@@ -347,11 +405,12 @@ cli
 		const authUrl = `${config.apiBaseUrl}/auth/google?cli_callback=${encodeURIComponent(callbackUrl)}`;
 
 		// Open browser
-		const openCommand = process.platform === "darwin"
-			? "open"
-			: process.platform === "win32"
-				? "start"
-				: "xdg-open";
+		const openCommand =
+			process.platform === "darwin"
+				? "open"
+				: process.platform === "win32"
+					? "start"
+					: "xdg-open";
 
 		try {
 			const proc = Bun.spawn([openCommand, authUrl], {
@@ -387,7 +446,10 @@ cli
 					headers: { Cookie: `session=${token}` },
 				});
 				if (response.ok) {
-					const user = (await response.json()) as { name?: string; email: string };
+					const user = (await response.json()) as {
+						name?: string;
+						email: string;
+					};
 					console.log(`Welcome, ${user.name || user.email}!`);
 				}
 			} catch {
@@ -396,38 +458,38 @@ cli
 		} catch (error) {
 			clearTimeout(timeout);
 			server.stop();
-			console.error(`Error: ${error instanceof Error ? error.message : "Authentication failed"}`);
+			console.error(
+				`Error: ${error instanceof Error ? error.message : "Authentication failed"}`,
+			);
 			process.exit(1);
 		}
 	});
 
 // Logout command - clear credentials
-cli
-	.command("logout", "Clear stored credentials")
-	.action(async () => {
-		const sessionToken = getSessionToken();
+cli.command("logout", "Clear stored credentials").action(async () => {
+	const sessionToken = getSessionToken();
 
-		if (!sessionToken) {
-			console.log("Not currently logged in.");
-			return;
-		}
+	if (!sessionToken) {
+		console.log("Not currently logged in.");
+		return;
+	}
 
-		const config = getConfig();
+	const config = getConfig();
 
-		// Call the logout endpoint to invalidate the session on the server
-		try {
-			await fetch(`${config.apiBaseUrl}/auth/logout`, {
-				method: "POST",
-				headers: { Cookie: `session=${sessionToken}` },
-			});
-		} catch {
-			// Ignore network errors - we'll clear local credentials anyway
-		}
+	// Call the logout endpoint to invalidate the session on the server
+	try {
+		await fetch(`${config.apiBaseUrl}/auth/logout`, {
+			method: "POST",
+			headers: { Cookie: `session=${sessionToken}` },
+		});
+	} catch {
+		// Ignore network errors - we'll clear local credentials anyway
+	}
 
-		// Clear local credentials
-		clearCredentials();
-		console.log("Logged out successfully.");
-	});
+	// Clear local credentials
+	clearCredentials();
+	console.log("Logged out successfully.");
+});
 
 // Help is automatically included by CAC
 cli.help();

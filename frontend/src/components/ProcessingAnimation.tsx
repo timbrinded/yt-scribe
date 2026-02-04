@@ -29,13 +29,26 @@ interface StageConfig {
 	icon: React.ReactNode;
 }
 
-const stageConfigs: Record<Exclude<ProcessingStage, "idle" | "error">, StageConfig> = {
+const stageConfigs: Record<
+	Exclude<ProcessingStage, "idle" | "error">,
+	StageConfig
+> = {
 	downloading: {
 		label: "Downloading",
 		description: "Fetching video from YouTube...",
 		icon: (
-			<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-				<path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+			<svg
+				className="h-6 w-6"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				strokeWidth={2}
+			>
+				<path
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+				/>
 			</svg>
 		),
 	},
@@ -43,8 +56,18 @@ const stageConfigs: Record<Exclude<ProcessingStage, "idle" | "error">, StageConf
 		label: "Extracting Audio",
 		description: "Processing audio track...",
 		icon: (
-			<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-				<path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+			<svg
+				className="h-6 w-6"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				strokeWidth={2}
+			>
+				<path
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+				/>
 			</svg>
 		),
 	},
@@ -52,8 +75,18 @@ const stageConfigs: Record<Exclude<ProcessingStage, "idle" | "error">, StageConf
 		label: "Transcribing",
 		description: "Converting speech to text with AI...",
 		icon: (
-			<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-				<path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+			<svg
+				className="h-6 w-6"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				strokeWidth={2}
+			>
+				<path
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+				/>
 			</svg>
 		),
 	},
@@ -61,7 +94,13 @@ const stageConfigs: Record<Exclude<ProcessingStage, "idle" | "error">, StageConf
 		label: "Complete",
 		description: "Your video is ready to explore!",
 		icon: (
-			<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+			<svg
+				className="h-6 w-6"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				strokeWidth={2}
+			>
 				<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
 			</svg>
 		),
@@ -126,10 +165,14 @@ export function ProcessingAnimation({
 					transition={{ delay: 0.1 }}
 				>
 					<h3 className="text-lg font-semibold text-neutral-900">
-						{currentStage === "error" ? "Processing Failed" : "Processing Video"}
+						{currentStage === "error"
+							? "Processing Failed"
+							: "Processing Video"}
 					</h3>
 					{currentStage !== "error" && currentStage !== "complete" && (
-						<p className="mt-1 text-sm text-neutral-500">This may take a few minutes</p>
+						<p className="mt-1 text-sm text-neutral-500">
+							This may take a few minutes
+						</p>
 					)}
 				</m.div>
 
@@ -151,7 +194,11 @@ export function ProcessingAnimation({
 									stroke="currentColor"
 									strokeWidth={2}
 								>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="M6 18L18 6M6 6l12 12"
+									/>
 								</svg>
 							</div>
 							<p className="text-center text-sm text-neutral-600">
@@ -167,8 +214,10 @@ export function ProcessingAnimation({
 						{stageOrder.map((stage, index) => {
 							const config = stageConfigs[stage];
 							const isActive = stage === currentStage;
-							const isCompleted = currentIndex > index || currentStage === "complete";
-							const isPending = currentIndex < index && currentStage !== "complete";
+							const isCompleted =
+								currentIndex > index || currentStage === "complete";
+							const isPending =
+								currentIndex < index && currentStage !== "complete";
 
 							return (
 								<m.div
@@ -217,7 +266,11 @@ export function ProcessingAnimation({
 															stroke="currentColor"
 															strokeWidth={2.5}
 														>
-															<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																d="M5 13l4 4L19 7"
+															/>
 														</svg>
 													</m.div>
 												)}
@@ -288,7 +341,9 @@ export function ProcessingAnimation({
 												/>
 											</div>
 											<div className="mt-1 flex justify-end">
-												<span className="text-xs text-neutral-500">{progress}%</span>
+												<span className="text-xs text-neutral-500">
+													{progress}%
+												</span>
 											</div>
 										</m.div>
 									)}
@@ -341,7 +396,11 @@ export function ProcessingAnimation({
 								stroke="currentColor"
 								strokeWidth={2.5}
 							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M5 13l4 4L19 7"
+								/>
 							</svg>
 						</m.div>
 						<m.p

@@ -10,23 +10,23 @@
 	--color-primary-400: oklch(0.66 0.16 265);
 	--color-primary-500: oklch(0.55 0.18 265);
 	--color-primary-600: oklch(0.48 0.16 265);
-	--color-primary-700: oklch(0.40 0.14 265);
+	--color-primary-700: oklch(0.4 0.14 265);
 	--color-primary-800: oklch(0.33 0.11 265);
 	--color-primary-900: oklch(0.27 0.08 265);
-	--color-primary-950: oklch(0.20 0.06 265);
+	--color-primary-950: oklch(0.2 0.06 265);
 
 	/* Accent colors (YouTube-inspired red) */
 	--color-accent-50: oklch(0.97 0.02 25);
 	--color-accent-100: oklch(0.93 0.05 25);
-	--color-accent-200: oklch(0.86 0.10 25);
+	--color-accent-200: oklch(0.86 0.1 25);
 	--color-accent-300: oklch(0.76 0.15 25);
 	--color-accent-400: oklch(0.66 0.19 25);
 	--color-accent-500: oklch(0.58 0.22 25);
-	--color-accent-600: oklch(0.50 0.20 25);
+	--color-accent-600: oklch(0.5 0.2 25);
 	--color-accent-700: oklch(0.42 0.17 25);
 	--color-accent-800: oklch(0.35 0.13 25);
 	--color-accent-900: oklch(0.28 0.09 25);
-	--color-accent-950: oklch(0.20 0.06 25);
+	--color-accent-950: oklch(0.2 0.06 25);
 
 	/* Neutral/gray scale */
 	--color-neutral-50: oklch(0.98 0 0);
@@ -38,7 +38,7 @@
 	--color-neutral-600: oklch(0.44 0 0);
 	--color-neutral-700: oklch(0.37 0 0);
 	--color-neutral-800: oklch(0.27 0 0);
-	--color-neutral-900: oklch(0.20 0 0);
+	--color-neutral-900: oklch(0.2 0 0);
 	--color-neutral-950: oklch(0.13 0 0);
 
 	/* Status colors */
@@ -47,8 +47,12 @@
 	--color-error-500: oklch(0.55 0.22 25);
 
 	/* Typography */
-	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-	--font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+	--font-sans:
+		"Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	--font-mono:
+		"JetBrains Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo,
+		Consolas, "DejaVu Sans Mono", monospace;
 
 	/* Font sizes with line heights */
 	--text-xs: 0.75rem;
@@ -120,10 +124,13 @@
 
 	/* Shadows */
 	--shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-	--shadow-default: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-default:
+		0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 	--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-	--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-	--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+	--shadow-lg:
+		0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+	--shadow-xl:
+		0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 	--shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 
 	/* Transitions */

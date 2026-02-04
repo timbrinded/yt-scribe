@@ -38,11 +38,12 @@ export function logWithTiming(
 	metadata?: Record<string, unknown>,
 ) {
 	const startTime = performance.now();
-	const operationLogger = metadata
-		? logger.child(metadata)
-		: logger;
+	const operationLogger = metadata ? logger.child(metadata) : logger;
 
-	operationLogger.info({ operation: operationName }, `Starting ${operationName}`);
+	operationLogger.info(
+		{ operation: operationName },
+		`Starting ${operationName}`,
+	);
 
 	return {
 		success: (resultMetadata?: Record<string, unknown>) => {
@@ -52,9 +53,13 @@ export function logWithTiming(
 				`Completed ${operationName} in ${durationMs}ms`,
 			);
 		},
-		failure: (error: Error | unknown, resultMetadata?: Record<string, unknown>) => {
+		failure: (
+			error: Error | unknown,
+			resultMetadata?: Record<string, unknown>,
+		) => {
 			const durationMs = Math.round(performance.now() - startTime);
-			const errorMessage = error instanceof Error ? error.message : String(error);
+			const errorMessage =
+				error instanceof Error ? error.message : String(error);
 			const errorStack = error instanceof Error ? error.stack : undefined;
 			operationLogger.error(
 				{

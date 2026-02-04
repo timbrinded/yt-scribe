@@ -14,7 +14,11 @@ const OAUTH_COOKIE_MAX_AGE = 60 * 10; // 10 minutes
 export const authRoutes = new Elysia({ prefix: "/auth" })
 	.get(
 		"/google",
-		({ query, cookie: { oauth_state, oauth_code_verifier, cli_callback }, redirect }) => {
+		({
+			query,
+			cookie: { oauth_state, oauth_code_verifier, cli_callback },
+			redirect,
+		}) => {
 			const { url, state, codeVerifier } = createAuthorizationUrl();
 
 			// Store state and code verifier in cookies for validation in callback

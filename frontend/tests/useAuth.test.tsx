@@ -16,7 +16,9 @@ describe("useAuth hook", () => {
 	});
 
 	test("should start with loading state", () => {
-		mockFetch.mockResolvedValue(new Response(JSON.stringify({}), { status: 401 }));
+		mockFetch.mockResolvedValue(
+			new Response(JSON.stringify({}), { status: 401 }),
+		);
 		const { result } = renderHook(() => useAuth());
 
 		expect(result.current.isLoading).toBe(true);
@@ -45,7 +47,9 @@ describe("useAuth hook", () => {
 
 	test("should set user to null when not authenticated", async () => {
 		mockFetch.mockResolvedValue(
-			new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 }),
+			new Response(JSON.stringify({ error: "Not authenticated" }), {
+				status: 401,
+			}),
 		);
 
 		const { result } = renderHook(() => useAuth());
@@ -109,7 +113,9 @@ describe("fetchCurrentUser function", () => {
 
 	test("should return null when not authenticated", async () => {
 		mockFetch.mockResolvedValue(
-			new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 }),
+			new Response(JSON.stringify({ error: "Not authenticated" }), {
+				status: 401,
+			}),
 		);
 
 		const result = await fetchCurrentUser();

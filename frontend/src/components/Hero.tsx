@@ -48,7 +48,9 @@ export function Hero({
 					transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
 					className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl md:text-6xl lg:text-7xl"
 				>
-					<span className="block">{title.split(" ").slice(0, 2).join(" ")}</span>
+					<span className="block">
+						{title.split(" ").slice(0, 2).join(" ")}
+					</span>
 					<span className="mt-2 block bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 bg-clip-text text-transparent">
 						{title.split(" ").slice(2).join(" ")}
 					</span>
@@ -83,7 +85,11 @@ export function Hero({
 							stroke="currentColor"
 							strokeWidth={2}
 						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M13 7l5 5m0 0l-5 5m5-5H6"
+							/>
 						</svg>
 					</a>
 					<a
@@ -106,7 +112,9 @@ export function Hero({
 						transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
 						className="flex flex-col items-center gap-2 text-neutral-400"
 					>
-						<span className="text-xs font-medium uppercase tracking-wider">Scroll</span>
+						<span className="text-xs font-medium uppercase tracking-wider">
+							Scroll
+						</span>
 						<svg
 							className="h-5 w-5"
 							fill="none"
@@ -114,7 +122,11 @@ export function Hero({
 							stroke="currentColor"
 							strokeWidth={2}
 						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M19 14l-7 7m0 0l-7-7m7 7V3"
+							/>
 						</svg>
 					</m.div>
 				</m.div>

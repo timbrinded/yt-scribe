@@ -20,16 +20,30 @@ vi.mock("framer-motion", () => ({
 				{children}
 			</div>
 		),
-		p: ({ children, className, "data-testid": testId }: { children: React.ReactNode; className?: string; "data-testid"?: string }) => (
-			<p className={className} data-testid={testId}>{children}</p>
+		p: ({
+			children,
+			className,
+			"data-testid": testId,
+		}: {
+			children: React.ReactNode;
+			className?: string;
+			"data-testid"?: string;
+		}) => (
+			<p className={className} data-testid={testId}>
+				{children}
+			</p>
 		),
 	},
-	AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 // Mock MotionWrapper to just render children
 vi.mock("../src/components/MotionWrapper", () => ({
-	MotionWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	MotionWrapper: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 describe("AddVideoModal", () => {
@@ -80,14 +94,18 @@ describe("AddVideoModal", () => {
 		await waitFor(() => {
 			expect(screen.getByTestId("error-message")).toBeDefined();
 		});
-		expect(screen.getByTestId("error-message").textContent).toContain("valid YouTube URL");
+		expect(screen.getByTestId("error-message").textContent).toContain(
+			"valid YouTube URL",
+		);
 	});
 
 	test("validates standard YouTube URL format", async () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 		fireEvent.blur(input);
 
 		await waitFor(() => {
@@ -99,7 +117,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtu.be/dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtu.be/dQw4w9WgXcQ" },
+		});
 		fireEvent.blur(input);
 
 		await waitFor(() => {
@@ -111,7 +131,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://www.youtube.com/shorts/dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://www.youtube.com/shorts/dQw4w9WgXcQ" },
+		});
 		fireEvent.blur(input);
 
 		await waitFor(() => {
@@ -166,7 +188,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		expect(submitButton.getAttribute("disabled")).toBeNull();
@@ -190,7 +214,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		fireEvent.click(submitButton);
@@ -200,8 +226,10 @@ describe("AddVideoModal", () => {
 				expect.stringContaining("/api/videos"),
 				expect.objectContaining({
 					method: "POST",
-					body: JSON.stringify({ url: "https://youtube.com/watch?v=dQw4w9WgXcQ" }),
-				})
+					body: JSON.stringify({
+						url: "https://youtube.com/watch?v=dQw4w9WgXcQ",
+					}),
+				}),
 			);
 		});
 
@@ -220,7 +248,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		fireEvent.click(submitButton);
@@ -240,7 +270,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		fireEvent.click(submitButton);
@@ -260,7 +292,9 @@ describe("AddVideoModal", () => {
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		fireEvent.click(submitButton);
@@ -272,13 +306,26 @@ describe("AddVideoModal", () => {
 
 	test("shows loading state during submission", async () => {
 		(global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
-			() => new Promise((resolve) => setTimeout(() => resolve({ ok: true, status: 201, json: () => Promise.resolve({}) }), 100))
+			() =>
+				new Promise((resolve) =>
+					setTimeout(
+						() =>
+							resolve({
+								ok: true,
+								status: 201,
+								json: () => Promise.resolve({}),
+							}),
+						100,
+					),
+				),
 		);
 
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		fireEvent.click(submitButton);
@@ -289,12 +336,16 @@ describe("AddVideoModal", () => {
 	});
 
 	test("shows network error message on fetch failure", async () => {
-		(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Network error"));
+		(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+			new Error("Network error"),
+		);
 
 		render(<AddVideoModal {...defaultProps} />);
 
 		const input = screen.getByTestId("youtube-url-input");
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		const submitButton = screen.getByTestId("submit-button");
 		fireEvent.click(submitButton);
@@ -315,7 +366,9 @@ describe("AddVideoModal", () => {
 			expect(screen.getByTestId("error-message")).toBeDefined();
 		});
 
-		fireEvent.change(input, { target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" } });
+		fireEvent.change(input, {
+			target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+		});
 
 		// Error should clear immediately when typing
 		expect(screen.queryByTestId("error-message")).toBeNull();

@@ -15,7 +15,12 @@ vi.mock("framer-motion", () => ({
 			"data-testid"?: string;
 			"data-scrolled"?: boolean;
 		}) => (
-			<header className={className} data-testid={testId} data-scrolled={scrolled} {...props}>
+			<header
+				className={className}
+				data-testid={testId}
+				data-scrolled={scrolled}
+				{...props}
+			>
 				{children}
 			</header>
 		),
@@ -25,7 +30,9 @@ vi.mock("framer-motion", () => ({
 			href,
 			"data-testid": testId,
 			...props
-		}: React.AnchorHTMLAttributes<HTMLAnchorElement> & { "data-testid"?: string }) => (
+		}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+			"data-testid"?: string;
+		}) => (
 			<a className={className} href={href} data-testid={testId} {...props}>
 				{children}
 			</a>
@@ -37,21 +44,24 @@ vi.mock("framer-motion", () => ({
 			onClick,
 			...props
 		}: React.HTMLAttributes<HTMLDivElement> & { "data-testid"?: string }) => (
-			<div className={className} data-testid={testId} onClick={onClick} {...props}>
+			<div
+				className={className}
+				data-testid={testId}
+				onClick={onClick}
+				{...props}
+			>
 				{children}
 			</div>
 		),
-		svg: ({
-			children,
-			className,
-			...props
-		}: React.SVGProps<SVGSVGElement>) => (
+		svg: ({ children, className, ...props }: React.SVGProps<SVGSVGElement>) => (
 			<svg className={className} {...props}>
 				{children}
 			</svg>
 		),
 	},
-	AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 // Mock UserAvatar
@@ -61,7 +71,9 @@ vi.mock("../src/components/UserAvatar", () => ({
 
 // Mock MotionWrapper
 vi.mock("../src/components/MotionWrapper", () => ({
-	MotionWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	MotionWrapper: ({ children }: { children: React.ReactNode }) => (
+		<>{children}</>
+	),
 }));
 
 describe("Header", () => {
@@ -257,7 +269,7 @@ describe("Header", () => {
 			render(<Header />);
 			expect(screen.getByTestId("header")).toHaveAttribute(
 				"data-scrolled",
-				"false"
+				"false",
 			);
 		});
 
@@ -271,7 +283,7 @@ describe("Header", () => {
 			await waitFor(() => {
 				expect(screen.getByTestId("header")).toHaveAttribute(
 					"data-scrolled",
-					"true"
+					"true",
 				);
 			});
 		});
@@ -286,7 +298,7 @@ describe("Header", () => {
 			await waitFor(() => {
 				expect(screen.getByTestId("header")).toHaveAttribute(
 					"data-scrolled",
-					"true"
+					"true",
 				);
 			});
 
@@ -297,7 +309,7 @@ describe("Header", () => {
 			await waitFor(() => {
 				expect(screen.getByTestId("header")).toHaveAttribute(
 					"data-scrolled",
-					"false"
+					"false",
 				);
 			});
 		});

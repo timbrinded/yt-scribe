@@ -91,7 +91,9 @@ export function UserAvatar({ className = "" }: UserAvatarProps) {
 	// Loading state
 	if (isLoading) {
 		return (
-			<div className={`h-10 w-10 animate-pulse rounded-full bg-neutral-200 ${className}`} />
+			<div
+				className={`h-10 w-10 animate-pulse rounded-full bg-neutral-200 ${className}`}
+			/>
 		);
 	}
 
@@ -145,7 +147,9 @@ export function UserAvatar({ className = "" }: UserAvatarProps) {
 								<p className="text-sm font-medium text-neutral-900 truncate">
 									{user.name ?? "User"}
 								</p>
-								<p className="text-sm text-neutral-500 truncate">{user.email}</p>
+								<p className="text-sm text-neutral-500 truncate">
+									{user.email}
+								</p>
 							</div>
 
 							{/* Menu items */}

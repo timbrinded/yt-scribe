@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "../src/components/SettingsView";
@@ -64,7 +64,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Try Again" }),
+				).toBeInTheDocument();
 			});
 		});
 	});
@@ -122,7 +124,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("heading", { name: "Settings" }),
+				).toBeInTheDocument();
 			});
 		});
 
@@ -130,7 +134,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("heading", { name: "Profile" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("heading", { name: "Profile" }),
+				).toBeInTheDocument();
 			});
 		});
 
@@ -138,7 +144,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("heading", { name: "Account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("heading", { name: "Account" }),
+				).toBeInTheDocument();
 			});
 		});
 
@@ -146,7 +154,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("heading", { name: "Danger Zone" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("heading", { name: "Danger Zone" }),
+				).toBeInTheDocument();
 			});
 		});
 
@@ -154,7 +164,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Sign out" }),
+				).toBeInTheDocument();
 			});
 		});
 
@@ -162,7 +174,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 		});
 	});
@@ -194,7 +208,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Sign out" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Sign out" }));
@@ -202,7 +218,7 @@ describe("SettingsView", () => {
 			await waitFor(() => {
 				expect(mockFetch).toHaveBeenCalledWith(
 					expect.stringContaining("/auth/logout"),
-					expect.objectContaining({ method: "POST" })
+					expect.objectContaining({ method: "POST" }),
 				);
 			});
 		});
@@ -212,7 +228,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Sign out" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Sign out" }));
@@ -244,7 +262,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Delete account" }));
@@ -259,7 +279,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Delete account" }));
@@ -274,13 +296,17 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Delete account" }));
 
 			await waitFor(() => {
-				const deleteButtons = screen.getAllByRole("button", { name: /Delete account/i });
+				const deleteButtons = screen.getAllByRole("button", {
+					name: /Delete account/i,
+				});
 				const modalDeleteButton = deleteButtons[deleteButtons.length - 1];
 				expect(modalDeleteButton).toBeDisabled();
 			});
@@ -291,7 +317,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Delete account" }));
@@ -303,7 +331,9 @@ describe("SettingsView", () => {
 			await user.type(screen.getByPlaceholderText("DELETE"), "DELETE");
 
 			await waitFor(() => {
-				const deleteButtons = screen.getAllByRole("button", { name: /Delete account/i });
+				const deleteButtons = screen.getAllByRole("button", {
+					name: /Delete account/i,
+				});
 				const modalDeleteButton = deleteButtons[deleteButtons.length - 1];
 				expect(modalDeleteButton).not.toBeDisabled();
 			});
@@ -314,7 +344,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Delete account" }));
@@ -326,7 +358,9 @@ describe("SettingsView", () => {
 			await user.click(screen.getByRole("button", { name: "Cancel" }));
 
 			await waitFor(() => {
-				expect(screen.queryByText("Delete your account?")).not.toBeInTheDocument();
+				expect(
+					screen.queryByText("Delete your account?"),
+				).not.toBeInTheDocument();
 			});
 		});
 
@@ -347,7 +381,9 @@ describe("SettingsView", () => {
 			render(<SettingsView />);
 
 			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Delete account" })).toBeInTheDocument();
+				expect(
+					screen.getByRole("button", { name: "Delete account" }),
+				).toBeInTheDocument();
 			});
 
 			await user.click(screen.getByRole("button", { name: "Delete account" }));
@@ -358,14 +394,16 @@ describe("SettingsView", () => {
 
 			await user.type(screen.getByPlaceholderText("DELETE"), "DELETE");
 
-			const deleteButtons = screen.getAllByRole("button", { name: /Delete account/i });
+			const deleteButtons = screen.getAllByRole("button", {
+				name: /Delete account/i,
+			});
 			const modalDeleteButton = deleteButtons[deleteButtons.length - 1];
 			await user.click(modalDeleteButton);
 
 			await waitFor(() => {
 				expect(mockFetch).toHaveBeenCalledWith(
 					expect.stringContaining("/auth/account"),
-					expect.objectContaining({ method: "DELETE" })
+					expect.objectContaining({ method: "DELETE" }),
 				);
 			});
 		});

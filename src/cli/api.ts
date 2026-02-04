@@ -104,7 +104,9 @@ export class ApiClient {
 		return this.request<AddVideoResponse>("POST", "/api/videos", { url });
 	}
 
-	async listVideos(options: ListVideosOptions = {}): Promise<ListVideosResponse> {
+	async listVideos(
+		options: ListVideosOptions = {},
+	): Promise<ListVideosResponse> {
 		const params = new URLSearchParams();
 		if (options.limit !== undefined) {
 			params.set("limit", String(options.limit));
@@ -126,7 +128,11 @@ export class ApiClient {
 		if (options.sessionId !== undefined) {
 			body.sessionId = options.sessionId;
 		}
-		return this.request<ChatResponse>("POST", `/api/videos/${videoId}/chat`, body);
+		return this.request<ChatResponse>(
+			"POST",
+			`/api/videos/${videoId}/chat`,
+			body,
+		);
 	}
 }
 

@@ -238,7 +238,10 @@ export function Header({
 								className="absolute left-0 right-0 top-full border-b border-neutral-200 bg-white shadow-lg md:hidden"
 								data-testid="mobile-menu"
 							>
-								<nav className="flex flex-col p-4" aria-label="Mobile navigation">
+								<nav
+									className="flex flex-col p-4"
+									aria-label="Mobile navigation"
+								>
 									{navLinks.map((link, index) => (
 										<m.a
 											key={link.href}
@@ -258,7 +261,10 @@ export function Header({
 										<m.div
 											initial={{ opacity: 0, x: -10 }}
 											animate={{ opacity: 1, x: 0 }}
-											transition={{ delay: navLinks.length * 0.05, duration: 0.2 }}
+											transition={{
+												delay: navLinks.length * 0.05,
+												duration: 0.2,
+											}}
 											className="mt-4 border-t border-neutral-100 pt-4"
 										>
 											<UserAvatar />

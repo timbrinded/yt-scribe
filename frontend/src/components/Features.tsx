@@ -31,7 +31,13 @@ const defaultFeatures: Feature[] = [
 
 const icons: Record<Feature["icon"], ReactNode> = {
 	transcribe: (
-		<svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+		<svg
+			className="h-8 w-8"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			strokeWidth={1.5}
+		>
 			<path
 				strokeLinecap="round"
 				strokeLinejoin="round"
@@ -40,7 +46,13 @@ const icons: Record<Feature["icon"], ReactNode> = {
 		</svg>
 	),
 	search: (
-		<svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+		<svg
+			className="h-8 w-8"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			strokeWidth={1.5}
+		>
 			<path
 				strokeLinecap="round"
 				strokeLinejoin="round"
@@ -49,7 +61,13 @@ const icons: Record<Feature["icon"], ReactNode> = {
 		</svg>
 	),
 	chat: (
-		<svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+		<svg
+			className="h-8 w-8"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			strokeWidth={1.5}
+		>
 			<path
 				strokeLinecap="round"
 				strokeLinejoin="round"

@@ -113,7 +113,10 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata> {
 
 	if (exitCode !== 0) {
 		const errorMessage = stderr.trim() || "Unknown yt-dlp error";
-		logger.error({ url, exitCode, stderr: errorMessage }, "yt-dlp metadata fetch failed");
+		logger.error(
+			{ url, exitCode, stderr: errorMessage },
+			"yt-dlp metadata fetch failed",
+		);
 		throw new Error(`Failed to fetch video metadata: ${errorMessage}`);
 	}
 
@@ -223,13 +226,20 @@ export async function downloadAudio(
 	// Verify the file was created
 	const file = Bun.file(finalOutputPath);
 	if (!(await file.exists())) {
-		logger.error({ videoId, outputPath: finalOutputPath }, "Audio file not created");
+		logger.error(
+			{ videoId, outputPath: finalOutputPath },
+			"Audio file not created",
+		);
 		throw new Error(`Audio file was not created at: ${finalOutputPath}`);
 	}
 
 	const fileSize = file.size;
 	logger.info(
-		{ videoId, outputPath: finalOutputPath, fileSizeMB: (fileSize / 1024 / 1024).toFixed(2) },
+		{
+			videoId,
+			outputPath: finalOutputPath,
+			fileSizeMB: (fileSize / 1024 / 1024).toFixed(2),
+		},
 		"Audio download completed",
 	);
 
