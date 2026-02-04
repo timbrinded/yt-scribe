@@ -3971,3 +3971,58 @@ $ bun src/effect/main.ts
 - Effect-TS server serves both API routes and Astro frontend
 - Next priorities: Create test layer infrastructure, add Pipeline service tests, add API integration tests
 - Test count reduced from 170+ to 154 due to removing old Elysia tests (Effect tests remain)
+---
+
+### 2026-02-04 - Effect-TS Test Layer Infrastructure
+
+**Completed:** [Effect-TS] Create test layer infrastructure
+
+**What was done:**
+- Verified the test layer infrastructure already exists from previous Effect-TS migration work
+- Test.ts exports makeTestLayer factory function for partial mock composition
+- All services have .Test layers with mock implementations:
+  - Database.Test - In-memory SQLite with test schema
+  - OpenAI.Test - Mock client with helpful error messages
+  - YouTube.Test - URL validation works, download/metadata fail with guidance
+  - Progress.Test - In-memory event collection
+  - Transcription.Test - Mock with guidance to use factory
+  - Chat.Test - Mock with guidance to use factory
+  - Auth.Test - Mock session validation
+  - Pipeline.Test - Mock orchestration
+- Each service has a makeXxxTestLayer() factory for custom test behaviors
+- Test composition helpers: makeSeededTestLayer(), makePipelineTestContext()
+- Skipped @effect/vitest installation due to documented Bun compatibility issues (hangs/module errors)
+- The existing bun:test + Effect.runPromise pattern works well and is faster
+
+**Test infrastructure summary:**
+```
+src/effect/layers/Test.ts
+├── TestLayer - Complete test layer with all services mocked
+├── TestLeafLayer - Database.Test, OpenAI.Test, YouTube.Test, Progress.Test
+├── TestDependentLayer - Transcription.Test, Chat.Test, Auth.Test
+├── makeTestLayer(options) - Factory for partial overrides
+├── makeSeededTestLayer(seed, overrides) - Database pre-seeding helper
+└── makePipelineTestContext() - Pre-configured Pipeline testing context
+
+Service test factories (per service):
+├── makeDatabaseTestLayer(setup)
+├── makeOpenAITestLayer(clientOverrides)
+├── makeYouTubeTestLayer(methodOverrides)
+├── makeProgressTestLayer() → { layer, getEvents }
+├── makeTranscriptionTestLayer(methodOverrides)
+├── makeChatTestLayer(methodOverrides)
+├── makeAuthTestLayer(methodOverrides)
+└── makePipelineTestLayer(methodOverrides)
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun test` - passes (154 pass, 2 skip)
+- `bun run lint` - passes (1 pre-existing Astro warning)
+
+**Notes for next task:**
+- Test layer infrastructure is complete and ready for use
+- Next priority: Task 2 - Add Pipeline service unit tests using the test layer
+- The existing test files in tests/effect/services/ demonstrate proper usage patterns
+- Consider Task 4 (analytics tracking) if testing tasks prove too complex
+

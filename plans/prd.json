@@ -4,17 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Create test layer infrastructure",
-			"steps": [
-				"Run `bun add -d @effect/vitest`",
-				"Update src/effect/layers/Test.ts to export makeTestLayer factory",
-				"Create default mock implementations: Database.Test, OpenAI.Test, YouTube.Test, Progress.Test, Transcription.Test, Chat.Test",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Add Pipeline service unit tests with mock DI",
 			"steps": [
 				"Create `tests/effect/services/Pipeline.test.ts`",

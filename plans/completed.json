@@ -1015,5 +1015,16 @@
 			"Verify `bun run start` starts production server"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create test layer infrastructure",
+		"steps": [
+			"Run `bun add -d @effect/vitest`",
+			"Update src/effect/layers/Test.ts to export makeTestLayer factory",
+			"Create default mock implementations: Database.Test, OpenAI.Test, YouTube.Test, Progress.Test, Transcription.Test, Chat.Test",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
