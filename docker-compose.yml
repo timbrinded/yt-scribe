@@ -1,0 +1,56 @@
+# YTScribe Local Development Docker Compose
+# This configuration runs both backend and frontend with hot reload support
+
+services:
+  # Backend API server
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src:ro
+      - ./drizzle.config.ts:/app/drizzle.config.ts:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      # Mount data directory for database persistence
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=/app/data/ytscribe.db
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback
+      - FRONTEND_URL=http://localhost:4321
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LOG_LEVEL=debug
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on: []
+
+  # Frontend Astro dev server
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend.dev
+    ports:
+      - "4321:4321"
+    volumes:
+      # Mount frontend source for hot reload
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      - ./frontend/astro.config.mjs:/app/astro.config.mjs:ro
+      - ./frontend/tsconfig.json:/app/tsconfig.json:ro
+    environment:
+      - PUBLIC_API_URL=http://localhost:3000
+      # Astro needs to listen on 0.0.0.0 inside container
+      - HOST=0.0.0.0
+    depends_on:
+      backend:
+        condition: service_healthy

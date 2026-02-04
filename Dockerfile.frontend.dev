@@ -1,0 +1,26 @@
+# YTScribe Development Dockerfile for Frontend (Astro)
+# Supports hot module replacement via astro dev
+
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package.json bun.lock* ./
+
+# Install dependencies
+RUN bun install
+
+# Source files are mounted as volumes for hot reload
+# The following are just for initial container setup
+COPY src ./src
+COPY public ./public
+COPY astro.config.mjs ./
+COPY tsconfig.json ./
+
+# Expose the Astro dev server port
+EXPOSE 4321
+
+# Start the Astro dev server
+# --host 0.0.0.0 allows connections from outside the container
+CMD ["bun", "run", "dev", "--host", "0.0.0.0"]

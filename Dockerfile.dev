@@ -1,0 +1,43 @@
+# YTScribe Development Dockerfile for Backend
+# Supports hot reload via bun --hot
+
+FROM oven/bun:1
+
+# Install system dependencies required at runtime
+# - yt-dlp: for downloading YouTube videos
+# - ffmpeg: for audio extraction and processing
+# - python3: required by yt-dlp
+# - ca-certificates: for HTTPS requests
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    ffmpeg \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install yt-dlp via GitHub releases (more up-to-date than apt)
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp
+
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package.json bun.lock ./
+
+# Install dependencies
+RUN bun install
+
+# Create data directory for SQLite database and downloads
+RUN mkdir -p /app/data/downloads
+
+# Source files are mounted as volumes for hot reload
+# The following are just for initial container setup
+COPY src ./src
+COPY drizzle.config.ts ./
+COPY tsconfig.json ./
+
+# Expose the port
+EXPOSE 3000
+
+# Start the backend server with hot reload
+CMD ["bun", "--hot", "run", "src/server.ts"]

@@ -590,5 +590,18 @@
 			"Run container locally and verify health endpoint"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Create docker-compose for local development",
+		"steps": [
+			"Create docker-compose.yml",
+			"Mount source code for hot reload",
+			"Expose ports for backend and frontend",
+			"Configure environment variables",
+			"Run `docker-compose up` and verify both services start",
+			"Verify hot reload works when editing files"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

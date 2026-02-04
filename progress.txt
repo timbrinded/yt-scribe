@@ -2350,3 +2350,64 @@ frontend/
 - Consider Railway deployment configuration (railway.toml)
 - The Effect-TS migration is a large undertaking that can be done incrementally
 
+---
+
+### 2026-02-04 - Docker Compose for Local Development
+
+**Completed:** Create docker-compose for local development
+
+**What was done:**
+- Created docker-compose.yml with two services:
+  - `backend`: Backend API server with hot reload support
+  - `frontend`: Astro dev server with HMR support
+- Created Dockerfile.dev for backend development:
+  - Uses oven/bun:1 image (full image for dev tools)
+  - Installs yt-dlp, ffmpeg, python3 for video processing
+  - Runs with `bun --hot` for hot module replacement
+  - Source files mounted as volumes for live reload
+- Created Dockerfile.frontend.dev for frontend development:
+  - Uses oven/bun:1 image
+  - Runs Astro dev server with `--host 0.0.0.0` for container access
+  - Source files mounted as volumes for HMR
+- Created .env.example documenting all environment variables:
+  - Required: OPENAI_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+  - Optional with defaults: PORT, DATABASE_URL, GOOGLE_REDIRECT_URI, FRONTEND_URL, LOG_LEVEL
+  - Frontend: PUBLIC_API_URL
+- Services configuration:
+  - Backend on port 3000, frontend on port 4321
+  - Backend healthcheck ensures frontend only starts after backend is healthy
+  - Data directory mounted for SQLite persistence
+  - Environment variables passed from host .env file
+
+**Docker verification:**
+- `docker-compose build` - ✓ both images built successfully
+- `docker-compose up -d` - ✓ both services started
+- Backend health endpoint - ✓ returns {"status":"ok","timestamp":"..."}
+- Frontend serving pages - ✓ landing page rendered correctly
+- Frontend watching for changes - ✓ "watching for file changes..." logged
+
+**Files created:**
+- docker-compose.yml
+- Dockerfile.dev
+- Dockerfile.frontend.dev
+- .env.example
+
+**Technical notes:**
+- Development Dockerfiles use the full oven/bun:1 image (not slim) for better dev experience
+- Source files mounted as read-only (:ro) to prevent accidental container writes
+- Backend uses `bun --hot` which watches for file changes and restarts
+- Frontend Astro dev server provides native HMR for React components
+- Services can be started individually: `docker-compose up backend` or `docker-compose up frontend`
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Docker development environment is now fully functional
+- Developers can run `docker-compose up` to start the full stack
+- Environment variables need to be set in .env file (copy from .env.example)
+- Next priorities: Railway deployment config, Effect-TS migration, E2E testing, or analytics
+

@@ -408,19 +408,6 @@
 		},
 		{
 			"category": "functional",
-			"description": "Create docker-compose for local development",
-			"steps": [
-				"Create docker-compose.yml",
-				"Mount source code for hot reload",
-				"Expose ports for backend and frontend",
-				"Configure environment variables",
-				"Run `docker-compose up` and verify both services start",
-				"Verify hot reload works when editing files"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Add Railway deployment configuration",
 			"steps": [
 				"Create railway.toml with service configuration",
