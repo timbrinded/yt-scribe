@@ -36,6 +36,29 @@ vi.mock("../src/components/TranscriptPanel", () => ({
 	TranscriptSkeleton: () => <div data-testid="transcript-skeleton">Loading...</div>,
 }));
 
+// Mock ProcessingAnimation
+vi.mock("../src/components/ProcessingAnimation", () => ({
+	ProcessingAnimation: ({ currentStage, errorMessage }: { currentStage: string; errorMessage?: string }) => (
+		<div data-testid="processing-animation" data-stage={currentStage}>
+			{currentStage === "error" ? "Processing Failed" : "Processing Video"}
+			{errorMessage && <span>{errorMessage}</span>}
+		</div>
+	),
+}));
+
+// Mock useVideoStatus hook
+vi.mock("../src/hooks/useVideoStatus", () => ({
+	useVideoStatus: (videoId: number, initialStatus?: string) => ({
+		stage: initialStatus === "completed" ? "complete" : initialStatus === "failed" ? "error" : "downloading",
+		progress: undefined,
+		message: undefined,
+		error: undefined,
+		isConnected: false,
+		isComplete: initialStatus === "completed",
+		isError: initialStatus === "failed",
+	}),
+}));
+
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -205,7 +228,7 @@ describe("VideoDetailView", () => {
 	});
 
 	describe("processing state", () => {
-		it("shows processing message", async () => {
+		it("shows processing animation", async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -215,7 +238,7 @@ describe("VideoDetailView", () => {
 			render(<VideoDetailView videoId={1} />);
 
 			await waitFor(() => {
-				expect(screen.getByText("Processing your video")).toBeDefined();
+				expect(screen.getByTestId("processing-animation")).toBeDefined();
 			});
 		});
 
@@ -235,7 +258,7 @@ describe("VideoDetailView", () => {
 	});
 
 	describe("pending state", () => {
-		it("shows pending message", async () => {
+		it("shows processing animation for pending videos", async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -245,7 +268,7 @@ describe("VideoDetailView", () => {
 			render(<VideoDetailView videoId={1} />);
 
 			await waitFor(() => {
-				expect(screen.getByText("Video queued for processing")).toBeDefined();
+				expect(screen.getByTestId("processing-animation")).toBeDefined();
 			});
 		});
 
@@ -265,7 +288,7 @@ describe("VideoDetailView", () => {
 	});
 
 	describe("failed state", () => {
-		it("shows failed message", async () => {
+		it("shows processing animation with error state", async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -275,7 +298,7 @@ describe("VideoDetailView", () => {
 			render(<VideoDetailView videoId={1} />);
 
 			await waitFor(() => {
-				expect(screen.getByText("Processing failed")).toBeDefined();
+				expect(screen.getByTestId("processing-animation")).toBeDefined();
 			});
 		});
 

@@ -1975,3 +1975,82 @@ frontend/
 - Scroll animation provides polished feel
 - Settings link in UserAvatar dropdown needs settings page (separate PRD task)
 - Next priorities: SSE status updates, settings page, Docker setup, or E2E testing
+
+---
+
+### 2026-02-04 - Real-time Status Updates with SSE
+
+**Completed:** Add real-time status updates during video processing using SSE
+
+**What was done:**
+- Created src/services/progress.ts with:
+  - VideoProgressEmitter singleton class extending EventEmitter
+  - ProcessingStage type: pending | downloading | extracting | transcribing | complete | error
+  - ProgressEvent interface with videoId, stage, progress, message, error, timestamp
+  - emitVideoProgress() helper function for pipeline integration
+  - onVideoProgress() and onAllProgress() subscription methods
+- Updated src/services/pipeline.ts to emit progress events:
+  - Emits "pending" when processing starts
+  - Emits "downloading" with 0-100% progress during audio download
+  - Emits "extracting" after audio extraction (done by yt-dlp)
+  - Emits "transcribing" with 0-100% progress during Whisper API call
+  - Emits "complete" when pipeline finishes successfully
+  - Emits "error" with error message on failure
+- Added GET /api/videos/:id/status/stream SSE endpoint in src/routes/videos.ts:
+  - Returns text/event-stream content type
+  - Sends initial status based on current video state
+  - Subscribes to progressEmitter for real-time updates
+  - Sends keepalive every 30 seconds
+  - Closes stream on complete/error or client disconnect
+  - Validates video ownership (404/403 for access control)
+- Created frontend/src/hooks/useVideoStatus.ts:
+  - Custom React hook consuming SSE endpoint
+  - Returns stage, progress, message, error, isConnected, isComplete, isError
+  - Handles reconnection with 3-second backoff on error
+  - Cleans up EventSource on unmount or when video completes
+- Updated frontend/src/components/VideoDetailView.tsx:
+  - New ProcessingStateWithSSE component using useVideoStatus hook
+  - Integrates ProcessingAnimation component with real SSE data
+  - Auto-refreshes video data when processing completes
+  - Maps backend status to ProcessingAnimation stages
+- Updated frontend/src/components/LibraryView.tsx:
+  - Added useProcessingVideoMonitor hook for library-wide SSE monitoring
+  - Auto-refreshes video list when any processing video completes
+  - Manages multiple EventSource connections for concurrent processing videos
+- Updated frontend/tests/VideoDetailView.test.tsx:
+  - Added mocks for ProcessingAnimation and useVideoStatus
+  - Updated tests to verify processing animation is rendered
+
+**Files created:**
+- src/services/progress.ts
+- frontend/src/hooks/useVideoStatus.ts
+
+**Files modified:**
+- src/services/pipeline.ts (added progress event emissions)
+- src/routes/videos.ts (added SSE endpoint)
+- frontend/src/components/VideoDetailView.tsx (SSE integration)
+- frontend/src/components/LibraryView.tsx (processing video monitoring)
+- frontend/tests/VideoDetailView.test.tsx (added mocks)
+
+**Technical notes:**
+- SSE chosen over WebSockets for simplicity and automatic reconnection
+- EventEmitter pattern allows multiple SSE connections for same video
+- Progress events include timestamp for debugging/ordering
+- Frontend uses EventSource API with withCredentials for auth cookies
+- LibraryView monitors all processing videos simultaneously
+- Pipeline emits events at key stages matching ProcessingAnimation UI
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 warning for Astro triple-slash reference, pre-existing)
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bunx vitest run` (frontend) - passes (142 tests)
+- `bun run build` (frontend) - passes
+- Bundle size: VideoDetailView.BKa8zkIk.js (13.90 kB)
+
+**Notes for next task:**
+- SSE real-time updates are now fully functional
+- Users see live progress through downloading → extracting → transcribing → complete stages
+- Library page auto-refreshes when any video completes processing
+- Video detail page shows ProcessingAnimation with real progress data
+- Next priorities: Transcript timestamp navigation, settings page, Docker setup, or E2E testing

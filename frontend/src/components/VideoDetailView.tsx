@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MotionWrapper } from "./MotionWrapper";
 import { m } from "framer-motion";
 import { TranscriptPanel, TranscriptSkeleton } from "./TranscriptPanel";
 import { ChatInterface } from "./ChatInterface";
+import { ProcessingAnimation } from "./ProcessingAnimation";
+import { useVideoStatus } from "../hooks/useVideoStatus";
 import type { TranscriptSegment } from "./TranscriptPanel";
 
 /**
@@ -233,106 +235,62 @@ function VideoHeader({ video }: { video: VideoDetail }) {
 }
 
 /**
- * Processing state display
+ * Map backend video status to ProcessingAnimation stage
  */
-function ProcessingState({ status }: { status: VideoStatus }) {
-	const messages: Record<VideoStatus, { title: string; description: string }> = {
-		pending: {
-			title: "Video queued for processing",
-			description:
-				"Your video will be processed shortly. This page will update automatically.",
-		},
-		processing: {
-			title: "Processing your video",
-			description:
-				"We're downloading the audio and generating the transcript. This may take a few minutes.",
-		},
-		failed: {
-			title: "Processing failed",
-			description:
-				"Something went wrong while processing this video. Please try again from your library.",
-		},
-		completed: {
-			title: "Ready",
-			description: "Your video is ready.",
-		},
-	};
+function mapStatusToStage(
+	status: VideoStatus,
+	sseStage?: import("../hooks/useVideoStatus").ProcessingStage,
+): import("./ProcessingAnimation").ProcessingStage {
+	// If we have SSE data, use it
+	if (sseStage) {
+		// Map 'pending' from SSE to 'downloading' for better UX (processing just started)
+		if (sseStage === "pending") return "downloading";
+		return sseStage;
+	}
+	// Fallback to basic status
+	if (status === "completed") return "complete";
+	if (status === "failed") return "error";
+	if (status === "processing") return "downloading";
+	return "downloading"; // pending
+}
 
-	const message = messages[status];
+/**
+ * Processing state display with real-time SSE updates
+ */
+function ProcessingStateWithSSE({
+	videoId,
+	status,
+	onComplete,
+}: {
+	videoId: number;
+	status: VideoStatus;
+	onComplete: () => void;
+}) {
+	const { stage, progress, error, isComplete } = useVideoStatus(videoId, status);
+
+	// When processing completes, trigger a refresh
+	useEffect(() => {
+		if (isComplete) {
+			// Small delay to let the animation play
+			const timer = setTimeout(onComplete, 1500);
+			return () => clearTimeout(timer);
+		}
+	}, [isComplete, onComplete]);
+
+	const animationStage = mapStatusToStage(status, stage);
 
 	return (
 		<MotionWrapper>
 			<m.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				className="flex flex-col items-center justify-center py-16 text-center"
+				className="flex flex-col items-center justify-center py-12"
 			>
-				{status === "processing" && (
-					<div className="mb-6 h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center">
-						<svg
-							className="h-8 w-8 text-primary-600 animate-spin"
-							fill="none"
-							viewBox="0 0 24 24"
-						>
-							<circle
-								className="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								strokeWidth="4"
-							/>
-							<path
-								className="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-							/>
-						</svg>
-					</div>
-				)}
-
-				{status === "pending" && (
-					<div className="mb-6 h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center">
-						<svg
-							className="h-8 w-8 text-neutral-500"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1.5}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-					</div>
-				)}
-
-				{status === "failed" && (
-					<div className="mb-6 h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
-						<svg
-							className="h-8 w-8 text-red-600"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1.5}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-							/>
-						</svg>
-					</div>
-				)}
-
-				<h2 className="text-lg font-semibold text-neutral-900">
-					{message.title}
-				</h2>
-				<p className="mt-2 max-w-md text-sm text-neutral-500">
-					{message.description}
-				</p>
+				<ProcessingAnimation
+					currentStage={animationStage}
+					progress={progress}
+					errorMessage={error}
+				/>
 
 				{status === "failed" && (
 					<a
@@ -422,7 +380,7 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const fetchVideo = async () => {
+	const fetchVideo = useCallback(async () => {
 		setIsLoading(true);
 		setError(null);
 
@@ -457,11 +415,11 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [videoId]);
 
 	useEffect(() => {
 		fetchVideo();
-	}, [videoId]);
+	}, [fetchVideo]);
 
 	// Show loading skeleton
 	if (isLoading) {
@@ -513,7 +471,11 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 					<VideoHeader video={video} />
 				</div>
 				<div className="flex-1 overflow-auto">
-					<ProcessingState status={video.status} />
+					<ProcessingStateWithSSE
+						videoId={video.id}
+						status={video.status}
+						onComplete={fetchVideo}
+					/>
 				</div>
 			</div>
 		);

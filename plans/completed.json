@@ -515,5 +515,18 @@
 			"Add subtle animation on scroll (shrink/shadow)"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Add real-time status updates during video processing using SSE",
+		"steps": [
+			"Add GET /api/videos/:id/status/stream SSE endpoint",
+			"Emit events: status changes, progress percentage, errors",
+			"Create src/hooks/useVideoStatus.ts to consume SSE",
+			"Update VideoCard status in real-time",
+			"Update ProcessingAnimation from SSE events",
+			"Verify status updates propagate to UI"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

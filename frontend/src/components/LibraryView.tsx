@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { VideoGrid, type VideoItem } from "./VideoGrid";
 import { MotionWrapper } from "./MotionWrapper";
@@ -26,6 +26,68 @@ async function fetchVideos(): Promise<{ videos: VideoItem[]; pagination: { limit
 	}
 
 	return response.json() as Promise<{ videos: VideoItem[]; pagination: { limit: number; offset: number; count: number } }>;
+}
+
+/**
+ * Hook to monitor processing videos and trigger refresh when complete
+ */
+function useProcessingVideoMonitor(
+	videos: VideoItem[],
+	onRefresh: () => void,
+) {
+	const eventSourcesRef = useRef<Map<number, EventSource>>(new Map());
+
+	useEffect(() => {
+		// Find all processing/pending videos
+		const processingVideos = videos.filter(
+			(v) => v.status === "processing" || v.status === "pending",
+		);
+
+		// Close connections for videos no longer processing
+		for (const [videoId, es] of eventSourcesRef.current.entries()) {
+			if (!processingVideos.some((v) => v.id === videoId)) {
+				es.close();
+				eventSourcesRef.current.delete(videoId);
+			}
+		}
+
+		// Create connections for new processing videos
+		for (const video of processingVideos) {
+			if (!eventSourcesRef.current.has(video.id)) {
+				const url = `${API_BASE_URL}/api/videos/${video.id}/status/stream`;
+				const es = new EventSource(url, { withCredentials: true });
+
+				es.onmessage = (event) => {
+					try {
+						const data = JSON.parse(event.data);
+						if (data.stage === "complete" || data.stage === "error") {
+							es.close();
+							eventSourcesRef.current.delete(video.id);
+							// Refresh the video list
+							onRefresh();
+						}
+					} catch {
+						// Ignore parse errors
+					}
+				};
+
+				es.onerror = () => {
+					es.close();
+					eventSourcesRef.current.delete(video.id);
+				};
+
+				eventSourcesRef.current.set(video.id, es);
+			}
+		}
+
+		// Cleanup on unmount
+		return () => {
+			for (const es of eventSourcesRef.current.values()) {
+				es.close();
+			}
+			eventSourcesRef.current.clear();
+		};
+	}, [videos, onRefresh]);
 }
 
 interface LibraryViewProps {
@@ -66,6 +128,9 @@ export function LibraryView({ initialVideos }: LibraryViewProps) {
 			loadVideos();
 		}
 	}, [initialVideos, loadVideos]);
+
+	// Monitor processing videos for real-time updates
+	useProcessingVideoMonitor(videos, loadVideos);
 
 	// Handle video click - navigate to video detail page
 	const handleVideoClick = (video: VideoItem) => {
