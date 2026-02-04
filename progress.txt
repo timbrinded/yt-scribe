@@ -3170,3 +3170,64 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - Transcription service is now available for Pipeline service composition
 - The Chat service will follow the same dependency pattern (depends on OpenAI)
 - Layer composition for dependent services follows: `Layer.provide(Service.Live, DependencyLayer)`
+
+---
+
+### 2026-02-04 - Effect-TS Chat Effect Service
+
+**Completed:** [Effect-TS] Create Chat Effect service + Add Chat service streaming tests
+
+**What was done:**
+- Created `src/effect/services/Chat.ts` following established patterns:
+  - Chat Context.Tag class with `@ytscribe/Chat` identifier
+  - Chat.Live layer using Layer.effect with `yield* OpenAI` dependency
+  - Chat.Test layer with helpful error message for unmocked calls
+  - `makeChatTestLayer()` factory function for partial mocking
+- Ported chat logic from src/services/chat.ts:
+  - `chat()` method returning Stream.Stream<string, ChatApiError> for streaming responses
+  - `chatComplete()` method using Stream.runFold for non-streaming responses
+  - System prompt building with transcript and optional video title
+  - Message conversion to OpenAI format
+- Effect-TS streaming patterns:
+  - Uses Stream.async to wrap OpenAI's async iterable streaming response
+  - Stream.runFold collects chunks into single string for chatComplete
+- Error mapping:
+  - OpenAI 401 → ChatApiError with "Invalid OpenAI API key", retryable: false
+  - OpenAI 429 → ChatApiError with "rate limit exceeded", retryable: true
+  - Context length 400 → ChatApiError with "too long", retryable: false
+  - Generic errors → ChatApiError with message
+- Created comprehensive tests in `tests/effect/services/Chat.test.ts` (18 tests):
+  - Test layer error messages for chat and chatComplete
+  - Factory function mocking for responses, streams, and errors
+  - Live layer with mocked OpenAI testing:
+    - chatComplete returns full response from streamed chunks
+    - chat streams chunks correctly
+    - Previous messages included in API call
+    - Video title included in system prompt
+    - Transcript included in system prompt
+    - Error mapping (401, 429, context length, generic)
+    - Handles empty content chunks
+  - Service isolation between layers
+
+**Files created:**
+- src/effect/services/Chat.ts
+- tests/effect/services/Chat.test.ts
+
+**Technical notes:**
+- Stream.async provides an emit object with single(), fail(), and end() methods
+- Stream.runFold is the idiomatic way to collect stream chunks in Effect-TS
+- The Chat service is the second service with an OpenAI dependency (after Transcription)
+- Both chat() and chatComplete() share the same stream implementation
+- Tests create mock async iterables matching OpenAI's streaming API shape
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (263 pass, 7 skip, 18 new)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Auth Effect service
+- Chat service is now available for Pipeline service composition
+- Auth service will depend on Database for session management
+- The remaining Effect-TS services follow the same patterns established here

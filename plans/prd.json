@@ -3,20 +3,6 @@
 	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
 	"tasks": [
 		{
-			"category": "functional",
-			"description": "[Effect-TS] Create Chat Effect service",
-			"steps": [
-				"Create `src/effect/services/Chat.ts`",
-				"Define ChatService interface: chat returning Stream.Stream<string, ChatApiError>",
-				"Depend on OpenAI service via yield* OpenAI in Layer.effect",
-				"Implement streaming with Stream.async wrapping OpenAI stream",
-				"Port system prompt and message building from src/services/chat.ts",
-				"Map OpenAI errors to ChatApiError",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
 			"category": "security",
 			"description": "[Effect-TS] Create Auth Effect service",
 			"steps": [
@@ -238,18 +224,6 @@
 				"Test: GET /videos returns user's videos only",
 				"Test: Unauthorized request returns 401",
 				"Run `bun test tests/effect/api/`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Add Chat service streaming tests",
-			"steps": [
-				"Create `tests/effect/services/Chat.test.ts`",
-				"Create mock OpenAI client that yields canned streaming chunks",
-				"Test: chat stream emits expected chunks",
-				"Test: ChatApiError returned for rate limit scenario",
-				"Run `bun test tests/effect/`"
 			],
 			"passes": false
 		},

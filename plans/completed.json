@@ -805,5 +805,31 @@
 			"Run `bun test tests/effect/services/`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create Chat Effect service",
+		"steps": [
+			"Create `src/effect/services/Chat.ts`",
+			"Define ChatService interface: chat returning Stream.Stream<string, ChatApiError>",
+			"Depend on OpenAI service via yield* OpenAI in Layer.effect",
+			"Implement streaming with Stream.async wrapping OpenAI stream",
+			"Port system prompt and message building from src/services/chat.ts",
+			"Map OpenAI errors to ChatApiError",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Add Chat service streaming tests",
+		"steps": [
+			"Create `tests/effect/services/Chat.test.ts`",
+			"Create mock OpenAI client that yields canned streaming chunks",
+			"Test: chat stream emits expected chunks",
+			"Test: ChatApiError returned for rate limit scenario",
+			"Run `bun test tests/effect/`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
