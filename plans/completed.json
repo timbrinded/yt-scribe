@@ -883,5 +883,21 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Implement video endpoint handlers",
+		"steps": [
+			"Create `src/effect/api/handlers/videos.ts`",
+			"Implement HttpApiBuilder.group(api, 'videos', handlers => ...)",
+			"createVideo: validate URL, check duplicates, insert video, fork pipeline",
+			"listVideos: query user's videos from Database",
+			"getVideo: query video with transcript, return 404 if not found",
+			"retryVideo: reset status to pending, fork pipeline",
+			"Access CurrentUser from context for user-scoped queries",
+			"Use Effect.forkDaemon for fire-and-forget pipeline execution",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

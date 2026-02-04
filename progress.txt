@@ -3484,3 +3484,56 @@ Layer.provide(Database.Live),
 - Handler implementations will use HttpApiBuilder.group() pattern
 - Services are wired via Layer composition in handlers
 - SSE endpoint will convert Progress.subscribe() Stream to SSE format
+
+---
+
+### 2026-02-04 - Effect-TS Video Endpoint Handlers
+
+**Completed:** [Effect-TS] Implement video endpoint handlers
+
+**What was done:**
+- Created `src/effect/api/handlers/videos.ts` with all video endpoint handlers:
+  - `createVideoHandler` - POST /videos: validates URL, checks duplicates, creates video record, forks pipeline
+  - `listVideosHandler` - GET /videos: paginates user's videos with Option.getOrElse for defaults
+  - `getVideoHandler` - GET /videos/:id: fetches video with transcript if completed, 404/403 errors
+  - `retryVideoHandler` - POST /videos/:id/retry: resets failed video to pending, re-triggers pipeline
+  - `videoStatusHandler` - GET /videos/:id/status: SSE stream for real-time progress updates
+- Implemented HttpApiBuilder.group pattern:
+  - Handlers receive typed arguments: `{ payload, path, urlParams }` based on endpoint schema
+  - CurrentUser accessed via `yield* CurrentUser` for authenticated user context
+  - Services accessed via `yield* Database`, `yield* YouTube`, `yield* Pipeline`, `yield* Progress`
+- Effect-TS patterns used:
+  - `Effect.forkDaemon` for fire-and-forget pipeline execution with error logging
+  - `Option.getOrElse` for extracting optional URL params with defaults
+  - `Stream.map` to format progress events as SSE (`data: {...}\n\n`)
+  - `HttpServerResponse.stream` with SSE headers for streaming response
+- Error handling:
+  - `InvalidYouTubeUrlError` (400) for invalid YouTube URL format
+  - `ConflictError` (409) for duplicate video (same youtubeId + userId)
+  - `VideoNotFoundError` (404) for missing video
+  - `ForbiddenError` (403) for accessing another user's video
+  - `BadRequestError` (400) for retry on non-failed video
+- Exported `VideosGroupLive` layer for HttpApi composition
+
+**Files created:**
+- src/effect/api/handlers/videos.ts
+
+**Technical notes:**
+- Handler signature pattern: handlers receive request object directly as function argument
+- URL params use `Option.Option<T>` wrapper requiring extraction with `Option.getOrElse`
+- Path params are already unwrapped and typed (e.g., `path.id: number`)
+- Payload is already validated and typed (e.g., `payload.url: string`)
+- SSE response uses `HttpServerResponse.stream` with proper headers (Content-Type, Cache-Control, Connection, X-Accel-Buffering)
+- Drizzle queries use synchronous `.get()` and `.all()` methods for bun-sqlite
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Implement chat endpoint handlers
+- Video handlers are ready for HttpApi composition
+- Chat handlers will follow the same pattern with Stream for chat response
+- Layer composition will happen in src/effect/layers/Live.ts

@@ -4,35 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Define HttpApi schema and groups",
-			"steps": [
-				"Create `src/effect/api/index.ts` with YTScribeApi = HttpApi.make('ytscribe')",
-				"Create `src/effect/api/groups/videos.ts` with POST /videos, GET /videos, GET /videos/:id, POST /videos/:id/retry, GET /videos/:id/status",
-				"Create `src/effect/api/groups/chat.ts` with POST /videos/:id/chat, GET /videos/:id/sessions",
-				"Create `src/effect/api/groups/auth.ts` with GET /auth/google, GET /auth/google/callback, POST /auth/logout",
-				"Apply Authorization middleware to protected groups",
-				"Run `bun run typecheck`"
-			],
-			"passes": true
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Implement video endpoint handlers",
-			"steps": [
-				"Create `src/effect/api/handlers/videos.ts`",
-				"Implement HttpApiBuilder.group(api, 'videos', handlers => ...)",
-				"createVideo: validate URL, check duplicates, insert video, fork pipeline",
-				"listVideos: query user's videos from Database",
-				"getVideo: query video with transcript, return 404 if not found",
-				"retryVideo: reset status to pending, fork pipeline",
-				"Access CurrentUser from context for user-scoped queries",
-				"Use Effect.forkDaemon for fire-and-forget pipeline execution",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Implement chat endpoint handlers",
 			"steps": [
 				"Create `src/effect/api/handlers/chat.ts`",
