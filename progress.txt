@@ -2054,3 +2054,77 @@ frontend/
 - Library page auto-refreshes when any video completes processing
 - Video detail page shows ProcessingAnimation with real progress data
 - Next priorities: Transcript timestamp navigation, settings page, Docker setup, or E2E testing
+
+---
+
+### 2026-02-04 - User Settings Page
+
+**Completed:** Create user settings page
+
+**What was done:**
+- Created frontend/src/pages/settings.astro:
+  - Protected route (added to middleware PROTECTED_ROUTES)
+  - Uses AppLayout for consistent app-wide styling
+- Created frontend/src/components/SettingsView.tsx with:
+  - Profile section showing user avatar, name, email from OAuth
+  - Initials fallback when no avatar URL is provided
+  - Account section with Sign out button calling POST /auth/logout
+  - Danger Zone section with Delete account button
+  - Account deletion confirmation modal requiring "DELETE" to be typed
+  - Loading skeleton while fetching user data
+  - Error state with retry button
+  - Redirect to /login if unauthorized (401)
+- Added deletedAt field to users table schema in src/db/schema.ts:
+  - Enables soft delete functionality for account deletion
+- Added DELETE /auth/account endpoint in src/auth/routes.ts:
+  - Validates session before deletion
+  - Sets deletedAt timestamp (soft delete)
+  - Deletes session and clears cookie
+- Updated src/auth/session.ts validateSession():
+  - Now also checks that user is not soft-deleted (isNull(users.deletedAt))
+- Updated all test files to include deleted_at column in test schema:
+  - tests/db/schema.test.ts
+  - tests/middleware/auth.test.ts
+  - tests/services/pipeline.test.ts
+  - tests/auth/session.test.ts
+  - tests/routes/sessions.test.ts
+  - tests/routes/chat.test.ts
+  - tests/routes/videos.test.ts
+- Created comprehensive tests in frontend/tests/SettingsView.test.tsx:
+  - 21 tests covering loading, error, authenticated states
+  - Profile display tests (name, email, avatar, initials)
+  - Logout functionality tests
+  - Account deletion flow tests (modal, confirmation, API call)
+  - Unauthorized redirect tests
+
+**Files created:**
+- frontend/src/pages/settings.astro
+- frontend/src/components/SettingsView.tsx
+- frontend/tests/SettingsView.test.tsx
+
+**Files modified:**
+- src/db/schema.ts (added deletedAt field to users)
+- src/auth/routes.ts (added DELETE /auth/account endpoint)
+- src/auth/session.ts (updated validateSession to check deletedAt)
+- frontend/src/middleware.ts (added /settings to PROTECTED_ROUTES)
+- All test files with users table schema (added deleted_at column)
+
+**Technical notes:**
+- Soft delete pattern allows data recovery if needed
+- validateSession filters out deleted users for automatic session invalidation
+- Account deletion modal requires typing "DELETE" as safety measure
+- SettingsView uses existing MotionWrapper for Framer Motion animations
+- User avatar falls back to initials (first letters of name parts)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 warning for Astro triple-slash reference, pre-existing)
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bun run test` (frontend) - passes (163 tests, 21 new)
+- `bun run build` (frontend) - passes
+- Bundle size: SettingsView.5jXlIAH6.js (8.13 kB)
+
+**Notes for next task:**
+- Settings page is now fully functional with profile info, logout, and account deletion
+- UserAvatar dropdown in Header already links to /settings
+- Next priorities: Transcript timestamp navigation, Docker setup, E2E testing, or LazyMotion optimization

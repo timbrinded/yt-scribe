@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
  * Protected routes that require authentication
  * Users will be redirected to /login if not authenticated
  */
-const PROTECTED_ROUTES = ["/library", "/video/"];
+const PROTECTED_ROUTES = ["/library", "/video/", "/settings"];
 
 /**
  * Check if a path matches any protected routes

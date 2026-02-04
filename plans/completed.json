@@ -528,5 +528,17 @@
 			"Verify status updates propagate to UI"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Create user settings page",
+		"steps": [
+			"Create src/pages/settings.astro",
+			"Show user profile info from OAuth",
+			"Add logout button calling POST /auth/logout",
+			"Add account deletion option (soft delete)",
+			"Style consistently with app design"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

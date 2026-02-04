@@ -100,7 +100,8 @@ describe("session management", () => {
 				email TEXT NOT NULL UNIQUE,
 				name TEXT,
 				avatar_url TEXT,
-				created_at INTEGER NOT NULL
+				created_at INTEGER NOT NULL,
+				deleted_at INTEGER
 			);
 
 			CREATE TABLE sessions (

@@ -31,18 +31,6 @@
 			"passes": false
 		},
 		{
-			"category": "functional",
-			"description": "Create user settings page",
-			"steps": [
-				"Create src/pages/settings.astro",
-				"Show user profile info from OAuth",
-				"Add logout button calling POST /auth/logout",
-				"Add account deletion option (soft delete)",
-				"Style consistently with app design"
-			],
-			"passes": false
-		},
-		{
 			"category": "performance",
 			"description": "Optimize Framer Motion bundle with LazyMotion",
 			"steps": [

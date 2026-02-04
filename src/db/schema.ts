@@ -8,6 +8,7 @@ export const users = sqliteTable("users", {
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
+	deletedAt: integer("deleted_at", { mode: "timestamp" }),
 });
 
 export type User = typeof users.$inferSelect;
