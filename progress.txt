@@ -3596,3 +3596,60 @@ Layer.provide(Database.Live),
 - Chat handlers are ready for HttpApi composition alongside video handlers
 - Auth handlers will need to port OAuth logic from src/auth/google.ts
 - Layer composition will happen in src/effect/layers/Live.ts
+
+---
+
+### 2026-02-04 - Effect-TS Auth Endpoint Handlers
+
+**Completed:** [Effect-TS] Implement auth endpoint handlers
+
+**What was done:**
+- Created src/effect/api/handlers/auth.ts with:
+  - `googleAuthHandler` - GET /auth/google: initiates Google OAuth, returns redirect with cookies
+  - `googleCallbackHandler` - GET /auth/google/callback: exchanges code for tokens, creates/updates user, creates session
+  - `logoutHandler` - POST /auth/logout: deletes session, clears session cookie
+  - `currentUserHandler` - GET /auth/me: returns authenticated user from context
+- Implemented HttpApiBuilder.group pattern with handleRaw and handle:
+  - OAuth endpoints (googleAuth, googleCallback, logout) use handleRaw since they need raw HTTP responses
+  - currentUser uses handle since it returns typed JSON response
+- OAuth flow implementation:
+  - googleAuth: Generates OAuth URL with PKCE (state, codeVerifier), stores in secure cookies, redirects to Google
+  - googleCallback: Validates state, exchanges code for tokens, decodes ID token for user info, creates session
+  - Supports CLI authentication flow via cli_callback query parameter
+  - Errors redirect to frontend /auth/callback with error query param instead of failing
+- Cookie management:
+  - Uses HttpServerResponse.unsafeSetCookie for setting cookies on responses
+  - Accesses request cookies via HttpServerRequest.HttpServerRequest context
+  - Proper cookie options (httpOnly, secure in prod, sameSite: lax, path: /)
+  - Clears OAuth cookies after callback, sets session cookie
+- Effect-TS patterns used:
+  - `Effect.sync` for pure synchronous handlers (googleAuth)
+  - `Effect.gen` with `yield*` for handlers needing services
+  - `Effect.tryPromise` with catchAll for OAuth token exchange
+  - `Effect.orDie` for infallible JSON serialization
+- Error handling:
+  - OAuth errors redirect to frontend error page instead of returning JSON errors
+  - Validates state and code verifier presence
+  - Handles Google OAuth error parameter
+- Exported `AuthGroupLive` layer for HttpApi composition
+
+**Files created:**
+- src/effect/api/handlers/auth.ts
+
+**Technical notes:**
+- handleRaw used for endpoints returning HttpServerResponse (redirects, custom cookies)
+- handle used for endpoints returning typed JSON matching schema
+- Auth service provides validateSession, createSession, deleteSession
+- CurrentUser context provided by Authorization middleware
+- Reuses existing OAuth utilities from src/auth/google.ts (createAuthorizationUrl, validateCallback, decodeIdToken)
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Live and Test layer compositions (DI wiring)
+- Auth handlers complete the API handler layer
+- All handler groups ready: videos, chat, auth
+- Layer composition will wire services and provide to HttpApi

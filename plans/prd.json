@@ -4,20 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Implement auth endpoint handlers",
-			"steps": [
-				"Create `src/effect/api/handlers/auth.ts`",
-				"Implement HttpApiBuilder.group(api, 'auth', handlers => ...)",
-				"googleAuth: generate OAuth URL, return redirect",
-				"googleCallback: exchange code for tokens, create/update user, create session",
-				"logout: delete session from database",
-				"Port OAuth logic from src/auth/google.ts",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Implement SSE endpoint for video status",
 			"steps": [
 				"In video handlers, implement status stream endpoint",

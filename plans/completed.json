@@ -912,5 +912,19 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Implement auth endpoint handlers",
+		"steps": [
+			"Create `src/effect/api/handlers/auth.ts`",
+			"Implement HttpApiBuilder.group(api, 'auth', handlers => ...)",
+			"googleAuth: generate OAuth URL, return redirect",
+			"googleCallback: exchange code for tokens, create/update user, create session",
+			"logout: delete session from database",
+			"Port OAuth logic from src/auth/google.ts",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
