@@ -56,18 +56,6 @@
 			"passes": false
 		},
 		{
-			"category": "functional",
-			"description": "Create app navigation header component",
-			"steps": [
-				"Create src/components/Header.tsx",
-				"Logo linking to home, navigation links",
-				"User avatar dropdown with settings and logout",
-				"Mobile-responsive hamburger menu",
-				"Add subtle animation on scroll (shrink/shadow)"
-			],
-			"passes": false
-		},
-		{
 			"category": "performance",
 			"description": "Optimize Framer Motion bundle with LazyMotion",
 			"steps": [

@@ -1890,3 +1890,88 @@ frontend/
 - Logging is now comprehensive across the backend
 - Consider adding log aggregation service integration for production
 - Next priorities: SSE status updates, navigation header, settings page, or Docker setup
+
+---
+
+### 2026-02-04 - App Navigation Header Component
+
+**Completed:** Create app navigation header component
+
+**What was done:**
+- Created frontend/src/components/Header.tsx with:
+  - Logo linking to configurable destination (default: "/")
+  - Configurable navigation links
+  - Integration with existing UserAvatar component for auth state
+  - Mobile-responsive hamburger menu with animated icon toggle
+  - Scroll-based animation: header shrinks (72px → 60px) and adds shadow on scroll
+  - Backdrop blur and transparent mode support
+  - Mobile menu with backdrop, escape key support, and navigation links
+  - Body scroll lock when mobile menu is open
+  - Proper ARIA attributes for accessibility (aria-label, aria-expanded)
+  - AnimatePresence for smooth menu enter/exit transitions
+  - Spacer div to prevent content from going under fixed header
+- Updated frontend/src/pages/index.astro:
+  - Replaced inline header with Header component
+  - Added transparent mode for hero section
+  - Added navigation links (Features, About)
+- Updated frontend/src/layouts/AppLayout.astro:
+  - Replaced inline header with Header component
+  - Configured logoHref="/library" for app pages
+  - Added "My Library" navigation link
+- Created comprehensive tests in frontend/tests/Header.test.tsx (29 tests):
+  - Rendering tests (logo, text, icon)
+  - Navigation links tests
+  - User avatar visibility tests
+  - Mobile menu button tests (open/close, aria-labels)
+  - Mobile menu behavior (backdrop click, Escape key, nav link click)
+  - Body scroll prevention when mobile menu is open
+  - Scroll behavior tests (scrolled state updates)
+  - Transparent mode tests
+  - Custom className tests
+  - Accessibility tests (navigation landmarks, aria-hidden)
+
+**Files created:**
+- frontend/src/components/Header.tsx
+- frontend/tests/Header.test.tsx
+
+**Files modified:**
+- frontend/src/pages/index.astro (replaced inline header with Header component)
+- frontend/src/layouts/AppLayout.astro (replaced inline header with Header component)
+
+**Technical notes:**
+- Header uses Framer Motion's `m` components for lazy-loaded animations
+- MotionWrapper provides LazyMotion context for smaller bundle size
+- Scroll threshold is 10px for triggering shrink/shadow effect
+- Mobile menu uses fixed positioning with top offset matching header height
+- Header is fixed to top with z-50 for proper layering
+- Uses existing UserAvatar component for auth state display
+- Transparent mode is useful for landing page hero overlays
+
+**Component API:**
+```typescript
+<Header
+  logoHref="/library"  // Logo link destination (default: "/")
+  navLinks={[          // Navigation links array
+    { label: "Features", href: "#features" },
+    { label: "About", href: "#about" },
+  ]}
+  showAuth={true}      // Show/hide UserAvatar (default: true)
+  transparent={false}  // Transparent background mode (default: false)
+  className=""         // Additional CSS classes
+/>
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 warning for Astro triple-slash reference, pre-existing)
+- `bun test` (backend) - passes (170 pass, 2 skip)
+- `bun run test` (frontend) - passes (142 tests, 29 new)
+- `bun run build` (frontend) - passes
+- Bundle size: Header.U_nEwi9x.js (9.87 kB)
+
+**Notes for next task:**
+- Header component is now reusable across all pages
+- Mobile menu works with keyboard navigation (Escape to close)
+- Scroll animation provides polished feel
+- Settings link in UserAvatar dropdown needs settings page (separate PRD task)
+- Next priorities: SSE status updates, settings page, Docker setup, or E2E testing
