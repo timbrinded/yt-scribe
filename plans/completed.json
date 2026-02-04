@@ -831,5 +831,19 @@
 			"Run `bun test tests/effect/`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "security",
+		"description": "[Effect-TS] Create Auth Effect service",
+		"steps": [
+			"Create `src/effect/services/Auth.ts`",
+			"Define User schema class with id, email, name, avatarUrl",
+			"Define CurrentUser Context.Tag for authenticated user",
+			"Define AuthService interface: validateSession(token), createSession(userId), deleteSession(token)",
+			"Depend on Database service for session queries",
+			"Return UnauthorizedError for invalid/expired sessions",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

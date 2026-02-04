@@ -38,6 +38,7 @@ import type {
 	DownloadFailedError,
 	InvalidYouTubeUrlError,
 	TranscriptionFailedError,
+	UnauthorizedError,
 } from "../errors";
 
 // =============================================================================
@@ -360,6 +361,44 @@ export interface SessionWithUser {
 	readonly token: string;
 	readonly expiresAt: Date;
 	readonly user: AuthUser;
+}
+
+/**
+ * Auth service interface.
+ * Provides session management for user authentication.
+ */
+export interface AuthService {
+	/**
+	 * Validates a session token and returns the session with user data.
+	 * Returns UnauthorizedError if the session is invalid or expired.
+	 */
+	readonly validateSession: (
+		token: string,
+	) => Effect.Effect<SessionWithUser, UnauthorizedError>;
+
+	/**
+	 * Creates a new session for a user.
+	 * @param userId The user ID to create a session for
+	 * @returns The session token and expiration date
+	 */
+	readonly createSession: (
+		userId: number,
+	) => Effect.Effect<{ token: string; expiresAt: Date }>;
+
+	/**
+	 * Deletes a session by token (logout).
+	 */
+	readonly deleteSession: (token: string) => Effect.Effect<void>;
+
+	/**
+	 * Deletes all sessions for a user (logout everywhere).
+	 */
+	readonly deleteUserSessions: (userId: number) => Effect.Effect<void>;
+
+	/**
+	 * Deletes all expired sessions (cleanup job).
+	 */
+	readonly deleteExpiredSessions: () => Effect.Effect<void>;
 }
 
 // =============================================================================
