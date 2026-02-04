@@ -2616,3 +2616,35 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The "maintains chat session across messages" test requires OPENAI_API_KEY to pass
 - Consider adding mock chat API responses for full E2E coverage without external dependencies
 - Effect-TS migration tasks remain as next priority
+
+---
+
+### 2026-02-04 - Effect-TS Dependencies Installation
+
+**Completed:** [Effect-TS] Install Effect-TS dependencies
+
+**What was done:**
+- Installed Effect-TS core packages:
+  - `effect@3.19.15` - Core functional effects library
+  - `@effect/platform@0.94.2` - Platform abstractions (HTTP, FileSystem, etc.)
+  - `@effect/platform-bun@0.87.1` - Bun-specific runtime bindings
+- Verified packages are properly installed in package.json dependencies
+- Confirmed no TypeScript conflicts with existing codebase
+
+**Technical notes:**
+- Effect-TS provides structured concurrency with Fibers
+- Typed error handling via `Effect<Success, Error, Requirements>`
+- Dependency injection via Context.Tag and Layer composition
+- `@effect/platform-bun` provides BunHttpServer, BunRuntime, and Bun-optimized implementations
+- These packages form the foundation for the Effect-TS migration
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+
+**Notes for next task:**
+- Next priority: Create Effect error types with Schema.TaggedError
+- The Effect-TS migration involves 30+ interconnected tasks
+- Services should be migrated incrementally, keeping Elysia running until complete
+- Layer composition follows: leaf services → dependent services → orchestration layers

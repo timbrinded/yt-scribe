@@ -4,16 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Install Effect-TS dependencies",
-			"steps": [
-				"Run `bun add effect @effect/platform @effect/platform-bun`",
-				"Verify packages installed in package.json",
-				"Run `bun run typecheck` to confirm no conflicts"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create Effect error types with Schema.TaggedError",
 			"steps": [
 				"Create `src/effect/errors/index.ts`",
@@ -417,18 +407,6 @@
 				"Verify events are recorded"
 			],
 			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "Write E2E test for chat flow",
-			"steps": [
-				"Create tests/e2e/chat.spec.ts",
-				"Test: navigate to completed video, send chat message",
-				"Verify assistant response appears",
-				"Test timestamp citation click scrolls transcript",
-				"Run `bun run e2e` and verify passes"
-			],
-			"passes": true
 		}
 	]
 }

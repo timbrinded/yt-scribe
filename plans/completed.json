@@ -640,5 +640,27 @@
 			"Run `bun run e2e` and verify passes"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Write E2E test for chat flow",
+		"steps": [
+			"Create tests/e2e/chat.spec.ts",
+			"Test: navigate to completed video, send chat message",
+			"Verify assistant response appears",
+			"Test timestamp citation click scrolls transcript",
+			"Run `bun run e2e` and verify passes"
+		],
+		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Install Effect-TS dependencies",
+		"steps": [
+			"Run `bun add effect @effect/platform @effect/platform-bun`",
+			"Verify packages installed in package.json",
+			"Run `bun run typecheck` to confirm no conflicts"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
