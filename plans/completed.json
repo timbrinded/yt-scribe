@@ -715,5 +715,17 @@
 			"Include example showing same business logic with different implementations"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create base service types and conventions",
+		"steps": [
+			"Create `src/effect/services/types.ts`",
+			"Define naming conventions: FooService interface, Foo Context.Tag, Foo.Live, Foo.Test",
+			"Define common Result types if needed (e.g., Paginated<T>)",
+			"Export re-usable type utilities",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

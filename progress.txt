@@ -2809,3 +2809,71 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The ARCHITECTURE.md serves as the guide for implementing all Effect services
 - Both architecture documentation tasks are now complete
 - The migration strategy outlines remaining work in clear phases
+
+---
+
+### 2026-02-04 - Effect-TS Base Service Types and Conventions
+
+**Completed:** [Effect-TS] Create base service types and conventions
+
+**What was done:**
+- Created `src/effect/services/types.ts` with comprehensive type definitions for all services
+- Documented naming conventions at the top of the file:
+  - FooService: TypeScript interface describing the service shape
+  - Foo: Context.Tag class for dependency injection
+  - Foo.Live: Layer providing production implementation
+  - Foo.Test: Layer providing test/mock implementation
+  - Service identifier convention: "@ytscribe/ServiceName"
+- Defined pagination types:
+  - `PaginationParams` interface for list query parameters
+  - `Paginated<T>` generic type for paginated results with items, total, limit, offset
+  - Helper functions: `hasNextPage()` and `hasPreviousPage()`
+- Defined YouTube service types:
+  - `VideoMetadata` interface (id, title, duration, thumbnailUrl, channelName, uploadDate)
+  - `YouTubeService` interface with isValidUrl, extractVideoId, getMetadata, downloadAudio
+- Defined Transcription service types:
+  - `TranscriptSegment` interface (start, end, text)
+  - `TranscriptionResult` interface (text, segments, language, duration)
+  - `TranscriptionService` interface with transcribe method
+- Defined Chat service types:
+  - `MessageRole` type ("user" | "assistant")
+  - `ChatMessage` interface for conversation messages
+  - `ChatService` interface with chat (streaming) and chatComplete (non-streaming) methods
+- Defined Progress service types:
+  - `ProcessingStage` type for pipeline stages
+  - `ProgressEvent` interface for SSE events
+  - `ProgressService` interface with emit, subscribe, subscribeAll methods
+- Defined Database service types:
+  - `DrizzleDatabase` type alias for BunSQLiteDatabase with schema
+  - `DatabaseService` interface exposing the db property
+- Defined OpenAI service types:
+  - `OpenAIService` interface exposing the OpenAI client
+- Defined Auth service types:
+  - `AuthUser` interface for authenticated user info
+  - `SessionWithUser` interface for session validation results
+- Defined Pipeline service types:
+  - `VIDEO_STATUS` const object with status enum values
+  - `VideoStatus` type
+  - `ProcessVideoResult` interface
+
+**Files created:**
+- src/effect/services/types.ts
+
+**Technical notes:**
+- All interfaces use `readonly` properties to prevent mutation
+- Service method return types use Effect/Stream from Effect-TS
+- Types are aligned with existing database schema (src/db/schema.ts)
+- Re-exports DrizzleDatabase type to avoid duplicate imports in services
+- Includes re-usable helper functions for pagination
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Database Effect service
+- The types.ts file provides interfaces that services will implement
+- Service definitions should import types from this file
+- Layer implementations (Live/Test) will use these interfaces
