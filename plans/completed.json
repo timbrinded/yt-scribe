@@ -845,5 +845,16 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "security",
+		"description": "[Effect-TS] Create Auth HttpApiMiddleware",
+		"steps": [
+			"Create `src/effect/api/middleware/auth.ts`",
+			"Define Authorization using HttpApiMiddleware.Tag with failure: UnauthorizedError, provides: CurrentUser, security: { bearer: HttpApiSecurity.bearer }",
+			"Implement AuthorizationLive layer that validates bearer token via Auth service",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

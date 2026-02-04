@@ -3288,3 +3288,73 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The middleware will use Auth.validateSession to check bearer tokens
 - Layer composition will happen in src/effect/layers/Live.ts
 
+
+---
+
+### 2026-02-04 - Effect-TS Auth HttpApiMiddleware
+
+**Completed:** [Effect-TS] Create Auth HttpApiMiddleware
+
+**What was done:**
+- Created `src/effect/api/middleware/auth.ts` with HttpApiMiddleware.Tag pattern:
+  - CurrentUser Context.Tag with `@ytscribe/CurrentUser` identifier for authenticated user access
+  - Authorization HttpApiMiddleware.Tag with `@ytscribe/Authorization` identifier
+  - Configured middleware with: failure: UnauthorizedError, provides: CurrentUser, security: { bearer: HttpApiSecurity.bearer }
+  - Bearer security annotated with OpenApi.Description for Swagger documentation
+- Implemented AuthorizationLive layer:
+  - Layer.effect that yields Auth service from context
+  - Bearer handler extracts token from Redacted wrapper using Redacted.value()
+  - Calls Auth.validateSession(token) to validate session
+  - Returns session.user to provide as CurrentUser context
+  - UnauthorizedError propagates from Auth service on invalid tokens
+- Provided test utilities:
+  - AuthorizationTest layer with default mock user for any token
+  - makeAuthorizationTestLayer() factory for custom authorization behavior
+  - Supports simulating auth failures by returning Effect.fail(new UnauthorizedError())
+- Created comprehensive tests in `tests/effect/api/middleware/auth.test.ts` (22 tests):
+  - CurrentUser Context.Tag tests (5 tests)
+  - Authorization Middleware Tag tests (5 tests)
+  - AuthorizationLive Layer tests (4 tests)
+  - Token security tests (3 tests)
+  - Module exports tests (5 tests)
+
+**Files created:**
+- src/effect/api/middleware/auth.ts
+- tests/effect/api/middleware/auth.test.ts
+
+**Technical notes:**
+- HttpApiMiddleware.Tag requires HttpRouter.Provided context when invoked directly
+- The middleware service is designed for integration with HttpApi system
+- Bearer handler receives Redacted<string> token for security (doesn't leak in logs)
+- Middleware pattern: Authorization.security.bearer maps to AuthorizationLive.bearer handler
+- Full integration testing will happen in API handler tests once HttpApi is wired up
+
+**Component API:**
+```typescript
+// Apply to endpoint, group, or API
+HttpApiEndpoint.get("getVideo", "/videos/:id")
+  .middleware(Authorization)
+
+// Access authenticated user in handlers
+const handler = Effect.gen(function* () {
+  const user = yield* CurrentUser
+  // user.id, user.email, user.name, user.avatarUrl
+})
+
+// Provide layers for production
+Layer.provide(AuthorizationLive),
+Layer.provide(Auth.Live),
+Layer.provide(Database.Live),
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip, 22 new)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Pipeline Effect service (orchestration layer)
+- Authorization middleware is ready to be applied to protected API groups
+- Middleware provides CurrentUser context to all downstream handlers
+- Test layers available for unit testing handlers without real auth
