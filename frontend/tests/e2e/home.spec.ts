@@ -103,12 +103,21 @@ test.describe("Landing Page", () => {
 
 		await page.goto("/");
 
-		// Click mobile menu button
-		await page.getByTestId("mobile-menu-button").click();
+		// Wait for the mobile menu button to be visible
+		const menuButton = page.getByTestId("mobile-menu-button");
+		await expect(menuButton).toBeVisible();
 
-		// Wait for mobile menu to appear
+		// Astro hydration can take time - wait for React to be ready by checking
+		// that clicking the button actually opens the menu (retry if needed)
 		const mobileMenu = page.getByTestId("mobile-menu");
-		await expect(mobileMenu).toBeVisible();
+
+		// Retry clicking until the menu opens (handles hydration timing)
+		await expect(async () => {
+			if (!(await mobileMenu.isVisible())) {
+				await menuButton.click();
+			}
+			await expect(mobileMenu).toBeVisible({ timeout: 1000 });
+		}).toPass({ timeout: 10000 });
 
 		// Navigation links should now be visible in the mobile menu
 		const mobileNav = mobileMenu.getByRole("navigation", {

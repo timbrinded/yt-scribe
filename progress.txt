@@ -2518,3 +2518,54 @@ frontend/
 - Consider adding fixtures for authenticated user state
 - Next priorities: Write E2E test for video add flow, Write E2E test for chat flow, basic analytics tracking, or Effect-TS migration
 
+
+---
+
+### 2026-02-04 - E2E Test for Video Add Flow
+
+**Completed:** Write E2E test for video add flow
+
+**What was done:**
+- Created comprehensive E2E tests for authenticated add video flow
+- Set up Playwright auth setup to create test sessions via database helper
+- Added 10 tests covering the entire add video flow:
+  - Opens add video modal when clicking Add Video button
+  - Shows validation error for invalid YouTube URL
+  - Accepts valid YouTube URL and shows validation indicator
+  - Closes modal when clicking Cancel button
+  - Closes modal when clicking backdrop
+  - Closes modal when pressing Escape key
+  - Successfully adds video and shows it in library
+  - Shows error for duplicate video
+  - Video card shows YouTube thumbnail
+
+**Files created:**
+- frontend/tests/e2e/auth.setup.ts - Authentication setup for E2E tests
+- frontend/tests/e2e/add-video.auth.spec.ts - Comprehensive add video flow tests
+
+**Files modified:**
+- frontend/playwright.config.ts - Added auth setup project and chromium-authenticated test runner
+- frontend/tests/e2e/home.spec.ts - Fixed flaky mobile menu test with retry pattern for hydration
+- frontend/vitest.config.ts - Added exclude for e2e directory to prevent conflicts
+
+**Technical notes:**
+- Tests use *.auth.spec.ts pattern to distinguish authenticated tests
+- Auth setup runs bun helper script to create test user/session in database
+- Session cookie is set for localhost domain (covers both frontend/backend ports)
+- Storage state is saved to .auth/user.json for authenticated tests to reuse
+- Tests handle duplicate video scenarios gracefully (videos persist between test runs)
+- Mobile menu test uses retry pattern with expect().toPass() for Astro hydration timing
+- Backdrop click test clicks bottom-left corner to avoid header interception
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bun run test` (frontend vitest) - passes (211 tests)
+- `bun run e2e` - passes (17 tests)
+
+**Notes for next task:**
+- E2E infrastructure for authenticated flows is complete
+- Auth setup pattern can be reused for other authenticated E2E tests
+- Next priorities: Write E2E test for chat flow, add basic analytics tracking, or Effect-TS migration
+- The duplicate video handling pattern should be applied to any test that creates videos

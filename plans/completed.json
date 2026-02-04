@@ -628,5 +628,17 @@
 			"Run `bun run e2e` and verify test passes"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Write E2E test for video add flow",
+		"steps": [
+			"Create tests/e2e/add-video.spec.ts",
+			"Test: login, open add modal, enter URL, submit",
+			"Verify video appears in library with pending status",
+			"Mock or use test YouTube URL",
+			"Run `bun run e2e` and verify passes"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

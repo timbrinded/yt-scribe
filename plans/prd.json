@@ -420,18 +420,6 @@
 		},
 		{
 			"category": "functional",
-			"description": "Write E2E test for video add flow",
-			"steps": [
-				"Create tests/e2e/add-video.spec.ts",
-				"Test: login, open add modal, enter URL, submit",
-				"Verify video appears in library with pending status",
-				"Mock or use test YouTube URL",
-				"Run `bun run e2e` and verify passes"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "Write E2E test for chat flow",
 			"steps": [
 				"Create tests/e2e/chat.spec.ts",

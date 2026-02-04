@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Playwright configuration for E2E testing.
  *
- * The E2E tests run against the Astro dev server.
+ * The E2E tests run against the Astro dev server (port 4321)
+ * which communicates with the backend API (port 3000).
  * Tests are located in tests/e2e/ directory.
  */
 export default defineConfig({
@@ -39,17 +40,44 @@ export default defineConfig({
 
 	// Configure projects for major browsers
 	projects: [
+		// Setup project for authentication
+		{
+			name: "setup",
+			testMatch: /.*\.setup\.ts/,
+		},
+		// Unauthenticated tests (like home page)
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] },
+			testIgnore: /.*\.auth\.spec\.ts/,
+		},
+		// Authenticated tests (need login)
+		{
+			name: "chromium-authenticated",
+			use: {
+				...devices["Desktop Chrome"],
+				// Use saved auth state for authenticated tests
+				storageState: ".auth/user.json",
+			},
+			dependencies: ["setup"],
+			testMatch: /.*\.auth\.spec\.ts/,
 		},
 	],
 
-	// Run the local dev server before starting tests
-	webServer: {
-		command: "bun run dev",
-		url: "http://localhost:4321",
-		reuseExistingServer: !process.env.CI,
-		timeout: 120 * 1000,
-	},
+	// Run both frontend and backend servers before starting tests
+	webServer: [
+		{
+			command: "bun src/server.ts",
+			url: "http://localhost:3000/health",
+			reuseExistingServer: !process.env.CI,
+			timeout: 30 * 1000,
+			cwd: "..",
+		},
+		{
+			command: "bun run dev",
+			url: "http://localhost:4321",
+			reuseExistingServer: !process.env.CI,
+			timeout: 120 * 1000,
+		},
+	],
 });
