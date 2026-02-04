@@ -2,7 +2,8 @@
  * Tests for the Effect-TS OpenAI service.
  */
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect, Exit, Cause, Chunk } from "effect";
 import {
 	OpenAI,
@@ -47,139 +48,120 @@ function extractErrorMessage(cause: Cause.Cause<unknown>): string {
 
 describe("OpenAI Effect Service", () => {
 	describe("OpenAI.Test layer", () => {
-		test("provides access to mock client", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("provides access to mock client", () =>
+			Effect.gen(function* () {
 				const { client } = yield* OpenAI;
-				return client;
-			});
+				// The mock client should be truthy
+				expect(client).toBeTruthy();
+			}).pipe(Effect.provide(OpenAI.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(OpenAI.Test)),
-			);
-
-			// The mock client should be truthy
-			expect(result).toBeTruthy();
-		});
-
-		test("mock client throws helpful error when method called without mock", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("mock client throws helpful error when method called without mock", () =>
+			Effect.gen(function* () {
 				const { client } = yield* OpenAI;
 				// Wrap the async call in Effect.tryPromise
-				return yield* Effect.tryPromise(() =>
+				const exit = yield* Effect.tryPromise(() =>
 					client.chat.completions.create({
 						model: "gpt-4o",
 						messages: [],
 					}),
-				);
-			});
+				).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(OpenAI.Test)),
-			);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const errorMessage = extractErrorMessage(exit.cause);
+					expect(errorMessage).toContain("was called but not mocked");
+					expect(errorMessage).toContain("makeOpenAITestLayer");
+				}
+			}).pipe(Effect.provide(OpenAI.Test)),
+		);
 
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const errorMessage = extractErrorMessage(exit.cause);
-				expect(errorMessage).toContain("was called but not mocked");
-				expect(errorMessage).toContain("makeOpenAITestLayer");
-			}
-		});
-
-		test("mock client throws for nested property access", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("mock client throws for nested property access", () =>
+			Effect.gen(function* () {
 				const { client } = yield* OpenAI;
 				// Wrap the async call in Effect.tryPromise
-				return yield* Effect.tryPromise(() =>
+				const exit = yield* Effect.tryPromise(() =>
 					client.audio.transcriptions.create({
 						// Using a string as file causes a type error, but the mock doesn't care
 						file: "test.mp3" as unknown as File,
 						model: "whisper-1",
 					}),
-				);
-			});
+				).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(OpenAI.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const errorMessage = extractErrorMessage(exit.cause);
-				expect(errorMessage).toContain("was called but not mocked");
-			}
-		});
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const errorMessage = extractErrorMessage(exit.cause);
+					expect(errorMessage).toContain("was called but not mocked");
+				}
+			}).pipe(Effect.provide(OpenAI.Test)),
+		);
 	});
 
 	describe("makeOpenAITestLayer factory", () => {
-		test("allows mocking chat completions", async () => {
-			const mockResponse = {
-				id: "mock-completion-id",
-				object: "chat.completion" as const,
-				created: Date.now(),
-				model: "gpt-4o",
-				choices: [
-					{
-						index: 0,
-						message: {
-							role: "assistant" as const,
-							content: "This is a mocked response",
+		it.effect("allows mocking chat completions", () =>
+			Effect.gen(function* () {
+				const mockResponse = {
+					id: "mock-completion-id",
+					object: "chat.completion" as const,
+					created: Date.now(),
+					model: "gpt-4o",
+					choices: [
+						{
+							index: 0,
+							message: {
+								role: "assistant" as const,
+								content: "This is a mocked response",
+							},
+							logprobs: null,
+							finish_reason: "stop" as const,
 						},
-						logprobs: null,
-						finish_reason: "stop" as const,
-					},
-				],
-			};
+					],
+				};
 
-			const testLayer = makeOpenAITestLayer({
-				chat: {
-					completions: {
-						create: async () => mockResponse,
+				const testLayer = makeOpenAITestLayer({
+					chat: {
+						completions: {
+							create: async () => mockResponse,
+						},
 					},
-				},
-			});
+				});
 
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
+				const { client } = yield* Effect.provide(OpenAI, testLayer);
 				const response = yield* Effect.tryPromise(() =>
 					client.chat.completions.create({
 						model: "gpt-4o",
 						messages: [{ role: "user", content: "Hello" }],
 					}),
 				);
-				return response;
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(response.id).toBe("mock-completion-id");
+				expect(response.choices[0]?.message.content).toBe(
+					"This is a mocked response",
+				);
+			}),
+		);
 
-			expect(result.id).toBe("mock-completion-id");
-			expect(result.choices[0]?.message.content).toBe(
-				"This is a mocked response",
-			);
-		});
+		it.effect("allows mocking audio transcriptions", () =>
+			Effect.gen(function* () {
+				const mockTranscription = {
+					text: "This is a mocked transcription of the audio file.",
+					language: "en",
+					duration: 120.5,
+					segments: [
+						{ id: 0, start: 0, end: 5, text: "This is a mocked" },
+						{ id: 1, start: 5, end: 10, text: "transcription of the audio file." },
+					],
+				};
 
-		test("allows mocking audio transcriptions", async () => {
-			const mockTranscription = {
-				text: "This is a mocked transcription of the audio file.",
-				language: "en",
-				duration: 120.5,
-				segments: [
-					{ id: 0, start: 0, end: 5, text: "This is a mocked" },
-					{ id: 1, start: 5, end: 10, text: "transcription of the audio file." },
-				],
-			};
-
-			const testLayer = makeOpenAITestLayer({
-				audio: {
-					transcriptions: {
-						create: async () => mockTranscription,
+				const testLayer = makeOpenAITestLayer({
+					audio: {
+						transcriptions: {
+							create: async () => mockTranscription,
+						},
 					},
-				},
-			});
+				});
 
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
+				const { client } = yield* Effect.provide(OpenAI, testLayer);
 				const response = yield* Effect.tryPromise(() =>
 					client.audio.transcriptions.create({
 						file: {} as File,
@@ -187,79 +169,70 @@ describe("OpenAI Effect Service", () => {
 						response_format: "verbose_json",
 					}),
 				);
-				return response;
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result.text).toBe(
-				"This is a mocked transcription of the audio file.",
-			);
-			expect(result.language).toBe("en");
-			expect(result.duration).toBe(120.5);
-		});
-
-		test("unmocked methods still throw helpful errors", async () => {
-			// Only mock chat.completions, not audio.transcriptions
-			const testLayer = makeOpenAITestLayer({
-				chat: {
-					completions: {
-						create: async () => ({
-							id: "mock",
-							object: "chat.completion" as const,
-							created: Date.now(),
-							model: "gpt-4o",
-							choices: [],
-						}),
-					},
-				},
-			});
-
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
-				return yield* Effect.tryPromise(() =>
-					client.audio.transcriptions.create({
-						file: "test.mp3" as unknown as File,
-						model: "whisper-1",
-					}),
+				expect(response.text).toBe(
+					"This is a mocked transcription of the audio file.",
 				);
-			});
+				expect(response.language).toBe("en");
+				expect(response.duration).toBe(120.5);
+			}),
+		);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const errorMessage = extractErrorMessage(exit.cause);
-				expect(errorMessage).toContain("was called but not mocked");
-			}
-		});
-
-		test("mock tracks call arguments", async () => {
-			let capturedArgs: unknown;
-
-			const testLayer = makeOpenAITestLayer({
-				chat: {
-					completions: {
-						create: async (args: unknown) => {
-							capturedArgs = args;
-							return {
+		it.effect("unmocked methods still throw helpful errors", () =>
+			Effect.gen(function* () {
+				// Only mock chat.completions, not audio.transcriptions
+				const testLayer = makeOpenAITestLayer({
+					chat: {
+						completions: {
+							create: async () => ({
 								id: "mock",
 								object: "chat.completion" as const,
 								created: Date.now(),
 								model: "gpt-4o",
 								choices: [],
-							};
+							}),
 						},
 					},
-				},
-			});
+				});
 
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
+				const { client } = yield* Effect.provide(OpenAI, testLayer);
+				const exit = yield* Effect.tryPromise(() =>
+					client.audio.transcriptions.create({
+						file: "test.mp3" as unknown as File,
+						model: "whisper-1",
+					}),
+				).pipe(Effect.exit);
+
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const errorMessage = extractErrorMessage(exit.cause);
+					expect(errorMessage).toContain("was called but not mocked");
+				}
+			}),
+		);
+
+		it.effect("mock tracks call arguments", () =>
+			Effect.gen(function* () {
+				let capturedArgs: unknown;
+
+				const testLayer = makeOpenAITestLayer({
+					chat: {
+						completions: {
+							create: async (args: unknown) => {
+								capturedArgs = args;
+								return {
+									id: "mock",
+									object: "chat.completion" as const,
+									created: Date.now(),
+									model: "gpt-4o",
+									choices: [],
+								};
+							},
+						},
+					},
+				});
+
+				const { client } = yield* Effect.provide(OpenAI, testLayer);
 				yield* Effect.tryPromise(() =>
 					client.chat.completions.create({
 						model: "gpt-4o",
@@ -270,176 +243,160 @@ describe("OpenAI Effect Service", () => {
 						temperature: 0.7,
 					}),
 				);
-			});
 
-			await Effect.runPromise(program.pipe(Effect.provide(testLayer)));
+				expect(capturedArgs).toBeDefined();
+				const args = capturedArgs as {
+					model: string;
+					messages: unknown[];
+					temperature: number;
+				};
+				expect(args.model).toBe("gpt-4o");
+				expect(args.messages).toHaveLength(2);
+				expect(args.temperature).toBe(0.7);
+			}),
+		);
 
-			expect(capturedArgs).toBeDefined();
-			const args = capturedArgs as {
-				model: string;
-				messages: unknown[];
-				temperature: number;
-			};
-			expect(args.model).toBe("gpt-4o");
-			expect(args.messages).toHaveLength(2);
-			expect(args.temperature).toBe(0.7);
-		});
-
-		test("mock can simulate errors", async () => {
-			const testLayer = makeOpenAITestLayer({
-				chat: {
-					completions: {
-						create: async () => {
-							throw new Error("Rate limit exceeded");
+		it.effect("mock can simulate errors", () =>
+			Effect.gen(function* () {
+				const testLayer = makeOpenAITestLayer({
+					chat: {
+						completions: {
+							create: async () => {
+								throw new Error("Rate limit exceeded");
+							},
 						},
 					},
-				},
-			});
+				});
 
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
-				yield* Effect.tryPromise(() =>
+				const { client } = yield* Effect.provide(OpenAI, testLayer);
+				const exit = yield* Effect.tryPromise(() =>
 					client.chat.completions.create({
 						model: "gpt-4o",
 						messages: [],
 					}),
-				);
-			});
-
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const errorMessage = extractErrorMessage(exit.cause);
-				expect(errorMessage).toContain("Rate limit exceeded");
-			}
-		});
-	});
-
-	describe("OpenAI.Live layer", () => {
-		test("fails with ConfigError when OPENAI_API_KEY not set", async () => {
-			// Save and clear the env var
-			const originalKey = process.env.OPENAI_API_KEY;
-			delete process.env.OPENAI_API_KEY;
-
-			try {
-				const program = Effect.gen(function* () {
-					const { client } = yield* OpenAI;
-					return client;
-				});
-
-				const exit = await Effect.runPromiseExit(
-					program.pipe(Effect.provide(OpenAI.Live)),
-				);
+				).pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
-					// The error should be a ConfigError for missing OPENAI_API_KEY
-					const error = exit.cause;
-					expect(String(error)).toContain("OPENAI_API_KEY");
+					const errorMessage = extractErrorMessage(exit.cause);
+					expect(errorMessage).toContain("Rate limit exceeded");
 				}
-			} finally {
-				// Restore the env var
-				if (originalKey !== undefined) {
-					process.env.OPENAI_API_KEY = originalKey;
+			}),
+		);
+	});
+
+	describe("OpenAI.Live layer", () => {
+		it.effect("fails with ConfigError when OPENAI_API_KEY not set", () =>
+			Effect.gen(function* () {
+				// Save and clear the env var
+				const originalKey = process.env.OPENAI_API_KEY;
+				delete process.env.OPENAI_API_KEY;
+
+				try {
+					const exit = yield* Effect.gen(function* () {
+						const { client } = yield* OpenAI;
+						return client;
+					}).pipe(Effect.provide(OpenAI.Live), Effect.exit);
+
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						// The error should be a ConfigError for missing OPENAI_API_KEY
+						const error = exit.cause;
+						expect(String(error)).toContain("OPENAI_API_KEY");
+					}
+				} finally {
+					// Restore the env var
+					if (originalKey !== undefined) {
+						process.env.OPENAI_API_KEY = originalKey;
+					}
 				}
-			}
-		});
+			}),
+		);
 
-		test("creates client when OPENAI_API_KEY is set", async () => {
-			// Skip if no API key is set (CI environment)
-			const apiKey = process.env.OPENAI_API_KEY;
-			if (!apiKey) {
-				console.log("Skipping live client test: OPENAI_API_KEY not set");
-				return;
-			}
+		it.effect("creates client when OPENAI_API_KEY is set", () =>
+			Effect.gen(function* () {
+				// Skip if no API key is set (CI environment)
+				const apiKey = process.env.OPENAI_API_KEY;
+				if (!apiKey) {
+					console.log("Skipping live client test: OPENAI_API_KEY not set");
+					return;
+				}
 
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
+				const { client } = yield* Effect.provide(OpenAI, OpenAI.Live);
 				// Verify it's a real OpenAI client instance
-				return client instanceof OpenAIClient;
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(OpenAI.Live)),
-			);
-
-			expect(result).toBe(true);
-		});
+				expect(client instanceof OpenAIClient).toBe(true);
+			}),
+		);
 	});
 
 	describe("service isolation", () => {
-		test("each test layer is independent", async () => {
-			const layer1 = makeOpenAITestLayer({
-				chat: {
-					completions: {
-						create: async () => ({
-							id: "layer1",
-							object: "chat.completion" as const,
-							created: Date.now(),
-							model: "gpt-4o",
-							choices: [
-								{
-									index: 0,
-									message: {
-										role: "assistant" as const,
-										content: "Response from layer 1",
+		it.effect("each test layer is independent", () =>
+			Effect.gen(function* () {
+				const layer1 = makeOpenAITestLayer({
+					chat: {
+						completions: {
+							create: async () => ({
+								id: "layer1",
+								object: "chat.completion" as const,
+								created: Date.now(),
+								model: "gpt-4o",
+								choices: [
+									{
+										index: 0,
+										message: {
+											role: "assistant" as const,
+											content: "Response from layer 1",
+										},
+										logprobs: null,
+										finish_reason: "stop" as const,
 									},
-									logprobs: null,
-									finish_reason: "stop" as const,
-								},
-							],
-						}),
+								],
+							}),
+						},
 					},
-				},
-			});
+				});
 
-			const layer2 = makeOpenAITestLayer({
-				chat: {
-					completions: {
-						create: async () => ({
-							id: "layer2",
-							object: "chat.completion" as const,
-							created: Date.now(),
-							model: "gpt-4o",
-							choices: [
-								{
-									index: 0,
-									message: {
-										role: "assistant" as const,
-										content: "Response from layer 2",
+				const layer2 = makeOpenAITestLayer({
+					chat: {
+						completions: {
+							create: async () => ({
+								id: "layer2",
+								object: "chat.completion" as const,
+								created: Date.now(),
+								model: "gpt-4o",
+								choices: [
+									{
+										index: 0,
+										message: {
+											role: "assistant" as const,
+											content: "Response from layer 2",
+										},
+										logprobs: null,
+										finish_reason: "stop" as const,
 									},
-									logprobs: null,
-									finish_reason: "stop" as const,
-								},
-							],
-						}),
+								],
+							}),
+						},
 					},
-				},
-			});
+				});
 
-			const program = Effect.gen(function* () {
-				const { client } = yield* OpenAI;
-				const response = yield* Effect.tryPromise(() =>
-					client.chat.completions.create({
-						model: "gpt-4o",
-						messages: [],
-					}),
-				);
-				return response.choices[0]?.message.content;
-			});
+				const program = Effect.gen(function* () {
+					const { client } = yield* OpenAI;
+					const response = yield* Effect.tryPromise(() =>
+						client.chat.completions.create({
+							model: "gpt-4o",
+							messages: [],
+						}),
+					);
+					return response.choices[0]?.message.content;
+				});
 
-			const result1 = await Effect.runPromise(
-				program.pipe(Effect.provide(layer1)),
-			);
-			const result2 = await Effect.runPromise(
-				program.pipe(Effect.provide(layer2)),
-			);
+				const result1 = yield* program.pipe(Effect.provide(layer1));
+				const result2 = yield* program.pipe(Effect.provide(layer2));
 
-			expect(result1).toBe("Response from layer 1");
-			expect(result2).toBe("Response from layer 2");
-		});
+				expect(result1).toBe("Response from layer 1");
+				expect(result2).toBe("Response from layer 2");
+			}),
+		);
 	});
 });

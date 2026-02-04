@@ -8,7 +8,8 @@
  * using mock layers to replace real YouTube and Transcription services.
  */
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect, Exit, Layer } from "effect";
 import { eq } from "drizzle-orm";
 import {
@@ -134,166 +135,142 @@ function createPipelineTestLayer(options: {
 
 describe("Pipeline Effect Service", () => {
 	describe("Pipeline.Test layer", () => {
-		test("returns helpful error message indicating mock needed", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("returns helpful error message indicating mock needed", () =>
+			Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
-				return yield* pipeline.processVideo(1);
-			});
+				const exit = yield* pipeline.processVideo(1).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Pipeline.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(VideoNotFoundError);
-				if (error instanceof VideoNotFoundError) {
-					expect(error.message).toContain("not mocked");
-					expect(error.message).toContain("makePipelineTestLayer");
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+					expect(error).toBeInstanceOf(VideoNotFoundError);
+					if (error instanceof VideoNotFoundError) {
+						expect(error.message).toContain("not mocked");
+						expect(error.message).toContain("makePipelineTestLayer");
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(Pipeline.Test)),
+		);
 	});
 
 	describe("makePipelineTestLayer factory", () => {
-		test("allows mocking processVideo response", async () => {
-			const testLayer = makePipelineTestLayer({
-				processVideo: (videoId) =>
-					Effect.succeed({
-						videoId,
-						status: "completed" as const,
-						transcriptId: 42,
-					}),
-			});
-
-			const program = Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				return yield* pipeline.processVideo(1);
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result.videoId).toBe(1);
-			expect(result.status).toBe("completed");
-			expect(result.transcriptId).toBe(42);
-		});
-
-		test("allows mocking processVideo errors", async () => {
-			const testLayer = makePipelineTestLayer({
-				processVideo: (videoId) =>
-					Effect.fail(
-						new VideoNotFoundError({
+		it.effect("allows mocking processVideo response", () =>
+			Effect.gen(function* () {
+				const testLayer = makePipelineTestLayer({
+					processVideo: (videoId) =>
+						Effect.succeed({
 							videoId,
-							message: "Custom error: video not found",
+							status: "completed" as const,
+							transcriptId: 42,
 						}),
-					),
-			});
+				});
 
-			const program = Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				return yield* pipeline.processVideo(999);
-			});
+				const pipeline = yield* Effect.provide(Pipeline, testLayer);
+				const result = yield* pipeline.processVideo(1);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(result.videoId).toBe(1);
+				expect(result.status).toBe("completed");
+				expect(result.transcriptId).toBe(42);
+			}),
+		);
 
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(VideoNotFoundError);
-				if (error instanceof VideoNotFoundError) {
-					expect(error.message).toBe("Custom error: video not found");
+		it.effect("allows mocking processVideo errors", () =>
+			Effect.gen(function* () {
+				const testLayer = makePipelineTestLayer({
+					processVideo: (videoId) =>
+						Effect.fail(
+							new VideoNotFoundError({
+								videoId,
+								message: "Custom error: video not found",
+							}),
+						),
+				});
+
+				const pipeline = yield* Effect.provide(Pipeline, testLayer);
+				const exit = yield* pipeline.processVideo(999).pipe(Effect.exit);
+
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+					expect(error).toBeInstanceOf(VideoNotFoundError);
+					if (error instanceof VideoNotFoundError) {
+						expect(error.message).toBe("Custom error: video not found");
+					}
 				}
-			}
-		});
+			}),
+		);
 
-		test("tracks arguments passed to processVideo", async () => {
-			const capturedVideoIds: number[] = [];
+		it.effect("tracks arguments passed to processVideo", () =>
+			Effect.gen(function* () {
+				const capturedVideoIds: number[] = [];
 
-			const testLayer = makePipelineTestLayer({
-				processVideo: (videoId) => {
-					capturedVideoIds.push(videoId);
-					return Effect.succeed({
-						videoId,
-						status: "completed" as const,
-						transcriptId: 1,
-					});
-				},
-			});
+				const testLayer = makePipelineTestLayer({
+					processVideo: (videoId) => {
+						capturedVideoIds.push(videoId);
+						return Effect.succeed({
+							videoId,
+							status: "completed" as const,
+							transcriptId: 1,
+						});
+					},
+				});
 
-			const program = Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
+				const pipeline = yield* Effect.provide(Pipeline, testLayer);
 				yield* pipeline.processVideo(1);
 				yield* pipeline.processVideo(2);
 				yield* pipeline.processVideo(3);
-			});
 
-			await Effect.runPromise(program.pipe(Effect.provide(testLayer)));
-
-			expect(capturedVideoIds).toEqual([1, 2, 3]);
-		});
+				expect(capturedVideoIds).toEqual([1, 2, 3]);
+			}),
+		);
 	});
 
 	describe("Pipeline.Live with mocked dependencies", () => {
-		test("processVideo succeeds with mocked services", async () => {
+		it.scoped("processVideo succeeds with mocked services", () => {
 			const { layer, getProgressEvents } = createPipelineTestLayer();
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
-				return yield* pipeline.processVideo(1);
-			});
+				const result = yield* pipeline.processVideo(1);
 
-			const result = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
+				expect(result.videoId).toBe(1);
+				expect(result.status).toBe("completed");
+				expect(result.transcriptId).toBeDefined();
 
-			expect(result.videoId).toBe(1);
-			expect(result.status).toBe("completed");
-			expect(result.transcriptId).toBeDefined();
+				// Verify progress events were emitted
+				const events = yield* getProgressEvents;
+				expect(events.length).toBeGreaterThanOrEqual(5);
 
-			// Verify progress events were emitted
-			const events = await Effect.runPromise(
-				Effect.provide(getProgressEvents, layer),
-			);
-			expect(events.length).toBeGreaterThanOrEqual(5);
-
-			// Check progress stages
-			const stages = events.map((e) => e.stage);
-			expect(stages).toContain("pending");
-			expect(stages).toContain("downloading");
-			expect(stages).toContain("extracting");
-			expect(stages).toContain("transcribing");
-			expect(stages).toContain("complete");
+				// Check progress stages
+				const stages = events.map((e) => e.stage);
+				expect(stages).toContain("pending");
+				expect(stages).toContain("downloading");
+				expect(stages).toContain("extracting");
+				expect(stages).toContain("transcribing");
+				expect(stages).toContain("complete");
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo returns VideoNotFoundError for missing video", async () => {
+		it.scoped("processVideo returns VideoNotFoundError for missing video", () => {
 			const { layer } = createPipelineTestLayer();
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
 				// Video ID 999 doesn't exist in seeded data
-				return yield* pipeline.processVideo(999);
-			});
+				const exit = yield* pipeline.processVideo(999).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(VideoNotFoundError);
-				if (error instanceof VideoNotFoundError) {
-					expect(error.videoId).toBe(999);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+					expect(error).toBeInstanceOf(VideoNotFoundError);
+					if (error instanceof VideoNotFoundError) {
+						expect(error.videoId).toBe(999);
+					}
 				}
-			}
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo marks video as failed on download error", async () => {
+		it.scoped("processVideo marks video as failed on download error", () => {
 			const { layer } = createPipelineTestLayer({
 				youtubeOverrides: {
 					downloadAudio: () =>
@@ -306,7 +283,7 @@ describe("Pipeline Effect Service", () => {
 				},
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
 				const { db } = yield* Database;
 
@@ -325,21 +302,15 @@ describe("Pipeline Effect Service", () => {
 					.where(eq(schema.videos.id, 1))
 					.get();
 
-				return { result, videoStatus: video?.status };
-			});
-
-			const { result, videoStatus } = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			expect(videoStatus).toBe("failed");
-			expect(result).toHaveProperty("error");
-			expect((result as { error: DownloadFailedError }).error).toBeInstanceOf(
-				DownloadFailedError,
-			);
+				expect(video?.status).toBe("failed");
+				expect(result).toHaveProperty("error");
+				expect((result as { error: DownloadFailedError }).error).toBeInstanceOf(
+					DownloadFailedError,
+				);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo marks video as failed on transcription error", async () => {
+		it.scoped("processVideo marks video as failed on transcription error", () => {
 			const { layer, getProgressEvents } = createPipelineTestLayer({
 				transcriptionOverrides: {
 					transcribe: () =>
@@ -352,7 +323,7 @@ describe("Pipeline Effect Service", () => {
 				},
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
 				const { db } = yield* Database;
 
@@ -370,29 +341,21 @@ describe("Pipeline Effect Service", () => {
 					.where(eq(schema.videos.id, 1))
 					.get();
 
-				return { result, videoStatus: video?.status };
-			});
+				expect(video?.status).toBe("failed");
+				expect(result).toHaveProperty("error");
+				expect((result as { error: TranscriptionFailedError }).error).toBeInstanceOf(
+					TranscriptionFailedError,
+				);
 
-			const { result, videoStatus } = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			expect(videoStatus).toBe("failed");
-			expect(result).toHaveProperty("error");
-			expect((result as { error: TranscriptionFailedError }).error).toBeInstanceOf(
-				TranscriptionFailedError,
-			);
-
-			// Verify error progress event was emitted
-			const events = await Effect.runPromise(
-				Effect.provide(getProgressEvents, layer),
-			);
-			const errorEvent = events.find((e) => e.stage === "error");
-			expect(errorEvent).toBeDefined();
-			expect(errorEvent?.error).toContain("Transcription failed");
+				// Verify error progress event was emitted
+				const events = yield* getProgressEvents;
+				const errorEvent = events.find((e) => e.stage === "error");
+				expect(errorEvent).toBeDefined();
+				expect(errorEvent?.error).toContain("Transcription failed");
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo updates video status to processing during execution", async () => {
+		it.scoped("processVideo updates video status to processing during execution", () => {
 			// Track the status during download by using a closure
 			let downloadCalled = false;
 
@@ -410,33 +373,27 @@ describe("Pipeline Effect Service", () => {
 				},
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
-				return yield* pipeline.processVideo(1);
-			});
+				yield* pipeline.processVideo(1);
 
-			await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
+				expect(downloadCalled).toBe(true);
 
-			expect(downloadCalled).toBe(true);
+				// Verify that the 'pending' event (which emits after status update to 'processing')
+				// comes before the 'downloading' event
+				const events = yield* getProgressEvents;
+				const stages = events.map((e) => e.stage);
+				const pendingIdx = stages.indexOf("pending");
+				const downloadingIdx = stages.indexOf("downloading");
 
-			// Verify that the 'pending' event (which emits after status update to 'processing')
-			// comes before the 'downloading' event
-			const events = await Effect.runPromise(
-				Effect.provide(getProgressEvents, layer),
-			);
-			const stages = events.map((e) => e.stage);
-			const pendingIdx = stages.indexOf("pending");
-			const downloadingIdx = stages.indexOf("downloading");
-
-			expect(pendingIdx).toBeLessThan(downloadingIdx);
+				expect(pendingIdx).toBeLessThan(downloadingIdx);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo saves transcript to database on success", async () => {
+		it.scoped("processVideo saves transcript to database on success", () => {
 			const { layer } = createPipelineTestLayer();
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
 				const { db } = yield* Database;
 
@@ -450,21 +407,15 @@ describe("Pipeline Effect Service", () => {
 					.where(eq(schema.transcripts.videoId, 1))
 					.get();
 
-				return { result, transcript };
-			});
-
-			const { result, transcript } = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			expect(result.transcriptId).toBeDefined();
-			expect(transcript).toBeDefined();
-			expect(transcript?.content).toBe(TEST_TRANSCRIPTION.text);
-			expect(transcript?.segments).toHaveLength(2);
-			expect(transcript?.language).toBe("en");
+				expect(result.transcriptId).toBeDefined();
+				expect(transcript).toBeDefined();
+				expect(transcript?.content).toBe(TEST_TRANSCRIPTION.text);
+				expect(transcript?.segments).toHaveLength(2);
+				expect(transcript?.language).toBe("en");
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo fetches and saves metadata when not present", async () => {
+		it.scoped("processVideo fetches and saves metadata when not present", () => {
 			let metadataFetched = false;
 
 			const { layer } = createPipelineTestLayer({
@@ -477,7 +428,7 @@ describe("Pipeline Effect Service", () => {
 				},
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
 				const { db } = yield* Database;
 
@@ -491,23 +442,17 @@ describe("Pipeline Effect Service", () => {
 					.where(eq(schema.videos.id, 1))
 					.get();
 
-				return { video };
-			});
-
-			const { video } = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			expect(metadataFetched).toBe(true);
-			expect(video?.title).toBe(TEST_METADATA.title);
-			expect(video?.duration).toBe(TEST_METADATA.duration);
-			expect(video?.thumbnailUrl).toBe(TEST_METADATA.thumbnailUrl);
+				expect(metadataFetched).toBe(true);
+				expect(video?.title).toBe(TEST_METADATA.title);
+				expect(video?.duration).toBe(TEST_METADATA.duration);
+				expect(video?.thumbnailUrl).toBe(TEST_METADATA.thumbnailUrl);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("processVideo updates video status to completed on success", async () => {
+		it.scoped("processVideo updates video status to completed on success", () => {
 			const { layer } = createPipelineTestLayer();
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const pipeline = yield* Pipeline;
 				const { db } = yield* Database;
 
@@ -521,107 +466,91 @@ describe("Pipeline Effect Service", () => {
 					.where(eq(schema.videos.id, 1))
 					.get();
 
-				return { videoStatus: video?.status };
-			});
-
-			const { videoStatus } = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			expect(videoStatus).toBe("completed");
+				expect(video?.status).toBe("completed");
+			}).pipe(Effect.provide(layer));
 		});
 	});
 
 	describe("makePipelineTestContext factory", () => {
-		test("provides pre-configured test layer for Pipeline testing", async () => {
+		it.scoped("provides pre-configured test layer for Pipeline testing", () => {
 			const { layer } = makePipelineTestContext();
 
-			// Note: makePipelineTestContext creates a layer but Pipeline.Test doesn't
-			// use the real Pipeline.Live implementation - we need to test with
-			// Pipeline.Live that is properly wired to dependencies
+			return Effect.gen(function* () {
+				// Note: makePipelineTestContext creates a layer but Pipeline.Test doesn't
+				// use the real Pipeline.Live implementation - we need to test with
+				// Pipeline.Live that is properly wired to dependencies
 
-			// This tests that the context provides all required services
-			const program = Effect.gen(function* () {
-				// We can yield all the services that Pipeline needs
+				// This tests that the context provides all required services
 				const { db } = yield* Database;
 				const users = db.select().from(schema.users).all();
-				return users;
-			});
 
-			const result = await Effect.runPromise(
-				Effect.scoped(program.pipe(Effect.provide(layer))),
-			);
-
-			// Default layer has empty database
-			expect(result).toEqual([]);
+				// Default layer has empty database
+				expect(users).toEqual([]);
+			}).pipe(Effect.provide(layer));
 		});
 	});
 
 	describe("service isolation", () => {
-		test("each test layer is independent", async () => {
-			const layer1 = makePipelineTestLayer({
-				processVideo: () =>
-					Effect.succeed({
-						videoId: 1,
-						status: "completed" as const,
-						transcriptId: 100,
-					}),
-			});
+		it.effect("each test layer is independent", () =>
+			Effect.gen(function* () {
+				const layer1 = makePipelineTestLayer({
+					processVideo: () =>
+						Effect.succeed({
+							videoId: 1,
+							status: "completed" as const,
+							transcriptId: 100,
+						}),
+				});
 
-			const layer2 = makePipelineTestLayer({
-				processVideo: () =>
-					Effect.succeed({
-						videoId: 1,
-						status: "completed" as const,
-						transcriptId: 200,
-					}),
-			});
+				const layer2 = makePipelineTestLayer({
+					processVideo: () =>
+						Effect.succeed({
+							videoId: 1,
+							status: "completed" as const,
+							transcriptId: 200,
+						}),
+				});
 
-			const program = Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				return yield* pipeline.processVideo(1);
-			});
+				const program = Effect.gen(function* () {
+					const pipeline = yield* Pipeline;
+					return yield* pipeline.processVideo(1);
+				});
 
-			const result1 = await Effect.runPromise(
-				program.pipe(Effect.provide(layer1)),
-			);
-			const result2 = await Effect.runPromise(
-				program.pipe(Effect.provide(layer2)),
-			);
+				const result1 = yield* program.pipe(Effect.provide(layer1));
+				const result2 = yield* program.pipe(Effect.provide(layer2));
 
-			expect(result1.transcriptId).toBe(100);
-			expect(result2.transcriptId).toBe(200);
-		});
+				expect(result1.transcriptId).toBe(100);
+				expect(result2.transcriptId).toBe(200);
+			}),
+		);
 
-		test("database changes in one test don't affect another", async () => {
-			// First test: seed and modify database
-			const layer1 = makeDatabaseTestLayer(seedTestData);
-			const program1 = Effect.gen(function* () {
-				const { db } = yield* Database;
-				// Add another user
-				db.insert(schema.users)
-					.values({ id: 2, email: "other@example.com", name: "Other" })
-					.run();
-				return db.select().from(schema.users).all().length;
-			});
+		it.effect("database changes in one test don't affect another", () =>
+			Effect.gen(function* () {
+				// First test: seed and modify database
+				const layer1 = makeDatabaseTestLayer(seedTestData);
+				const program1 = Effect.gen(function* () {
+					const { db } = yield* Database;
+					// Add another user
+					db.insert(schema.users)
+						.values({ id: 2, email: "other@example.com", name: "Other" })
+						.run();
+					return db.select().from(schema.users).all().length;
+				});
 
-			const count1 = await Effect.runPromise(
-				program1.pipe(Effect.provide(layer1)),
-			);
+				const count1 = yield* program1.pipe(Effect.provide(layer1));
 
-			// Second test: fresh database with same seed
-			const layer2 = makeDatabaseTestLayer(seedTestData);
-			const program2 = Effect.gen(function* () {
-				const { db } = yield* Database;
-				return db.select().from(schema.users).all().length;
-			});
+				// Second test: fresh database with same seed
+				const layer2 = makeDatabaseTestLayer(seedTestData);
+				const program2 = Effect.gen(function* () {
+					const { db } = yield* Database;
+					return db.select().from(schema.users).all().length;
+				});
 
-			const count2 = await Effect.runPromise(
-				program2.pipe(Effect.provide(layer2)),
-			);
+				const count2 = yield* program2.pipe(Effect.provide(layer2));
 
-			expect(count1).toBe(2); // Original + added user
-			expect(count2).toBe(1); // Only original user from seed
-		});
+				expect(count1).toBe(2); // Original + added user
+				expect(count2).toBe(1); // Only original user from seed
+			}),
+		);
 	});
 });

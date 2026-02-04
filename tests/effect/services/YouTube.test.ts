@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
+import { describe, expect, beforeAll, afterAll } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect, Exit, Cause } from "effect";
 import { YouTube, makeYouTubeTestLayer } from "../../../src/effect/services/YouTube";
 import {
@@ -39,409 +40,324 @@ describe("YouTube Effect Service", () => {
 	// URL Validation (pure functions, synchronous)
 	// =========================================================================
 	describe("isValidUrl", () => {
-		it("validates standard youtube.com/watch URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("validates standard youtube.com/watch URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl(
+				const result = youtube.isValidUrl(
 					"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
 				);
-			});
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(true);
-		});
-
-		it("validates youtu.be short URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("validates youtu.be short URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl("https://youtu.be/dQw4w9WgXcQ");
-			});
+				const result = youtube.isValidUrl("https://youtu.be/dQw4w9WgXcQ");
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(true);
-		});
-
-		it("validates youtube.com/embed URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("validates youtube.com/embed URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl(
+				const result = youtube.isValidUrl(
 					"https://www.youtube.com/embed/dQw4w9WgXcQ",
 				);
-			});
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(true);
-		});
-
-		it("validates youtube.com/shorts URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("validates youtube.com/shorts URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl(
+				const result = youtube.isValidUrl(
 					"https://www.youtube.com/shorts/dQw4w9WgXcQ",
 				);
-			});
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(true);
-		});
-
-		it("validates youtube.com/live URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("validates youtube.com/live URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl(
+				const result = youtube.isValidUrl(
 					"https://www.youtube.com/live/dQw4w9WgXcQ",
 				);
-			});
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(true);
-		});
-
-		it("rejects non-YouTube URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("rejects non-YouTube URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl("https://vimeo.com/123456");
-			});
+				const result = youtube.isValidUrl("https://vimeo.com/123456");
+				expect(result).toBe(false);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(false);
-		});
-
-		it("rejects URLs with invalid video IDs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("rejects URLs with invalid video IDs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
 				// Video ID must be exactly 11 characters
-				return youtube.isValidUrl(
+				const result = youtube.isValidUrl(
 					"https://www.youtube.com/watch?v=tooshort",
 				);
-			});
+				expect(result).toBe(false);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(false);
-		});
-
-		it("rejects random strings", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("rejects random strings", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.isValidUrl("not-a-url-at-all");
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe(false);
-		});
+				const result = youtube.isValidUrl("not-a-url-at-all");
+				expect(result).toBe(false);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 	});
 
 	// =========================================================================
 	// Video ID Extraction (pure functions, synchronous)
 	// =========================================================================
 	describe("extractVideoId", () => {
-		it("extracts video ID from watch URL", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("extracts video ID from watch URL", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.extractVideoId(
+				const result = youtube.extractVideoId(
 					"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
 				);
-			});
+				expect(result).toBe("dQw4w9WgXcQ");
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe("dQw4w9WgXcQ");
-		});
-
-		it("extracts video ID from short URL", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("extracts video ID from short URL", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.extractVideoId("https://youtu.be/dQw4w9WgXcQ");
-			});
+				const result = youtube.extractVideoId("https://youtu.be/dQw4w9WgXcQ");
+				expect(result).toBe("dQw4w9WgXcQ");
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe("dQw4w9WgXcQ");
-		});
-
-		it("extracts video ID from watch URL with additional params", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("extracts video ID from watch URL with additional params", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.extractVideoId(
+				const result = youtube.extractVideoId(
 					"https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=120&list=PLxxx",
 				);
-			});
+				expect(result).toBe("dQw4w9WgXcQ");
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBe("dQw4w9WgXcQ");
-		});
-
-		it("returns null for invalid URL", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("returns null for invalid URL", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.extractVideoId("not-a-valid-url");
-			});
+				const result = youtube.extractVideoId("not-a-valid-url");
+				expect(result).toBeNull();
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBeNull();
-		});
-
-		it("returns null for non-YouTube URL", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("returns null for non-YouTube URL", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return youtube.extractVideoId("https://vimeo.com/123456");
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result).toBeNull();
-		});
+				const result = youtube.extractVideoId("https://vimeo.com/123456");
+				expect(result).toBeNull();
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 	});
 
 	// =========================================================================
 	// Test Layer Behavior
 	// =========================================================================
 	describe("Test layer", () => {
-		it("provides working URL validation", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("provides working URL validation", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return {
+				const result = {
 					valid: youtube.isValidUrl(
 						"https://youtube.com/watch?v=dQw4w9WgXcQ",
 					),
 					invalid: youtube.isValidUrl("not-a-url"),
 				};
-			});
+				expect(result.valid).toBe(true);
+				expect(result.invalid).toBe(false);
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(result.valid).toBe(true);
-			expect(result.invalid).toBe(false);
-		});
-
-		it("getMetadata fails with InvalidYouTubeUrlError for invalid URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("getMetadata fails with InvalidYouTubeUrlError for invalid URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata("not-a-valid-url");
-			});
+				const exit = yield* youtube.getMetadata("not-a-valid-url").pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = Cause.failureOption(exit.cause);
-				expect(error._tag).toBe("Some");
-				if (error._tag === "Some") {
-					expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
-					expect((error.value as InvalidYouTubeUrlError).url).toBe(
-						"not-a-valid-url",
-					);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = Cause.failureOption(exit.cause);
+					expect(error._tag).toBe("Some");
+					if (error._tag === "Some") {
+						expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+						expect((error.value as InvalidYouTubeUrlError).url).toBe(
+							"not-a-valid-url",
+						);
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-		it("getMetadata fails with DownloadFailedError for valid URLs (mock not implemented)", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("getMetadata fails with DownloadFailedError for valid URLs (mock not implemented)", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata(
+				const exit = yield* youtube.getMetadata(
 					"https://youtube.com/watch?v=dQw4w9WgXcQ",
-				);
-			});
+				).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = Cause.failureOption(exit.cause);
-				expect(error._tag).toBe("Some");
-				if (error._tag === "Some") {
-					expect(error.value).toBeInstanceOf(DownloadFailedError);
-					expect((error.value as DownloadFailedError).reason).toContain(
-						"Mock",
-					);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = Cause.failureOption(exit.cause);
+					expect(error._tag).toBe("Some");
+					if (error._tag === "Some") {
+						expect(error.value).toBeInstanceOf(DownloadFailedError);
+						expect((error.value as DownloadFailedError).reason).toContain(
+							"Mock",
+						);
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-		it("downloadAudio fails with InvalidYouTubeUrlError for invalid URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("downloadAudio fails with InvalidYouTubeUrlError for invalid URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return yield* youtube.downloadAudio("invalid-url");
-			});
+				const exit = yield* youtube.downloadAudio("invalid-url").pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = Cause.failureOption(exit.cause);
-				expect(error._tag).toBe("Some");
-				if (error._tag === "Some") {
-					expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = Cause.failureOption(exit.cause);
+					expect(error._tag).toBe("Some");
+					if (error._tag === "Some") {
+						expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 
-		it("downloadAudio fails with DownloadFailedError for valid URLs (mock not implemented)", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("downloadAudio fails with DownloadFailedError for valid URLs (mock not implemented)", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return yield* youtube.downloadAudio(
+				const exit = yield* youtube.downloadAudio(
 					"https://youtube.com/watch?v=dQw4w9WgXcQ",
-				);
-			});
+				).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(YouTube.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = Cause.failureOption(exit.cause);
-				expect(error._tag).toBe("Some");
-				if (error._tag === "Some") {
-					expect(error.value).toBeInstanceOf(DownloadFailedError);
-					expect((error.value as DownloadFailedError).reason).toContain(
-						"Mock",
-					);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = Cause.failureOption(exit.cause);
+					expect(error._tag).toBe("Some");
+					if (error._tag === "Some") {
+						expect(error.value).toBeInstanceOf(DownloadFailedError);
+						expect((error.value as DownloadFailedError).reason).toContain(
+							"Mock",
+						);
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(YouTube.Test)),
+		);
 	});
 
 	// =========================================================================
 	// makeYouTubeTestLayer Factory
 	// =========================================================================
 	describe("makeYouTubeTestLayer", () => {
-		it("allows mocking getMetadata with custom implementation", async () => {
-			const mockMetadata: VideoMetadata = {
-				id: "test123abc",
-				title: "Test Video Title",
-				duration: 120,
-				thumbnailUrl: "https://example.com/thumb.jpg",
-				channelName: "Test Channel",
-				uploadDate: "2024-01-15",
-			};
+		it.effect("allows mocking getMetadata with custom implementation", () =>
+			Effect.gen(function* () {
+				const mockMetadata: VideoMetadata = {
+					id: "test123abc",
+					title: "Test Video Title",
+					duration: 120,
+					thumbnailUrl: "https://example.com/thumb.jpg",
+					channelName: "Test Channel",
+					uploadDate: "2024-01-15",
+				};
 
-			const testLayer = makeYouTubeTestLayer({
-				getMetadata: (url) => {
-					if (url.includes("test123abc")) {
-						return Effect.succeed(mockMetadata);
-					}
-					return Effect.fail(
-						new DownloadFailedError({ youtubeUrl: url, reason: "Not found" }),
-					);
-				},
-			});
+				const testLayer = makeYouTubeTestLayer({
+					getMetadata: (url) => {
+						if (url.includes("test123abc")) {
+							return Effect.succeed(mockMetadata);
+						}
+						return Effect.fail(
+							new DownloadFailedError({ youtubeUrl: url, reason: "Not found" }),
+						);
+					},
+				});
 
-			const program = Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata(
+				const youtube = yield* Effect.provide(YouTube, testLayer);
+				const result = yield* youtube.getMetadata(
 					"https://youtube.com/watch?v=test123abc",
 				);
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(result).toEqual(mockMetadata);
+			}),
+		);
 
-			expect(result).toEqual(mockMetadata);
-		});
+		it.effect("allows mocking downloadAudio with custom implementation", () =>
+			Effect.gen(function* () {
+				const testLayer = makeYouTubeTestLayer({
+					downloadAudio: (_url, outputPath) =>
+						Effect.succeed(outputPath ?? "/tmp/mock-audio.m4a"),
+				});
 
-		it("allows mocking downloadAudio with custom implementation", async () => {
-			const testLayer = makeYouTubeTestLayer({
-				downloadAudio: (_url, outputPath) =>
-					Effect.succeed(outputPath ?? "/tmp/mock-audio.m4a"),
-			});
-
-			const program = Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				return yield* youtube.downloadAudio(
+				const youtube = yield* Effect.provide(YouTube, testLayer);
+				const result = yield* youtube.downloadAudio(
 					"https://youtube.com/watch?v=abc12345678",
 					"/custom/path/audio.m4a",
 				);
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(result).toBe("/custom/path/audio.m4a");
+			}),
+		);
 
-			expect(result).toBe("/custom/path/audio.m4a");
-		});
+		it.effect("allows mocking both getMetadata and downloadAudio", () =>
+			Effect.gen(function* () {
+				const testLayer = makeYouTubeTestLayer({
+					getMetadata: () =>
+						Effect.succeed({
+							id: "mock-id",
+							title: "Mock Title",
+							duration: 60,
+							thumbnailUrl: "https://mock.com/thumb.jpg",
+							channelName: "Mock Channel",
+							uploadDate: "2024-06-01",
+						}),
+					downloadAudio: () => Effect.succeed("/mock/path.m4a"),
+				});
 
-		it("allows mocking both getMetadata and downloadAudio", async () => {
-			const testLayer = makeYouTubeTestLayer({
-				getMetadata: () =>
-					Effect.succeed({
-						id: "mock-id",
-						title: "Mock Title",
-						duration: 60,
-						thumbnailUrl: "https://mock.com/thumb.jpg",
-						channelName: "Mock Channel",
-						uploadDate: "2024-06-01",
-					}),
-				downloadAudio: () => Effect.succeed("/mock/path.m4a"),
-			});
-
-			const program = Effect.gen(function* () {
-				const youtube = yield* YouTube;
+				const youtube = yield* Effect.provide(YouTube, testLayer);
 				const metadata = yield* youtube.getMetadata(
 					"https://youtube.com/watch?v=dQw4w9WgXcQ",
 				);
 				const audioPath = yield* youtube.downloadAudio(
 					"https://youtube.com/watch?v=dQw4w9WgXcQ",
 				);
-				return { metadata, audioPath };
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(metadata.id).toBe("mock-id");
+				expect(metadata.title).toBe("Mock Title");
+				expect(audioPath).toBe("/mock/path.m4a");
+			}),
+		);
 
-			expect(result.metadata.id).toBe("mock-id");
-			expect(result.metadata.title).toBe("Mock Title");
-			expect(result.audioPath).toBe("/mock/path.m4a");
-		});
+		it.effect("preserves URL validation when not overridden", () =>
+			Effect.gen(function* () {
+				const testLayer = makeYouTubeTestLayer({
+					getMetadata: () =>
+						Effect.succeed({
+							id: "id",
+							title: "Title",
+							duration: 60,
+							thumbnailUrl: "url",
+							channelName: "channel",
+							uploadDate: "2024-01-01",
+						}),
+				});
 
-		it("preserves URL validation when not overridden", async () => {
-			const testLayer = makeYouTubeTestLayer({
-				getMetadata: () =>
-					Effect.succeed({
-						id: "id",
-						title: "Title",
-						duration: 60,
-						thumbnailUrl: "url",
-						channelName: "channel",
-						uploadDate: "2024-01-01",
-					}),
-			});
-
-			const program = Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				return {
+				const youtube = yield* Effect.provide(YouTube, testLayer);
+				const result = {
 					valid: youtube.isValidUrl(
 						"https://youtube.com/watch?v=dQw4w9WgXcQ",
 					),
@@ -450,51 +366,43 @@ describe("YouTube Effect Service", () => {
 						"https://youtu.be/dQw4w9WgXcQ",
 					),
 				};
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(result.valid).toBe(true);
+				expect(result.invalid).toBe(false);
+				expect(result.extractedId).toBe("dQw4w9WgXcQ");
+			}),
+		);
 
-			expect(result.valid).toBe(true);
-			expect(result.invalid).toBe(false);
-			expect(result.extractedId).toBe("dQw4w9WgXcQ");
-		});
+		it.effect("allows mocking to simulate errors", () =>
+			Effect.gen(function* () {
+				const testLayer = makeYouTubeTestLayer({
+					getMetadata: (url) =>
+						Effect.fail(
+							new DownloadFailedError({
+								youtubeUrl: url,
+								reason: "Network timeout",
+							}),
+						),
+				});
 
-		it("allows mocking to simulate errors", async () => {
-			const testLayer = makeYouTubeTestLayer({
-				getMetadata: (url) =>
-					Effect.fail(
-						new DownloadFailedError({
-							youtubeUrl: url,
-							reason: "Network timeout",
-						}),
-					),
-			});
-
-			const program = Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata(
+				const youtube = yield* Effect.provide(YouTube, testLayer);
+				const exit = yield* youtube.getMetadata(
 					"https://youtube.com/watch?v=dQw4w9WgXcQ",
-				);
-			});
+				).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = Cause.failureOption(exit.cause);
-				expect(error._tag).toBe("Some");
-				if (error._tag === "Some") {
-					expect(error.value).toBeInstanceOf(DownloadFailedError);
-					expect((error.value as DownloadFailedError).reason).toBe(
-						"Network timeout",
-					);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = Cause.failureOption(exit.cause);
+					expect(error._tag).toBe("Some");
+					if (error._tag === "Some") {
+						expect(error.value).toBeInstanceOf(DownloadFailedError);
+						expect((error.value as DownloadFailedError).reason).toBe(
+							"Network timeout",
+						);
+					}
 				}
-			}
-		});
+			}),
+		);
 	});
 
 	// =========================================================================
@@ -505,97 +413,86 @@ describe("YouTube Effect Service", () => {
 		const TEST_URL = "https://www.youtube.com/watch?v=aqz-KE-bpKQ";
 		const TEST_VIDEO_ID = "aqz-KE-bpKQ";
 
-		it.skip("getMetadata fetches real video metadata", async () => {
-			// Skip: Requires network and yt-dlp installed
-			const program = Effect.gen(function* () {
+		it.skip("getMetadata fetches real video metadata", { timeout: 60000 }, () =>
+			Effect.gen(function* () {
+				// Skip: Requires network and yt-dlp installed
 				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata(TEST_URL);
-			});
+				const result = yield* youtube.getMetadata(TEST_URL);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Live)),
-			);
+				expect(result.id).toBe(TEST_VIDEO_ID);
+				expect(result.title).toBeTruthy();
+				expect(result.duration).toBeGreaterThan(0);
+				expect(result.thumbnailUrl).toContain("http");
+				expect(result.channelName).toBeTruthy();
+			}).pipe(Effect.provide(YouTube.Live)),
+		);
 
-			expect(result.id).toBe(TEST_VIDEO_ID);
-			expect(result.title).toBeTruthy();
-			expect(result.duration).toBeGreaterThan(0);
-			expect(result.thumbnailUrl).toContain("http");
-			expect(result.channelName).toBeTruthy();
-		}, 60000);
+		it.skip("downloadAudio downloads audio from real video", { timeout: 120000 }, () =>
+			Effect.gen(function* () {
+				// Skip: Requires network and yt-dlp installed
+				const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
 
-		it.skip("downloadAudio downloads audio from real video", async () => {
-			// Skip: Requires network and yt-dlp installed
-			const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
-
-			const program = Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return yield* youtube.downloadAudio(TEST_URL, outputPath);
-			});
+				const result = yield* youtube.downloadAudio(TEST_URL, outputPath);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(YouTube.Live)),
-			);
+				expect(result).toBe(outputPath);
+				expect(existsSync(outputPath)).toBe(true);
+			}).pipe(Effect.provide(YouTube.Live)),
+		);
 
-			expect(result).toBe(outputPath);
-			expect(existsSync(outputPath)).toBe(true);
-		}, 120000);
-
-		it("Live layer returns InvalidYouTubeUrlError for invalid URLs", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("Live layer returns InvalidYouTubeUrlError for invalid URLs", () =>
+			Effect.gen(function* () {
 				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata("not-a-youtube-url");
-			});
+				const exit = yield* youtube.getMetadata("not-a-youtube-url").pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(YouTube.Live)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = Cause.failureOption(exit.cause);
-				expect(error._tag).toBe("Some");
-				if (error._tag === "Some") {
-					expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = Cause.failureOption(exit.cause);
+					expect(error._tag).toBe("Some");
+					if (error._tag === "Some") {
+						expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(YouTube.Live)),
+		);
 	});
 
 	// =========================================================================
 	// Service isolation between layers
 	// =========================================================================
 	describe("layer isolation", () => {
-		it("Test and custom layers provide independent services", async () => {
-			const customLayer = makeYouTubeTestLayer({
-				getMetadata: () =>
-					Effect.succeed({
-						id: "custom-id",
-						title: "Custom",
-						duration: 1,
-						thumbnailUrl: "custom",
-						channelName: "custom",
-						uploadDate: "2024-01-01",
-					}),
-			});
+		it.effect("Test and custom layers provide independent services", () =>
+			Effect.gen(function* () {
+				const customLayer = makeYouTubeTestLayer({
+					getMetadata: () =>
+						Effect.succeed({
+							id: "custom-id",
+							title: "Custom",
+							duration: 1,
+							thumbnailUrl: "custom",
+							channelName: "custom",
+							uploadDate: "2024-01-01",
+						}),
+				});
 
-			// Test layer should fail with mock error
-			const testProgram = Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				return yield* youtube.getMetadata(
-					"https://youtube.com/watch?v=dQw4w9WgXcQ",
+				// Test layer should fail with mock error
+				const testProgram = Effect.gen(function* () {
+					const youtube = yield* YouTube;
+					return yield* youtube.getMetadata(
+						"https://youtube.com/watch?v=dQw4w9WgXcQ",
+					);
+				});
+
+				const testExit = yield* testProgram.pipe(
+					Effect.provide(YouTube.Test),
+					Effect.exit,
 				);
-			});
+				expect(Exit.isFailure(testExit)).toBe(true);
 
-			const testExit = await Effect.runPromiseExit(
-				testProgram.pipe(Effect.provide(YouTube.Test)),
-			);
-			expect(Exit.isFailure(testExit)).toBe(true);
-
-			// Custom layer should succeed with mock data
-			const customResult = await Effect.runPromise(
-				testProgram.pipe(Effect.provide(customLayer)),
-			);
-			expect(customResult.id).toBe("custom-id");
-		});
+				// Custom layer should succeed with mock data
+				const customResult = yield* testProgram.pipe(Effect.provide(customLayer));
+				expect(customResult.id).toBe("custom-id");
+			}),
+		);
 	});
 });

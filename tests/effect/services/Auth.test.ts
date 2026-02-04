@@ -2,7 +2,8 @@
  * Tests for the Effect-TS Auth service.
  */
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect, Exit, Layer } from "effect";
 import { Auth, makeAuthTestLayer, _generateTokenForTest } from "../../../src/effect/services/Auth";
 import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
@@ -22,207 +23,167 @@ function createAuthLiveWithDb(
 
 describe("Auth Effect Service", () => {
 	describe("Auth.Test layer", () => {
-		test("throws helpful error for validateSession", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("throws helpful error for validateSession", () =>
+			Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.validateSession("any-token");
-			});
+				const exit = yield* auth.validateSession("any-token").pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Auth.Test)),
-			);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const causeString = String(exit.cause);
+					expect(causeString).toContain("Auth.Test: validateSession not implemented");
+					expect(causeString).toContain("makeAuthTestLayer()");
+				}
+			}).pipe(Effect.provide(Auth.Test)),
+		);
 
-			expect(Exit.isFailure(result)).toBe(true);
-			if (Exit.isFailure(result)) {
-				const causeString = String(result.cause);
-				expect(causeString).toContain("Auth.Test: validateSession not implemented");
-				expect(causeString).toContain("makeAuthTestLayer()");
-			}
-		});
-
-		test("throws helpful error for createSession", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("throws helpful error for createSession", () =>
+			Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.createSession(1);
-			});
+				const exit = yield* auth.createSession(1).pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Auth.Test)),
-			);
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const causeString = String(exit.cause);
+					expect(causeString).toContain("Auth.Test: createSession not implemented");
+				}
+			}).pipe(Effect.provide(Auth.Test)),
+		);
 
-			expect(Exit.isFailure(result)).toBe(true);
-			if (Exit.isFailure(result)) {
-				const causeString = String(result.cause);
-				expect(causeString).toContain("Auth.Test: createSession not implemented");
-			}
-		});
-
-		test("throws helpful error for deleteSession", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("throws helpful error for deleteSession", () =>
+			Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.deleteSession("token");
-			});
+				const exit = yield* auth.deleteSession("token").pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Auth.Test)),
-			);
+				expect(Exit.isFailure(exit)).toBe(true);
+			}).pipe(Effect.provide(Auth.Test)),
+		);
 
-			expect(Exit.isFailure(result)).toBe(true);
-		});
-
-		test("throws helpful error for deleteUserSessions", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("throws helpful error for deleteUserSessions", () =>
+			Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.deleteUserSessions(1);
-			});
+				const exit = yield* auth.deleteUserSessions(1).pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Auth.Test)),
-			);
+				expect(Exit.isFailure(exit)).toBe(true);
+			}).pipe(Effect.provide(Auth.Test)),
+		);
 
-			expect(Exit.isFailure(result)).toBe(true);
-		});
-
-		test("throws helpful error for deleteExpiredSessions", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("throws helpful error for deleteExpiredSessions", () =>
+			Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.deleteExpiredSessions();
-			});
+				const exit = yield* auth.deleteExpiredSessions().pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Auth.Test)),
-			);
-
-			expect(Exit.isFailure(result)).toBe(true);
-		});
+				expect(Exit.isFailure(exit)).toBe(true);
+			}).pipe(Effect.provide(Auth.Test)),
+		);
 	});
 
 	describe("makeAuthTestLayer factory", () => {
-		test("allows mocking validateSession to succeed", async () => {
-			const mockUser = {
-				id: 1,
-				email: "test@example.com",
-				name: "Test User",
-				avatarUrl: null,
-			};
-			const testLayer = makeAuthTestLayer({
-				validateSession: (token) =>
-					token === "valid-token"
-						? Effect.succeed({
-								token,
-								expiresAt: new Date(Date.now() + 86400000),
-								user: mockUser,
-						  })
-						: Effect.fail(new UnauthorizedError()),
-			});
+		it.effect("allows mocking validateSession to succeed", () =>
+			Effect.gen(function* () {
+				const mockUser = {
+					id: 1,
+					email: "test@example.com",
+					name: "Test User",
+					avatarUrl: null,
+				};
+				const testLayer = makeAuthTestLayer({
+					validateSession: (token) =>
+						token === "valid-token"
+							? Effect.succeed({
+									token,
+									expiresAt: new Date(Date.now() + 86400000),
+									user: mockUser,
+							  })
+							: Effect.fail(new UnauthorizedError()),
+				});
 
-			const program = Effect.gen(function* () {
-				const auth = yield* Auth;
-				return yield* auth.validateSession("valid-token");
-			});
+				const auth = yield* Effect.provide(Auth, testLayer);
+				const result = yield* auth.validateSession("valid-token");
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(result.user.email).toBe("test@example.com");
+				expect(result.token).toBe("valid-token");
+			}),
+		);
 
-			expect(result.user.email).toBe("test@example.com");
-			expect(result.token).toBe("valid-token");
-		});
+		it.effect("allows mocking validateSession to fail", () =>
+			Effect.gen(function* () {
+				const testLayer = makeAuthTestLayer({
+					validateSession: () => Effect.fail(new UnauthorizedError()),
+				});
 
-		test("allows mocking validateSession to fail", async () => {
-			const testLayer = makeAuthTestLayer({
-				validateSession: () => Effect.fail(new UnauthorizedError()),
-			});
+				const auth = yield* Effect.provide(Auth, testLayer);
+				const exit = yield* auth.validateSession("invalid-token").pipe(Effect.exit);
 
-			const program = Effect.gen(function* () {
-				const auth = yield* Auth;
-				return yield* auth.validateSession("invalid-token");
-			});
+				expect(Exit.isFailure(exit)).toBe(true);
+			}),
+		);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
+		it.effect("allows mocking createSession", () =>
+			Effect.gen(function* () {
+				let createdUserId = 0;
+				const testLayer = makeAuthTestLayer({
+					createSession: (userId) => {
+						createdUserId = userId;
+						return Effect.succeed({
+							token: "mock-token-123",
+							expiresAt: new Date(Date.now() + 86400000),
+						});
+					},
+				});
 
-			expect(Exit.isFailure(result)).toBe(true);
-		});
+				const auth = yield* Effect.provide(Auth, testLayer);
+				const result = yield* auth.createSession(42);
 
-		test("allows mocking createSession", async () => {
-			let createdUserId = 0;
-			const testLayer = makeAuthTestLayer({
-				createSession: (userId) => {
-					createdUserId = userId;
-					return Effect.succeed({
-						token: "mock-token-123",
-						expiresAt: new Date(Date.now() + 86400000),
-					});
-				},
-			});
+				expect(result.token).toBe("mock-token-123");
+				expect(createdUserId).toBe(42);
+			}),
+		);
 
-			const program = Effect.gen(function* () {
-				const auth = yield* Auth;
-				return yield* auth.createSession(42);
-			});
+		it.effect("unmocked methods still throw when partial mock provided", () =>
+			Effect.gen(function* () {
+				const testLayer = makeAuthTestLayer({
+					validateSession: () =>
+						Effect.succeed({
+							token: "t",
+							expiresAt: new Date(),
+							user: { id: 1, email: "a@b.c", name: null, avatarUrl: null },
+						}),
+				});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result.token).toBe("mock-token-123");
-			expect(createdUserId).toBe(42);
-		});
-
-		test("unmocked methods still throw when partial mock provided", async () => {
-			const testLayer = makeAuthTestLayer({
-				validateSession: () =>
-					Effect.succeed({
-						token: "t",
-						expiresAt: new Date(),
-						user: { id: 1, email: "a@b.c", name: null, avatarUrl: null },
-					}),
-			});
-
-			const program = Effect.gen(function* () {
-				const auth = yield* Auth;
+				const auth = yield* Effect.provide(Auth, testLayer);
 				// createSession is not mocked
-				return yield* auth.createSession(1);
-			});
+				const exit = yield* auth.createSession(1).pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(Exit.isFailure(result)).toBe(true);
-			if (Exit.isFailure(result)) {
-				const causeString = String(result.cause);
-				expect(causeString).toContain("createSession not implemented");
-			}
-		});
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const causeString = String(exit.cause);
+					expect(causeString).toContain("createSession not implemented");
+				}
+			}),
+		);
 	});
 
 	describe("Auth.Live with Database", () => {
-		test("validateSession returns UnauthorizedError for non-existent token", async () => {
+		it.scoped("validateSession returns UnauthorizedError for non-existent token", () => {
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "test@example.com" }).run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.validateSession("nonexistent-token");
-			});
+				const exit = yield* auth.validateSession("nonexistent-token").pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(Exit.isFailure(result)).toBe(true);
-			if (Exit.isFailure(result)) {
-				// Check it's an UnauthorizedError
-				const causeString = String(result.cause);
-				expect(causeString).toContain("UnauthorizedError");
-			}
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					// Check it's an UnauthorizedError
+					const causeString = String(exit.cause);
+					expect(causeString).toContain("UnauthorizedError");
+				}
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("validateSession returns UnauthorizedError for expired session", async () => {
+		it.scoped("validateSession returns UnauthorizedError for expired session", () => {
 			const expiredDate = new Date(Date.now() - 86400000); // 1 day ago
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "test@example.com" }).run();
@@ -235,19 +196,15 @@ describe("Auth Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.validateSession("expired-token");
-			});
+				const exit = yield* auth.validateSession("expired-token").pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(Exit.isFailure(result)).toBe(true);
+				expect(Exit.isFailure(exit)).toBe(true);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("validateSession returns UnauthorizedError for deleted user", async () => {
+		it.scoped("validateSession returns UnauthorizedError for deleted user", () => {
 			const futureDate = new Date(Date.now() + 86400000 * 30); // 30 days from now
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users)
@@ -266,19 +223,15 @@ describe("Auth Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.validateSession("deleted-user-token");
-			});
+				const exit = yield* auth.validateSession("deleted-user-token").pipe(Effect.exit);
 
-			const result = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(Exit.isFailure(result)).toBe(true);
+				expect(Exit.isFailure(exit)).toBe(true);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("validateSession returns session with user for valid token", async () => {
+		it.scoped("validateSession returns session with user for valid token", () => {
 			const futureDate = new Date(Date.now() + 86400000 * 30); // 30 days from now
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users)
@@ -298,28 +251,24 @@ describe("Auth Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
-				return yield* auth.validateSession("valid-session-token");
-			});
+				const result = yield* auth.validateSession("valid-session-token");
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(result.token).toBe("valid-session-token");
-			expect(result.user.id).toBe(1);
-			expect(result.user.email).toBe("valid@example.com");
-			expect(result.user.name).toBe("Valid User");
-			expect(result.user.avatarUrl).toBe("https://example.com/avatar.png");
+				expect(result.token).toBe("valid-session-token");
+				expect(result.user.id).toBe(1);
+				expect(result.user.email).toBe("valid@example.com");
+				expect(result.user.name).toBe("Valid User");
+				expect(result.user.avatarUrl).toBe("https://example.com/avatar.png");
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("createSession creates new session in database", async () => {
+		it.scoped("createSession creates new session in database", () => {
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "test@example.com" }).run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
 				const { db } = yield* Database;
 
@@ -332,39 +281,28 @@ describe("Auth Effect Service", () => {
 					.where(eq(schema.sessions.token, token))
 					.get();
 
-				return { token, expiresAt, sessionInDb };
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(result.token).toHaveLength(64); // 32 bytes = 64 hex chars
-			expect(result.expiresAt.getTime()).toBeGreaterThan(Date.now());
-			expect(result.sessionInDb).toBeDefined();
-			expect(result.sessionInDb?.userId).toBe(1);
+				expect(token).toHaveLength(64); // 32 bytes = 64 hex chars
+				expect(expiresAt.getTime()).toBeGreaterThan(Date.now());
+				expect(sessionInDb).toBeDefined();
+				expect(sessionInDb?.userId).toBe(1);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("createSession generates unique tokens", async () => {
+		it.scoped("createSession generates unique tokens", () => {
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "test@example.com" }).run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
 				const session1 = yield* auth.createSession(1);
 				const session2 = yield* auth.createSession(1);
-				return { token1: session1.token, token2: session2.token };
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(result.token1).not.toBe(result.token2);
+				expect(session1.token).not.toBe(session2.token);
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("deleteSession removes session from database", async () => {
+		it.scoped("deleteSession removes session from database", () => {
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "test@example.com" }).run();
 				db.insert(schema.sessions)
@@ -376,7 +314,7 @@ describe("Auth Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
 				const { db } = yield* Database;
 
@@ -396,18 +334,12 @@ describe("Auth Effect Service", () => {
 					.where(eq(schema.sessions.token, "to-delete-token"))
 					.get();
 
-				return { beforeDelete, afterDelete };
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(result.beforeDelete).toBeDefined();
-			expect(result.afterDelete).toBeUndefined();
+				expect(beforeDelete).toBeDefined();
+				expect(afterDelete).toBeUndefined();
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("deleteUserSessions removes all sessions for user", async () => {
+		it.scoped("deleteUserSessions removes all sessions for user", () => {
 			const layer = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "test@example.com" }).run();
 				db.insert(schema.users).values({ id: 2, email: "other@example.com" }).run();
@@ -425,7 +357,7 @@ describe("Auth Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
 				const { db } = yield* Database;
 
@@ -436,19 +368,13 @@ describe("Auth Effect Service", () => {
 				const countAfter = db.select().from(schema.sessions).all().length;
 				const remainingSessions = db.select().from(schema.sessions).all();
 
-				return { countBefore, countAfter, remainingSessions };
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(result.countBefore).toBe(4);
-			expect(result.countAfter).toBe(1);
-			expect(result.remainingSessions[0]?.token).toBe("user2-session1");
+				expect(countBefore).toBe(4);
+				expect(countAfter).toBe(1);
+				expect(remainingSessions[0]?.token).toBe("user2-session1");
+			}).pipe(Effect.provide(layer));
 		});
 
-		test("deleteExpiredSessions removes only expired sessions", async () => {
+		it.scoped("deleteExpiredSessions removes only expired sessions", () => {
 			const pastDate = new Date(Date.now() - 86400000); // 1 day ago
 			const futureDate = new Date(Date.now() + 86400000); // 1 day from now
 
@@ -463,7 +389,7 @@ describe("Auth Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const auth = yield* Auth;
 				const { db } = yield* Database;
 
@@ -474,27 +400,21 @@ describe("Auth Effect Service", () => {
 				const countAfter = db.select().from(schema.sessions).all().length;
 				const remainingSessions = db.select().from(schema.sessions).all();
 
-				return { countBefore, countAfter, remainingSessions };
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(layer)),
-			);
-
-			expect(result.countBefore).toBe(3);
-			expect(result.countAfter).toBe(1);
-			expect(result.remainingSessions[0]?.token).toBe("valid-1");
+				expect(countBefore).toBe(3);
+				expect(countAfter).toBe(1);
+				expect(remainingSessions[0]?.token).toBe("valid-1");
+			}).pipe(Effect.provide(layer));
 		});
 	});
 
 	describe("token generation", () => {
-		test("generates 64-character hex tokens", () => {
+		it("generates 64-character hex tokens", () => {
 			const token = _generateTokenForTest();
 			expect(token).toHaveLength(64);
 			expect(token).toMatch(/^[0-9a-f]+$/);
 		});
 
-		test("generates unique tokens each time", () => {
+		it("generates unique tokens each time", () => {
 			const tokens = new Set<string>();
 			for (let i = 0; i < 100; i++) {
 				tokens.add(_generateTokenForTest());
@@ -504,7 +424,7 @@ describe("Auth Effect Service", () => {
 	});
 
 	describe("layer isolation", () => {
-		test("each layer instance is independent", async () => {
+		it.effect("each layer instance is independent", () => {
 			const layer1 = createAuthLiveWithDb((db) => {
 				db.insert(schema.users).values({ id: 1, email: "user1@example.com" }).run();
 			});
@@ -519,11 +439,13 @@ describe("Auth Effect Service", () => {
 				return yield* auth.validateSession(session.token);
 			});
 
-			const result1 = await Effect.runPromise(program.pipe(Effect.provide(layer1)));
-			const result2 = await Effect.runPromise(program.pipe(Effect.provide(layer2)));
+			return Effect.gen(function* () {
+				const result1 = yield* Effect.scoped(program.pipe(Effect.provide(layer1)));
+				const result2 = yield* Effect.scoped(program.pipe(Effect.provide(layer2)));
 
-			expect(result1.user.email).toBe("user1@example.com");
-			expect(result2.user.email).toBe("user2@example.com");
+				expect(result1.user.email).toBe("user1@example.com");
+				expect(result2.user.email).toBe("user2@example.com");
+			});
 		});
 	});
 });

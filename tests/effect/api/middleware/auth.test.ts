@@ -11,7 +11,8 @@
  * once the HttpApi is fully wired up.
  */
 
-import { describe, expect, it } from "bun:test";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect, Layer, Redacted } from "effect";
 import {
 	Authorization,
@@ -37,80 +38,54 @@ const mockUser: AuthUser = {
 // =============================================================================
 
 describe("CurrentUser", () => {
-	it("can be provided and accessed in an Effect", async () => {
-		const program = Effect.gen(function* () {
+	it.effect("can be provided and accessed in an Effect", () =>
+		Effect.gen(function* () {
 			const user = yield* CurrentUser;
-			return user;
-		});
-
-		const result = await Effect.runPromise(
-			program.pipe(Effect.provideService(CurrentUser, mockUser)),
-		);
-
-		expect(result).toEqual(mockUser);
-	});
+			expect(user).toEqual(mockUser);
+		}).pipe(Effect.provideService(CurrentUser, mockUser)),
+	);
 
 	it("has the correct tag identifier", () => {
 		// Verify the tag identifier follows convention
 		expect(CurrentUser.key).toBe("@ytscribe/CurrentUser");
 	});
 
-	it("can be used as a service dependency", async () => {
-		// This pattern is how handlers will access the current user
-		const program = Effect.gen(function* () {
+	it.effect("can be used as a service dependency", () =>
+		Effect.gen(function* () {
+			// This pattern is how handlers will access the current user
 			const user = yield* CurrentUser;
-			return `Hello, ${user.name}!`;
-		});
+			const greeting = `Hello, ${user.name}!`;
+			expect(greeting).toBe("Hello, Test User!");
+		}).pipe(Effect.provideService(CurrentUser, mockUser)),
+	);
 
-		const result = await Effect.runPromise(
-			program.pipe(Effect.provideService(CurrentUser, mockUser)),
-		);
-
-		expect(result).toBe("Hello, Test User!");
-	});
-
-	it("handles null name gracefully", async () => {
-		const userWithNullName: AuthUser = {
-			id: 3,
-			email: "noname@test.com",
-			name: null,
-			avatarUrl: null,
-		};
-
-		const program = Effect.gen(function* () {
-			const user = yield* CurrentUser;
-			return user.name ?? "Anonymous";
-		});
-
-		const result = await Effect.runPromise(
-			program.pipe(Effect.provideService(CurrentUser, userWithNullName)),
-		);
-
-		expect(result).toBe("Anonymous");
-	});
-
-	it("provides all AuthUser fields", async () => {
-		const program = Effect.gen(function* () {
-			const user = yield* CurrentUser;
-			return {
-				hasId: typeof user.id === "number",
-				hasEmail: typeof user.email === "string",
-				hasName: user.name === null || typeof user.name === "string",
-				hasAvatar: user.avatarUrl === null || typeof user.avatarUrl === "string",
+	it.effect("handles null name gracefully", () =>
+		Effect.gen(function* () {
+			const userWithNullName: AuthUser = {
+				id: 3,
+				email: "noname@test.com",
+				name: null,
+				avatarUrl: null,
 			};
-		});
 
-		const result = await Effect.runPromise(
-			program.pipe(Effect.provideService(CurrentUser, mockUser)),
-		);
+			const name = yield* Effect.gen(function* () {
+				const user = yield* CurrentUser;
+				return user.name ?? "Anonymous";
+			}).pipe(Effect.provideService(CurrentUser, userWithNullName));
 
-		expect(result).toEqual({
-			hasId: true,
-			hasEmail: true,
-			hasName: true,
-			hasAvatar: true,
-		});
-	});
+			expect(name).toBe("Anonymous");
+		}),
+	);
+
+	it.effect("provides all AuthUser fields", () =>
+		Effect.gen(function* () {
+			const user = yield* CurrentUser;
+			expect(typeof user.id).toBe("number");
+			expect(typeof user.email).toBe("string");
+			expect(user.name === null || typeof user.name === "string").toBe(true);
+			expect(user.avatarUrl === null || typeof user.avatarUrl === "string").toBe(true);
+		}).pipe(Effect.provideService(CurrentUser, mockUser)),
+	);
 });
 
 // =============================================================================
@@ -130,18 +105,18 @@ describe("Authorization", () => {
 
 	it("has security configuration", () => {
 		// The Authorization class should have security definitions
-		expect((Authorization as any).security).toBeDefined();
-		expect((Authorization as any).security.bearer).toBeDefined();
+		expect((Authorization as unknown as { security: unknown }).security).toBeDefined();
+		expect((Authorization as unknown as { security: { bearer: unknown } }).security.bearer).toBeDefined();
 	});
 
 	it("provides CurrentUser context", () => {
 		// The Authorization middleware should indicate it provides CurrentUser
-		expect((Authorization as any).provides).toBe(CurrentUser);
+		expect((Authorization as unknown as { provides: unknown }).provides).toBe(CurrentUser);
 	});
 
 	it("declares UnauthorizedError as failure type", () => {
 		// The Authorization middleware should declare its error type
-		expect((Authorization as any).failure).toBeDefined();
+		expect((Authorization as unknown as { failure: unknown }).failure).toBeDefined();
 	});
 });
 
@@ -156,62 +131,50 @@ describe("AuthorizationLive", () => {
 		expect(Layer.isLayer(AuthorizationLive)).toBe(true);
 	});
 
-	it("can be constructed with Auth service", async () => {
-		// Create a mock Auth service that returns a user for any token
-		const authLayer = makeAuthTestLayer({
-			validateSession: (token) =>
-				Effect.succeed({
-					token,
-					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-					user: mockUser,
-				}),
-		});
+	it.effect("can be constructed with Auth service", () =>
+		Effect.gen(function* () {
+			// Create a mock Auth service that returns a user for any token
+			const authLayer = makeAuthTestLayer({
+				validateSession: (token) =>
+					Effect.succeed({
+						token,
+						expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+						user: mockUser,
+					}),
+			});
 
-		// Verify the layer can be constructed and provides the Authorization service
-		const program = Effect.gen(function* () {
-			const auth = yield* Authorization;
+			// Verify the layer can be constructed and provides the Authorization service
+			const auth = yield* Effect.provide(
+				Authorization,
+				Layer.provide(AuthorizationLive, authLayer),
+			);
+
 			// The authorization object should have a bearer handler
 			expect(typeof auth.bearer).toBe("function");
-			return "layer constructed successfully";
-		});
+		}),
+	);
 
-		// The layer should build without errors
-		const result = await Effect.runPromise(
-			program.pipe(
-				Effect.provide(AuthorizationLive),
-				Effect.provide(authLayer),
-			),
-		);
+	it.effect("exposes bearer handler from the layer", () =>
+		Effect.gen(function* () {
+			const authLayer = makeAuthTestLayer({
+				validateSession: () =>
+					Effect.succeed({
+						token: "test",
+						expiresAt: new Date(),
+						user: mockUser,
+					}),
+			});
 
-		expect(result).toBe("layer constructed successfully");
-	});
+			const authService = yield* Effect.provide(
+				Authorization,
+				Layer.provide(AuthorizationLive, authLayer),
+			);
 
-	it("exposes bearer handler from the layer", async () => {
-		const authLayer = makeAuthTestLayer({
-			validateSession: () =>
-				Effect.succeed({
-					token: "test",
-					expiresAt: new Date(),
-					user: mockUser,
-				}),
-		});
-
-		const program = Effect.gen(function* () {
-			const auth = yield* Authorization;
-			return auth;
-		});
-
-		const authService = await Effect.runPromise(
-			program.pipe(
-				Effect.provide(AuthorizationLive),
-				Effect.provide(authLayer),
-			),
-		);
-
-		// Should have the bearer handler
-		expect(authService).toHaveProperty("bearer");
-		expect(typeof authService.bearer).toBe("function");
-	});
+			// Should have the bearer handler
+			expect(authService).toHaveProperty("bearer");
+			expect(typeof authService.bearer).toBe("function");
+		}),
+	);
 
 	it("requires Auth service dependency", () => {
 		// AuthorizationLive depends on Auth service
@@ -252,43 +215,53 @@ describe("Token security", () => {
 // =============================================================================
 
 describe("Module exports", () => {
-	it("exports CurrentUser", async () => {
-		const { CurrentUser: ExportedCurrentUser } = await import(
-			"../../../../src/effect/api/middleware/auth"
-		);
-		expect(ExportedCurrentUser).toBeDefined();
-		expect(ExportedCurrentUser.key).toBe("@ytscribe/CurrentUser");
-	});
+	it.effect("exports CurrentUser", () =>
+		Effect.gen(function* () {
+			const { CurrentUser: ExportedCurrentUser } = yield* Effect.promise(() =>
+				import("../../../../src/effect/api/middleware/auth"),
+			);
+			expect(ExportedCurrentUser).toBeDefined();
+			expect(ExportedCurrentUser.key).toBe("@ytscribe/CurrentUser");
+		}),
+	);
 
-	it("exports Authorization", async () => {
-		const { Authorization: ExportedAuth } = await import(
-			"../../../../src/effect/api/middleware/auth"
-		);
-		expect(ExportedAuth).toBeDefined();
-		expect(ExportedAuth.key).toBe("@ytscribe/Authorization");
-	});
+	it.effect("exports Authorization", () =>
+		Effect.gen(function* () {
+			const { Authorization: ExportedAuth } = yield* Effect.promise(() =>
+				import("../../../../src/effect/api/middleware/auth"),
+			);
+			expect(ExportedAuth).toBeDefined();
+			expect(ExportedAuth.key).toBe("@ytscribe/Authorization");
+		}),
+	);
 
-	it("exports AuthorizationLive", async () => {
-		const { AuthorizationLive: ExportedLive } = await import(
-			"../../../../src/effect/api/middleware/auth"
-		);
-		expect(ExportedLive).toBeDefined();
-		expect(Layer.isLayer(ExportedLive)).toBe(true);
-	});
+	it.effect("exports AuthorizationLive", () =>
+		Effect.gen(function* () {
+			const { AuthorizationLive: ExportedLive } = yield* Effect.promise(() =>
+				import("../../../../src/effect/api/middleware/auth"),
+			);
+			expect(ExportedLive).toBeDefined();
+			expect(Layer.isLayer(ExportedLive)).toBe(true);
+		}),
+	);
 
-	it("exports AuthorizationTest", async () => {
-		const { AuthorizationTest: ExportedTest } = await import(
-			"../../../../src/effect/api/middleware/auth"
-		);
-		expect(ExportedTest).toBeDefined();
-		expect(Layer.isLayer(ExportedTest)).toBe(true);
-	});
+	it.effect("exports AuthorizationTest", () =>
+		Effect.gen(function* () {
+			const { AuthorizationTest: ExportedTest } = yield* Effect.promise(() =>
+				import("../../../../src/effect/api/middleware/auth"),
+			);
+			expect(ExportedTest).toBeDefined();
+			expect(Layer.isLayer(ExportedTest)).toBe(true);
+		}),
+	);
 
-	it("exports makeAuthorizationTestLayer", async () => {
-		const { makeAuthorizationTestLayer: ExportedFactory } = await import(
-			"../../../../src/effect/api/middleware/auth"
-		);
-		expect(ExportedFactory).toBeDefined();
-		expect(typeof ExportedFactory).toBe("function");
-	});
+	it.effect("exports makeAuthorizationTestLayer", () =>
+		Effect.gen(function* () {
+			const { makeAuthorizationTestLayer: ExportedFactory } = yield* Effect.promise(() =>
+				import("../../../../src/effect/api/middleware/auth"),
+			);
+			expect(ExportedFactory).toBeDefined();
+			expect(typeof ExportedFactory).toBe("function");
+		}),
+	);
 });

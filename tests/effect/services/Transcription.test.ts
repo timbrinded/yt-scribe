@@ -5,7 +5,8 @@
  * the Effect-TS DI pattern for service composition and testing.
  */
 
-import { describe, expect, test, afterEach } from "bun:test";
+import { describe, expect, afterEach, it } from "vitest";
+import { it as itEffect } from "@effect/vitest";
 import { Effect, Exit, Layer } from "effect";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -55,112 +56,98 @@ const mockWhisperResponse = {
 
 describe("Transcription Effect Service", () => {
 	describe("Transcription.Test layer", () => {
-		test("returns helpful error message indicating mock needed", async () => {
-			const program = Effect.gen(function* () {
+		itEffect.effect("returns helpful error message indicating mock needed", () =>
+			Effect.gen(function* () {
 				const transcription = yield* Transcription;
-				return yield* transcription.transcribe("/path/to/audio.mp3");
-			});
+				const exit = yield* transcription.transcribe("/path/to/audio.mp3").pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(Transcription.Test)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.reason).toContain("not mocked");
-					expect(error.reason).toContain("makeTranscriptionTestLayer");
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+					expect(error).toBeInstanceOf(TranscriptionFailedError);
+					if (error instanceof TranscriptionFailedError) {
+						expect(error.reason).toContain("not mocked");
+						expect(error.reason).toContain("makeTranscriptionTestLayer");
+					}
 				}
-			}
-		});
+			}).pipe(Effect.provide(Transcription.Test)),
+		);
 	});
 
 	describe("makeTranscriptionTestLayer factory", () => {
-		test("allows mocking transcription results", async () => {
-			const mockResult = {
-				text: "Mocked transcription",
-				segments: [{ start: 0, end: 5, text: "Mocked transcription" }],
-				language: "en",
-				duration: 5,
-			};
+		itEffect.effect("allows mocking transcription results", () =>
+			Effect.gen(function* () {
+				const mockResult = {
+					text: "Mocked transcription",
+					segments: [{ start: 0, end: 5, text: "Mocked transcription" }],
+					language: "en",
+					duration: 5,
+				};
 
-			const testLayer = makeTranscriptionTestLayer({
-				transcribe: () => Effect.succeed(mockResult),
-			});
+				const testLayer = makeTranscriptionTestLayer({
+					transcribe: () => Effect.succeed(mockResult),
+				});
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe("/any/path.mp3");
-			});
+				const transcription = yield* Effect.provide(Transcription, testLayer);
+				const result = yield* transcription.transcribe("/any/path.mp3");
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
+				expect(result.text).toBe("Mocked transcription");
+				expect(result.segments).toHaveLength(1);
+				expect(result.language).toBe("en");
+				expect(result.duration).toBe(5);
+			}),
+		);
 
-			expect(result.text).toBe("Mocked transcription");
-			expect(result.segments).toHaveLength(1);
-			expect(result.language).toBe("en");
-			expect(result.duration).toBe(5);
-		});
+		itEffect.effect("allows mocking transcription errors", () =>
+			Effect.gen(function* () {
+				const testLayer = makeTranscriptionTestLayer({
+					transcribe: () =>
+						Effect.fail(
+							new TranscriptionFailedError({
+								videoId: 123,
+								reason: "Custom error message",
+							}),
+						),
+				});
 
-		test("allows mocking transcription errors", async () => {
-			const testLayer = makeTranscriptionTestLayer({
-				transcribe: () =>
-					Effect.fail(
-						new TranscriptionFailedError({
-							videoId: 123,
-							reason: "Custom error message",
-						}),
-					),
-			});
+				const transcription = yield* Effect.provide(Transcription, testLayer);
+				const exit = yield* transcription.transcribe("/any/path.mp3").pipe(Effect.exit);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe("/any/path.mp3");
-			});
-
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.videoId).toBe(123);
-					expect(error.reason).toBe("Custom error message");
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+					expect(error).toBeInstanceOf(TranscriptionFailedError);
+					if (error instanceof TranscriptionFailedError) {
+						expect(error.videoId).toBe(123);
+						expect(error.reason).toBe("Custom error message");
+					}
 				}
-			}
-		});
+			}),
+		);
 
-		test("tracks file paths passed to transcribe", async () => {
-			const capturedPaths: string[] = [];
+		itEffect.effect("tracks file paths passed to transcribe", () =>
+			Effect.gen(function* () {
+				const capturedPaths: string[] = [];
 
-			const testLayer = makeTranscriptionTestLayer({
-				transcribe: (filePath) => {
-					capturedPaths.push(filePath);
-					return Effect.succeed({
-						text: "Captured",
-						segments: [],
-						language: "en",
-						duration: 0,
-					});
-				},
-			});
+				const testLayer = makeTranscriptionTestLayer({
+					transcribe: (filePath) => {
+						capturedPaths.push(filePath);
+						return Effect.succeed({
+							text: "Captured",
+							segments: [],
+							language: "en",
+							duration: 0,
+						});
+					},
+				});
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe("/specific/path/audio.m4a");
-			});
+				const transcription = yield* Effect.provide(Transcription, testLayer);
+				yield* transcription.transcribe("/specific/path/audio.m4a");
 
-			await Effect.runPromise(program.pipe(Effect.provide(testLayer)));
-
-			expect(capturedPaths).toHaveLength(1);
-			expect(capturedPaths[0]).toBe("/specific/path/audio.m4a");
-		});
+				expect(capturedPaths).toHaveLength(1);
+				expect(capturedPaths[0]).toBe("/specific/path/audio.m4a");
+			}),
+		);
 	});
 
 	describe("Transcription.Live layer with mocked OpenAI", () => {
@@ -175,9 +162,10 @@ describe("Transcription Effect Service", () => {
 			}
 		});
 
-		test("successfully transcribes audio file with mocked Whisper", async () => {
+		it("successfully transcribes audio file with mocked Whisper", async () => {
 			// Create a test audio file
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			// Create OpenAI mock layer with mocked Whisper
 			const openAITestLayer = makeOpenAITestLayer({
@@ -191,56 +179,53 @@ describe("Transcription Effect Service", () => {
 			// Compose Transcription.Live with mocked OpenAI
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const result = yield* transcription.transcribe(localTestFilePath);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
+						expect(result.text).toBe(mockWhisperResponse.text);
+						expect(result.language).toBe("en");
+						expect(result.duration).toBe(45.5);
+						expect(result.segments).toHaveLength(3);
+						expect(result.segments[0]?.start).toBe(0);
+						expect(result.segments[0]?.text).toBe("This is a test");
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(result.text).toBe(mockWhisperResponse.text);
-			expect(result.language).toBe("en");
-			expect(result.duration).toBe(45.5);
-			expect(result.segments).toHaveLength(3);
-			expect(result.segments[0]?.start).toBe(0);
-			expect(result.segments[0]?.text).toBe("This is a test");
 		});
 
-		test("returns error for non-existent file", async () => {
-			const openAITestLayer = makeOpenAITestLayer({
-				audio: {
-					transcriptions: {
-						create: async () => mockWhisperResponse,
+		itEffect.effect("returns error for non-existent file", () =>
+			Effect.gen(function* () {
+				const openAITestLayer = makeOpenAITestLayer({
+					audio: {
+						transcriptions: {
+							create: async () => mockWhisperResponse,
+						},
 					},
-				},
-			});
+				});
 
-			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
+				const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe("/nonexistent/path/audio.mp3");
-			});
+				const transcription = yield* Effect.provide(Transcription, testLayer);
+				const exit = yield* transcription.transcribe("/nonexistent/path/audio.mp3").pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.reason).toContain("not found");
+				expect(Exit.isFailure(exit)).toBe(true);
+				if (Exit.isFailure(exit)) {
+					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+					expect(error).toBeInstanceOf(TranscriptionFailedError);
+					if (error instanceof TranscriptionFailedError) {
+						expect(error.reason).toContain("not found");
+					}
 				}
-			}
-		});
+			}),
+		);
 
-		test("returns error for unsupported audio format", async () => {
+		it("returns error for unsupported audio format", async () => {
 			// Create a test file with unsupported extension
 			testFilePath = await createTestAudioFile(".txt");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -252,27 +237,27 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
+						expect(Exit.isFailure(exit)).toBe(true);
+						if (Exit.isFailure(exit)) {
+							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							expect(error).toBeInstanceOf(TranscriptionFailedError);
+							if (error instanceof TranscriptionFailedError) {
+								expect(error.reason).toContain("Unsupported audio format");
+								expect(error.reason).toContain(".txt");
+							}
+						}
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.reason).toContain("Unsupported audio format");
-					expect(error.reason).toContain(".txt");
-				}
-			}
 		});
 
-		test("accepts all supported audio formats", async () => {
+		it("accepts all supported audio formats", async () => {
 			const supportedFormats = [
 				".mp3",
 				".mp4",
@@ -283,6 +268,12 @@ describe("Transcription Effect Service", () => {
 				".webm",
 			];
 
+			// Create all test files upfront
+			const filePaths: string[] = [];
+			for (const format of supportedFormats) {
+				filePaths.push(await createTestAudioFile(format));
+			}
+
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
 					transcriptions: {
@@ -293,29 +284,25 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			for (const format of supportedFormats) {
-				const filePath = await createTestAudioFile(format);
-				try {
-					const program = Effect.gen(function* () {
-						const transcription = yield* Transcription;
-						return yield* transcription.transcribe(filePath);
-					});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						for (const filePath of filePaths) {
+							const transcription = yield* Transcription;
+							const result = yield* transcription.transcribe(filePath);
+							expect(result.text).toBe(mockWhisperResponse.text);
 
-					const result = await Effect.runPromise(
-						program.pipe(Effect.provide(testLayer)),
-					);
-
-					expect(result.text).toBe(mockWhisperResponse.text);
-				} finally {
-					await unlink(filePath).catch(() => {
-						/* ignore */
-					});
-				}
-			}
+							// Cleanup
+							yield* Effect.promise(() => unlink(filePath).catch(() => {}));
+						}
+					}).pipe(Effect.provide(testLayer)),
+				),
+			);
 		});
 
-		test("maps OpenAI 401 error to TranscriptionFailedError", async () => {
+		it("maps OpenAI 401 error to TranscriptionFailedError", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -329,27 +316,28 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
+						expect(Exit.isFailure(exit)).toBe(true);
+						if (Exit.isFailure(exit)) {
+							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							expect(error).toBeInstanceOf(TranscriptionFailedError);
+							if (error instanceof TranscriptionFailedError) {
+								expect(error.reason).toContain("Invalid OpenAI API key");
+							}
+						}
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.reason).toContain("Invalid OpenAI API key");
-				}
-			}
 		});
 
-		test("maps OpenAI 429 error to TranscriptionFailedError", async () => {
+		it("maps OpenAI 429 error to TranscriptionFailedError", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -363,27 +351,28 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
+						expect(Exit.isFailure(exit)).toBe(true);
+						if (Exit.isFailure(exit)) {
+							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							expect(error).toBeInstanceOf(TranscriptionFailedError);
+							if (error instanceof TranscriptionFailedError) {
+								expect(error.reason).toContain("rate limit");
+							}
+						}
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.reason).toContain("rate limit");
-				}
-			}
 		});
 
-		test("maps generic OpenAI error to TranscriptionFailedError", async () => {
+		it("maps generic OpenAI error to TranscriptionFailedError", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -397,27 +386,28 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
 
-			const exit = await Effect.runPromiseExit(
-				program.pipe(Effect.provide(testLayer)),
+						expect(Exit.isFailure(exit)).toBe(true);
+						if (Exit.isFailure(exit)) {
+							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							expect(error).toBeInstanceOf(TranscriptionFailedError);
+							if (error instanceof TranscriptionFailedError) {
+								expect(error.reason).toContain("OpenAI API error");
+							}
+						}
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(Exit.isFailure(exit)).toBe(true);
-			if (Exit.isFailure(exit)) {
-				const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-				expect(error).toBeInstanceOf(TranscriptionFailedError);
-				if (error instanceof TranscriptionFailedError) {
-					expect(error.reason).toContain("OpenAI API error");
-				}
-			}
 		});
 
-		test("handles missing segments in Whisper response", async () => {
+		it("handles missing segments in Whisper response", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -434,21 +424,22 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const result = yield* transcription.transcribe(localTestFilePath);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
+						expect(result.text).toBe("No segments response");
+						expect(result.segments).toEqual([]);
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(result.text).toBe("No segments response");
-			expect(result.segments).toEqual([]);
 		});
 
-		test("trims whitespace from segment text", async () => {
+		it("trims whitespace from segment text", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -467,20 +458,21 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const result = yield* transcription.transcribe(localTestFilePath);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
+						expect(result.segments[0]?.text).toBe("whitespace text");
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(result.segments[0]?.text).toBe("whitespace text");
 		});
 
-		test("defaults language to 'en' when not provided", async () => {
+		it("defaults language to 'en' when not provided", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -496,20 +488,21 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const result = yield* transcription.transcribe(localTestFilePath);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
+						expect(result.language).toBe("en");
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(result.language).toBe("en");
 		});
 
-		test("defaults duration to 0 when not provided", async () => {
+		it("defaults duration to 0 when not provided", async () => {
 			testFilePath = await createTestAudioFile(".mp3");
+			const localTestFilePath = testFilePath;
 
 			const openAITestLayer = makeOpenAITestLayer({
 				audio: {
@@ -525,57 +518,55 @@ describe("Transcription Effect Service", () => {
 
 			const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe(testFilePath!);
-			});
+			await Effect.runPromise(
+				Effect.scoped(
+					Effect.gen(function* () {
+						const transcription = yield* Transcription;
+						const result = yield* transcription.transcribe(localTestFilePath);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
+						expect(result.duration).toBe(0);
+					}).pipe(Effect.provide(testLayer)),
+				),
 			);
-
-			expect(result.duration).toBe(0);
 		});
 	});
 
 	describe("service isolation", () => {
-		test("each test layer is independent", async () => {
-			const layer1 = makeTranscriptionTestLayer({
-				transcribe: () =>
-					Effect.succeed({
-						text: "Layer 1 result",
-						segments: [],
-						language: "en",
-						duration: 10,
-					}),
-			});
+		itEffect.effect("each test layer is independent", () =>
+			Effect.gen(function* () {
+				const layer1 = makeTranscriptionTestLayer({
+					transcribe: () =>
+						Effect.succeed({
+							text: "Layer 1 result",
+							segments: [],
+							language: "en",
+							duration: 10,
+						}),
+				});
 
-			const layer2 = makeTranscriptionTestLayer({
-				transcribe: () =>
-					Effect.succeed({
-						text: "Layer 2 result",
-						segments: [],
-						language: "es",
-						duration: 20,
-					}),
-			});
+				const layer2 = makeTranscriptionTestLayer({
+					transcribe: () =>
+						Effect.succeed({
+							text: "Layer 2 result",
+							segments: [],
+							language: "es",
+							duration: 20,
+						}),
+				});
 
-			const program = Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				return yield* transcription.transcribe("/any/path.mp3");
-			});
+				const program = Effect.gen(function* () {
+					const transcription = yield* Transcription;
+					return yield* transcription.transcribe("/any/path.mp3");
+				});
 
-			const result1 = await Effect.runPromise(
-				program.pipe(Effect.provide(layer1)),
-			);
-			const result2 = await Effect.runPromise(
-				program.pipe(Effect.provide(layer2)),
-			);
+				const result1 = yield* program.pipe(Effect.provide(layer1));
+				const result2 = yield* program.pipe(Effect.provide(layer2));
 
-			expect(result1.text).toBe("Layer 1 result");
-			expect(result1.language).toBe("en");
-			expect(result2.text).toBe("Layer 2 result");
-			expect(result2.language).toBe("es");
-		});
+				expect(result1.text).toBe("Layer 1 result");
+				expect(result1.language).toBe("en");
+				expect(result2.text).toBe("Layer 2 result");
+				expect(result2.language).toBe("es");
+			}),
+		);
 	});
 });

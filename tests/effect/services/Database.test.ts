@@ -2,7 +2,8 @@
  * Tests for the Effect-TS Database service.
  */
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
 import * as schema from "../../../src/db/schema";
@@ -10,23 +11,17 @@ import { eq } from "drizzle-orm";
 
 describe("Database Effect Service", () => {
 	describe("Database.Test layer", () => {
-		test("provides access to in-memory database", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("provides access to in-memory database", () =>
+			Effect.gen(function* () {
 				const { db } = yield* Database;
 				// Should be able to query (even if empty)
 				const users = db.select().from(schema.users).all();
-				return users;
-			});
+				expect(users).toEqual([]);
+			}).pipe(Effect.provide(Database.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(Database.Test)),
-			);
-
-			expect(result).toEqual([]);
-		});
-
-		test("allows inserting and retrieving users", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("allows inserting and retrieving users", () =>
+			Effect.gen(function* () {
 				const { db } = yield* Database;
 
 				// Insert a user
@@ -39,20 +34,15 @@ describe("Database Effect Service", () => {
 
 				// Retrieve the user
 				const users = db.select().from(schema.users).all();
-				return users;
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(Database.Test)),
-			);
+				expect(users).toHaveLength(1);
+				expect(users[0]?.email).toBe("test@example.com");
+				expect(users[0]?.name).toBe("Test User");
+			}).pipe(Effect.provide(Database.Test)),
+		);
 
-			expect(result).toHaveLength(1);
-			expect(result[0]?.email).toBe("test@example.com");
-			expect(result[0]?.name).toBe("Test User");
-		});
-
-		test("enforces foreign key constraints", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("enforces foreign key constraints", () =>
+			Effect.gen(function* () {
 				const { db } = yield* Database;
 
 				// Try to insert a video without a valid user_id
@@ -65,50 +55,42 @@ describe("Database Effect Service", () => {
 							youtubeId: "test123456",
 						})
 						.run();
-					return { success: true };
+					expect(true).toBe(false); // Should not reach here
 				} catch {
-					return { success: false };
+					expect(true).toBe(true); // Expected error
 				}
-			});
+			}).pipe(Effect.provide(Database.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(Database.Test)),
-			);
+		it.effect("each test layer creates fresh database", () =>
+			Effect.gen(function* () {
+				// First program inserts a user
+				const program1 = Effect.gen(function* () {
+					const { db } = yield* Database;
+					db.insert(schema.users)
+						.values({ email: "user1@example.com" })
+						.run();
+					return db.select().from(schema.users).all();
+				});
 
-			expect(result.success).toBe(false);
-		});
+				// Second program checks count
+				const program2 = Effect.gen(function* () {
+					const { db } = yield* Database;
+					return db.select().from(schema.users).all();
+				});
 
-		test("each test layer creates fresh database", async () => {
-			// First program inserts a user
-			const program1 = Effect.gen(function* () {
-				const { db } = yield* Database;
-				db.insert(schema.users)
-					.values({ email: "user1@example.com" })
-					.run();
-				return db.select().from(schema.users).all();
-			});
+				// Each should get fresh database
+				const result1 = yield* program1.pipe(Effect.provide(Database.Test));
+				const result2 = yield* program2.pipe(Effect.provide(Database.Test));
 
-			// Second program checks count
-			const program2 = Effect.gen(function* () {
-				const { db } = yield* Database;
-				return db.select().from(schema.users).all();
-			});
-
-			// Each should get fresh database
-			const result1 = await Effect.runPromise(
-				program1.pipe(Effect.provide(Database.Test)),
-			);
-			const result2 = await Effect.runPromise(
-				program2.pipe(Effect.provide(Database.Test)),
-			);
-
-			expect(result1).toHaveLength(1);
-			expect(result2).toHaveLength(0); // Fresh database, no users
-		});
+				expect(result1).toHaveLength(1);
+				expect(result2).toHaveLength(0); // Fresh database, no users
+			}),
+		);
 	});
 
 	describe("makeDatabaseTestLayer factory", () => {
-		test("allows custom setup function", async () => {
+		it.scoped("allows custom setup function", () => {
 			const testLayer = makeDatabaseTestLayer((db) => {
 				// Seed test data
 				db.insert(schema.users)
@@ -119,21 +101,17 @@ describe("Database Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const { db } = yield* Database;
-				return db.select().from(schema.users).all();
-			});
+				const users = db.select().from(schema.users).all();
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result).toHaveLength(2);
-			expect(result.map((u) => u.name)).toContain("Alice");
-			expect(result.map((u) => u.name)).toContain("Bob");
+				expect(users).toHaveLength(2);
+				expect(users.map((u) => u.name)).toContain("Alice");
+				expect(users.map((u) => u.name)).toContain("Bob");
+			}).pipe(Effect.provide(testLayer));
 		});
 
-		test("supports complex setup with videos and transcripts", async () => {
+		it.scoped("supports complex setup with videos and transcripts", () => {
 			const testLayer = makeDatabaseTestLayer((db) => {
 				// Create user
 				db.insert(schema.users)
@@ -163,7 +141,7 @@ describe("Database Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const { db } = yield* Database;
 
 				const video = db
@@ -178,69 +156,46 @@ describe("Database Effect Service", () => {
 					.where(eq(schema.transcripts.videoId, 1))
 					.get();
 
-				return { video, transcript };
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result.video?.title).toBe("Test Video");
-			expect(result.transcript?.content).toBe("This is the transcript content.");
+				expect(video?.title).toBe("Test Video");
+				expect(transcript?.content).toBe("This is the transcript content.");
+			}).pipe(Effect.provide(testLayer));
 		});
 	});
 
 	describe("scoped lifecycle", () => {
-		test("closes database when scope exits", async () => {
-			// We can't easily test the real close() behavior without patching,
-			// but we can verify the scoped effect completes properly
-			const program = Effect.scoped(
-				Effect.gen(function* () {
-					const { db } = yield* Database;
-					// Database should be usable here
-					const users = db.select().from(schema.users).all();
-					return users.length;
-				}),
-			);
+		it.scoped("closes database when scope exits", () =>
+			Effect.gen(function* () {
+				const { db } = yield* Database;
+				// Database should be usable here
+				const users = db.select().from(schema.users).all();
+				expect(users.length).toBe(0);
+			}).pipe(Effect.provide(Database.Test)),
+		);
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(Database.Test)),
-			);
-
-			expect(result).toBe(0);
-		});
-
-		test("handles errors during database operations", async () => {
-			const program = Effect.gen(function* () {
+		it.effect("handles errors during database operations", () =>
+			Effect.gen(function* () {
 				const { db } = yield* Database;
 
 				// Execute invalid SQL
 				try {
 					db.run("SELECT * FROM nonexistent_table");
-					return { success: true };
+					expect(true).toBe(false); // Should not reach here
 				} catch (error) {
-					return { success: false, error: String(error) };
+					expect(String(error)).toContain("nonexistent_table");
 				}
-			});
-
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(Database.Test)),
-			);
-
-			expect(result.success).toBe(false);
-			expect(result.error).toContain("nonexistent_table");
-		});
+			}).pipe(Effect.provide(Database.Test)),
+		);
 	});
 
 	describe("schema integration", () => {
-		test("supports all video status values", async () => {
+		it.scoped("supports all video status values", () => {
 			const testLayer = makeDatabaseTestLayer((db) => {
 				db.insert(schema.users)
 					.values({ id: 1, email: "test@example.com" })
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const { db } = yield* Database;
 
 				const statuses = ["pending", "processing", "completed", "failed"] as const;
@@ -256,23 +211,19 @@ describe("Database Effect Service", () => {
 						.run();
 				}
 
-				return db.select().from(schema.videos).all();
-			});
+				const videos = db.select().from(schema.videos).all();
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result).toHaveLength(4);
-			expect(result.map((v) => v.status).sort()).toEqual([
-				"completed",
-				"failed",
-				"pending",
-				"processing",
-			]);
+				expect(videos).toHaveLength(4);
+				expect(videos.map((v) => v.status).sort()).toEqual([
+					"completed",
+					"failed",
+					"pending",
+					"processing",
+				]);
+			}).pipe(Effect.provide(testLayer));
 		});
 
-		test("supports chat sessions and messages", async () => {
+		it.scoped("supports chat sessions and messages", () => {
 			const testLayer = makeDatabaseTestLayer((db) => {
 				db.insert(schema.users)
 					.values({ id: 1, email: "test@example.com" })
@@ -288,7 +239,7 @@ describe("Database Effect Service", () => {
 					.run();
 			});
 
-			const program = Effect.gen(function* () {
+			return Effect.gen(function* () {
 				const { db } = yield* Database;
 
 				// Create chat session
@@ -310,16 +261,11 @@ describe("Database Effect Service", () => {
 					.run();
 
 				const messages = db.select().from(schema.messages).all();
-				return messages;
-			});
 
-			const result = await Effect.runPromise(
-				program.pipe(Effect.provide(testLayer)),
-			);
-
-			expect(result).toHaveLength(2);
-			expect(result[0]?.role).toBe("user");
-			expect(result[1]?.role).toBe("assistant");
+				expect(messages).toHaveLength(2);
+				expect(messages[0]?.role).toBe("user");
+				expect(messages[1]?.role).toBe("assistant");
+			}).pipe(Effect.provide(testLayer));
 		});
 	});
 });
