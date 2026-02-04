@@ -1,10 +1,6 @@
 {
 	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
-	"quality_gates": [
-		"bun run typecheck",
-		"bun test",
-		"bun run lint"
-	],
+	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
 	"tasks": [
 		{
 			"category": "functional",
@@ -407,18 +403,6 @@
 				"Test: chat stream emits expected chunks",
 				"Test: ChatApiError returned for rate limit scenario",
 				"Run `bun test tests/effect/`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "Implement transcript timestamp navigation",
-			"steps": [
-				"Make timestamps in transcript clickable",
-				"Create timestamp navigation context",
-				"Scroll to and highlight clicked segment",
-				"Add keyboard navigation (up/down arrows)",
-				"Style active segment distinctly"
 			],
 			"passes": false
 		},

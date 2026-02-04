@@ -5,6 +5,10 @@ import { TranscriptPanel, TranscriptSkeleton } from "./TranscriptPanel";
 import { ChatInterface } from "./ChatInterface";
 import { ProcessingAnimation } from "./ProcessingAnimation";
 import { useVideoStatus } from "../hooks/useVideoStatus";
+import {
+	TimestampNavigationProvider,
+	useTimestampNavigation,
+} from "../contexts/TimestampNavigationContext";
 import type { TranscriptSegment } from "./TranscriptPanel";
 
 /**
@@ -74,11 +78,7 @@ function StatusBadge({ status }: { status: VideoStatus }) {
 			label: "Processing",
 			className: "bg-primary-100 text-primary-700",
 			icon: (
-				<svg
-					className="h-3 w-3 animate-spin"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
+				<svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
 					<circle
 						className="opacity-25"
 						cx="12"
@@ -266,7 +266,10 @@ function ProcessingStateWithSSE({
 	status: VideoStatus;
 	onComplete: () => void;
 }) {
-	const { stage, progress, error, isComplete } = useVideoStatus(videoId, status);
+	const { stage, progress, error, isComplete } = useVideoStatus(
+		videoId,
+		status,
+	);
 
 	// When processing completes, trigger a refresh
 	useEffect(() => {
@@ -483,6 +486,27 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 
 	// Main two-column layout for completed videos
 	return (
+		<TimestampNavigationProvider>
+			<VideoDetailContent video={video} />
+		</TimestampNavigationProvider>
+	);
+}
+
+/**
+ * Inner component that uses the TimestampNavigationContext
+ */
+function VideoDetailContent({ video }: { video: VideoDetail }) {
+	const { activeSegmentIndex, navigateToSegment, setSegments } =
+		useTimestampNavigation();
+
+	// Set segments in context when transcript is available
+	useEffect(() => {
+		if (video.transcript?.segments) {
+			setSegments(video.transcript.segments);
+		}
+	}, [video.transcript?.segments, setSegments]);
+
+	return (
 		<MotionWrapper>
 			<m.div
 				initial={{ opacity: 0 }}
@@ -511,6 +535,8 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 								<TranscriptPanel
 									segments={video.transcript.segments}
 									className="h-full"
+									activeSegmentIndex={activeSegmentIndex}
+									onActiveSegmentChange={navigateToSegment}
 								/>
 							) : (
 								<div className="flex items-center justify-center h-full">
@@ -531,10 +557,7 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 							</p>
 						</div>
 						<div className="flex-1 overflow-hidden">
-							<ChatInterface
-								videoId={video.id}
-								className="h-full"
-							/>
+							<ChatInterface videoId={video.id} className="h-full" />
 						</div>
 					</div>
 				</div>

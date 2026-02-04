@@ -13,6 +13,9 @@ global.ResizeObserver = ResizeObserverMock;
 // Mock Element.scrollTo for assistant-ui viewport auto-scroll
 Element.prototype.scrollTo = function () {};
 
+// Mock Element.scrollIntoView for TranscriptPanel navigation
+Element.prototype.scrollIntoView = function () {};
+
 // Mock window.scrollTo
 window.scrollTo = function () {};
 

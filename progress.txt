@@ -2128,3 +2128,66 @@ frontend/
 - Settings page is now fully functional with profile info, logout, and account deletion
 - UserAvatar dropdown in Header already links to /settings
 - Next priorities: Transcript timestamp navigation, Docker setup, E2E testing, or LazyMotion optimization
+
+---
+
+### 2026-02-04 - Transcript Timestamp Navigation
+
+**Completed:** Implement transcript timestamp navigation
+
+**What was done:**
+- Fixed bug in TranscriptPanel where segmentRefs Map was never populated:
+  - Changed from broken ref object pattern to callback ref pattern
+  - Added `createSetRef` callback factory that properly updates the Map
+  - Now scroll-to-segment works correctly for all navigation methods
+- Added controlled component pattern to TranscriptPanel:
+  - New `activeSegmentIndex` prop for external control (used by context)
+  - New `onActiveSegmentChange` callback for syncing state changes
+  - Component works both controlled (with context) and uncontrolled (internal state)
+  - Auto-scrolls to segment when `activeSegmentIndex` changes externally
+- Added `data-active` attribute to segments for easier testing and styling
+- Created TimestampNavigationContext for cross-panel communication:
+  - `TimestampNavigationProvider` wraps video detail content
+  - `useTimestampNavigation` hook provides navigation functions
+  - `useTimestampNavigationOptional` hook for optional context access
+  - `navigateToSegment(index)` for direct segment navigation
+  - `navigateToTimestamp(seconds)` for time-based navigation
+- Exported `findSegmentIndexForTimestamp` utility function for timestamp-to-segment mapping
+- Updated VideoDetailView to use TimestampNavigationContext:
+  - Wrapped content in `TimestampNavigationProvider`
+  - Created `VideoDetailContent` inner component for context access
+  - Connected TranscriptPanel to context for synchronized state
+- Added mock for `Element.scrollIntoView` in test setup
+- Created comprehensive tests:
+  - TranscriptPanel: 11 new tests for controlled active segment and findSegmentIndexForTimestamp
+  - TimestampNavigationContext: 9 tests for context provider and hooks
+
+**Files created:**
+- frontend/src/contexts/TimestampNavigationContext.tsx
+- frontend/tests/TimestampNavigationContext.test.tsx
+
+**Files modified:**
+- frontend/src/components/TranscriptPanel.tsx (fixed ref bug, added controlled props, exported utility)
+- frontend/src/components/VideoDetailView.tsx (integrated context)
+- frontend/tests/TranscriptPanel.test.tsx (added tests for new functionality)
+- frontend/tests/setup.ts (added scrollIntoView mock)
+
+**Technical notes:**
+- The TranscriptPanel already had keyboard navigation (↑/↓/j/k/Escape) - this was working
+- Timestamps were already clickable - this was working
+- The main bug was that scroll-to-segment never worked due to the ref assignment issue
+- Context pattern allows future chat-to-transcript citation linking (next PRD task)
+- Controlled/uncontrolled component pattern follows React best practices
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (2 pre-existing warnings)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (183 tests, 20 new)
+- `bun run build` (frontend) - passes
+- Bundle size: VideoDetailView.GiKQoWXy.js (15.07 kB)
+
+**Notes for next task:**
+- Timestamp navigation is now fully functional with context-based state sharing
+- The context enables future chat-to-transcript citation linking (next PRD task)
+- Next priorities: Chat response citation linking, Docker setup, E2E testing, or Effect-TS migration

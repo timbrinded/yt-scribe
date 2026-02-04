@@ -540,5 +540,17 @@
 			"Style consistently with app design"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "Implement transcript timestamp navigation",
+		"steps": [
+			"Make timestamps in transcript clickable",
+			"Create timestamp navigation context",
+			"Scroll to and highlight clicked segment",
+			"Add keyboard navigation (up/down arrows)",
+			"Style active segment distinctly"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

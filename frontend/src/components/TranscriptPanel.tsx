@@ -18,6 +18,10 @@ interface TranscriptPanelProps {
 	className?: string;
 	/** Callback when a timestamp is clicked */
 	onTimestampClick?: (time: number) => void;
+	/** Externally controlled active segment index (for citation linking) */
+	activeSegmentIndex?: number | null;
+	/** Callback when active segment changes (for syncing state) */
+	onActiveSegmentChange?: (index: number | null) => void;
 }
 
 /**
@@ -41,18 +45,19 @@ function Segment({
 	segment,
 	isActive,
 	onClick,
-	segmentRef,
+	setRef,
 }: {
 	segment: TranscriptSegment;
 	isActive: boolean;
 	onClick: () => void;
-	segmentRef?: React.RefObject<HTMLDivElement | null>;
+	setRef: (el: HTMLDivElement | null) => void;
 }) {
 	return (
 		<div
-			ref={segmentRef}
+			ref={setRef}
 			data-testid="transcript-segment"
 			data-start={segment.start}
+			data-active={isActive}
 			className={`group flex gap-3 rounded-lg px-3 py-2 transition-all ${
 				isActive
 					? "bg-primary-100 ring-2 ring-primary-500/50"
@@ -108,11 +113,40 @@ export function TranscriptPanel({
 	segments,
 	className = "",
 	onTimestampClick,
+	activeSegmentIndex,
+	onActiveSegmentChange,
 }: TranscriptPanelProps) {
-	const [activeIndex, setActiveIndex] = useState<number | null>(null);
+	// Use internal state if no external control, otherwise use props
+	const [internalActiveIndex, setInternalActiveIndex] = useState<number | null>(
+		null,
+	);
+	const isControlled = activeSegmentIndex !== undefined;
+	const activeIndex = isControlled ? activeSegmentIndex : internalActiveIndex;
+
+	const setActiveIndex = useCallback(
+		(index: number | null) => {
+			if (!isControlled) {
+				setInternalActiveIndex(index);
+			}
+			onActiveSegmentChange?.(index);
+		},
+		[isControlled, onActiveSegmentChange],
+	);
+
 	const [keyboardNavEnabled, setKeyboardNavEnabled] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const segmentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+	// Create ref setter for each segment
+	const createSetRef = useCallback((index: number) => {
+		return (el: HTMLDivElement | null) => {
+			if (el) {
+				segmentRefs.current.set(index, el);
+			} else {
+				segmentRefs.current.delete(index);
+			}
+		};
+	}, []);
 
 	// Handle timestamp click
 	const handleTimestampClick = useCallback(
@@ -121,7 +155,7 @@ export function TranscriptPanel({
 			setActiveIndex(index);
 			onTimestampClick?.(segment.start);
 		},
-		[segments, onTimestampClick],
+		[segments, setActiveIndex, onTimestampClick],
 	);
 
 	// Scroll to segment
@@ -134,6 +168,17 @@ export function TranscriptPanel({
 			});
 		}
 	}, []);
+
+	// Scroll to active segment when controlled externally
+	useEffect(() => {
+		if (
+			isControlled &&
+			activeSegmentIndex !== null &&
+			activeSegmentIndex !== undefined
+		) {
+			scrollToSegment(activeSegmentIndex);
+		}
+	}, [isControlled, activeSegmentIndex, scrollToSegment]);
 
 	// Keyboard navigation
 	useEffect(() => {
@@ -168,6 +213,7 @@ export function TranscriptPanel({
 		activeIndex,
 		segments,
 		scrollToSegment,
+		setActiveIndex,
 		onTimestampClick,
 	]);
 
@@ -238,11 +284,7 @@ export function TranscriptPanel({
 								segment={segment}
 								isActive={activeIndex === index}
 								onClick={() => handleTimestampClick(index)}
-								segmentRef={
-									{
-										current: segmentRefs.current.get(index) ?? null,
-									} as React.RefObject<HTMLDivElement | null>
-								}
+								setRef={createSetRef(index)}
 							/>
 						))}
 					</div>
@@ -250,4 +292,33 @@ export function TranscriptPanel({
 			</div>
 		</MotionWrapper>
 	);
+}
+
+/**
+ * Find the segment index for a given timestamp
+ * Returns the segment that contains the timestamp, or the closest preceding segment
+ */
+export function findSegmentIndexForTimestamp(
+	segments: TranscriptSegment[],
+	timestamp: number,
+): number | null {
+	if (segments.length === 0) return null;
+
+	// Find the segment that contains this timestamp
+	for (let i = 0; i < segments.length; i++) {
+		const segment = segments[i];
+		if (timestamp >= segment.start && timestamp < segment.end) {
+			return i;
+		}
+	}
+
+	// If not found in any segment, find the closest preceding segment
+	for (let i = segments.length - 1; i >= 0; i--) {
+		if (segments[i].start <= timestamp) {
+			return i;
+		}
+	}
+
+	// If timestamp is before all segments, return first segment
+	return 0;
 }
