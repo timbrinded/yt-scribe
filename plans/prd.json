@@ -4,18 +4,6 @@
 	"tasks": [
 				{
 			"category": "functional",
-			"description": "[Effect-TS] Create OpenAI Effect service",
-			"steps": [
-				"Create `src/effect/services/OpenAI.ts`",
-				"Define OpenAIService interface wrapping the client",
-				"Implement OpenAI.Live layer reading OPENAI_API_KEY from Config.string",
-				"Implement OpenAI.Test factory for mock clients",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create YouTube Effect service",
 			"steps": [
 				"Create `src/effect/services/YouTube.ts`",

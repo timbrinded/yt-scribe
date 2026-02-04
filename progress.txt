@@ -2931,3 +2931,66 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The Database service is now available as a leaf dependency for Auth and Pipeline
 - Other services will depend on Database via `yield* Database` pattern
 - Layer composition will happen in src/effect/layers/Live.ts
+
+---
+
+### 2026-02-04 - OpenAI Effect Service
+
+**Completed:** [Effect-TS] Create OpenAI Effect service
+
+**What was done:**
+- Created src/effect/services/OpenAI.ts following the established Effect-TS service pattern:
+  - OpenAI Context.Tag class with `@ytscribe/OpenAI` identifier
+  - OpenAI.Live layer using Layer.effect with Config.string("OPENAI_API_KEY")
+  - OpenAI.Test layer using Layer.succeed with mock client
+  - `makeOpenAITestLayer()` factory function for partial mocking
+  - `createMockOpenAIClient()` helper using Proxy for helpful error messages
+  - `createPartialMockClient()` for merging partial mocks with base mock
+- Mock client features:
+  - Returns `undefined` for `then`, `catch`, `finally` properties to avoid Promise detection issues
+  - Throws descriptive error when unmocked method is called
+  - Error message includes method path (e.g., `client.chat.completions.create()`)
+  - Suggests using `makeOpenAITestLayer()` to provide mock implementation
+- Created comprehensive tests in tests/effect/services/OpenAI.test.ts (11 tests):
+  - Test layer provides mock client
+  - Mock throws helpful errors for unmocked methods
+  - Mock handles nested property access (audio.transcriptions.create)
+  - Factory function for mocking chat completions
+  - Factory function for mocking audio transcriptions
+  - Unmocked methods still throw when partial mock is provided
+  - Mock tracks call arguments for assertions
+  - Mock can simulate errors
+  - Live layer fails with ConfigError when OPENAI_API_KEY not set
+  - Live layer creates real client when API key is set
+  - Service isolation (each test layer is independent)
+- Fixed pre-existing TypeScript errors in tests/effect/services/Database.test.ts:
+  - Removed unused `Exit` import
+  - Added optional chaining on array access
+  - Added required `segments: []` field to transcript insert
+  - Removed unused `dbClosed` variable
+
+**Files created:**
+- src/effect/services/OpenAI.ts
+- tests/effect/services/OpenAI.test.ts
+
+**Files modified:**
+- tests/effect/services/Database.test.ts (fixed pre-existing TypeScript errors)
+
+**Technical notes:**
+- Uses Layer.effect to read API key during layer construction (not at service call time)
+- Test mock uses Proxy for dynamic property interception
+- Must exclude `then/catch/finally` from Proxy to avoid Promise detection issues
+- DeepPartial<T> type enables type-safe partial mocking of deeply nested objects
+- extractErrorMessage() helper handles Effect's UnknownException wrapping and Chunk.toArray()
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (188 pass, 5 skip, 11 new)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create YouTube Effect service
+- OpenAI service is now available as a leaf dependency for Transcription and Chat services
+- Follow the same pattern: FooService interface in types.ts, Foo Context.Tag, Foo.Live, Foo.Test
+- Use `yield* OpenAI` in dependent services to access the client

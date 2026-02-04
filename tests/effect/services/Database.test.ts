@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { Effect, Exit } from "effect";
+import { Effect } from "effect";
 import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
 import * as schema from "../../../src/db/schema";
 import { eq } from "drizzle-orm";
@@ -47,8 +47,8 @@ describe("Database Effect Service", () => {
 			);
 
 			expect(result).toHaveLength(1);
-			expect(result[0].email).toBe("test@example.com");
-			expect(result[0].name).toBe("Test User");
+			expect(result[0]?.email).toBe("test@example.com");
+			expect(result[0]?.name).toBe("Test User");
 		});
 
 		test("enforces foreign key constraints", async () => {
@@ -157,6 +157,7 @@ describe("Database Effect Service", () => {
 					.values({
 						videoId: 1,
 						content: "This is the transcript content.",
+						segments: [],
 						language: "en",
 					})
 					.run();
@@ -191,8 +192,6 @@ describe("Database Effect Service", () => {
 
 	describe("scoped lifecycle", () => {
 		test("closes database when scope exits", async () => {
-			let dbClosed = false;
-
 			// We can't easily test the real close() behavior without patching,
 			// but we can verify the scoped effect completes properly
 			const program = Effect.scoped(
@@ -319,8 +318,8 @@ describe("Database Effect Service", () => {
 			);
 
 			expect(result).toHaveLength(2);
-			expect(result[0].role).toBe("user");
-			expect(result[1].role).toBe("assistant");
+			expect(result[0]?.role).toBe("user");
+			expect(result[1]?.role).toBe("assistant");
 		});
 	});
 });

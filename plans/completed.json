@@ -739,5 +739,17 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create OpenAI Effect service",
+		"steps": [
+			"Create `src/effect/services/OpenAI.ts`",
+			"Define OpenAIService interface wrapping the client",
+			"Implement OpenAI.Live layer reading OPENAI_API_KEY from Config.string",
+			"Implement OpenAI.Test factory for mock clients",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
