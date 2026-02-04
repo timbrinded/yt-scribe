@@ -926,5 +926,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Implement SSE endpoint for video status",
+		"steps": [
+			"In video handlers, implement status stream endpoint",
+			"Use Progress.subscribe(videoId) to get event stream",
+			"Convert Effect Stream to SSE format with Stream.map to format as data: {...}\\n\\n",
+			"Use HttpServerResponse.stream for streaming response",
+			"Set headers: Content-Type: text/event-stream, Cache-Control: no-cache",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

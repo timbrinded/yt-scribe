@@ -4,19 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Implement SSE endpoint for video status",
-			"steps": [
-				"In video handlers, implement status stream endpoint",
-				"Use Progress.subscribe(videoId) to get event stream",
-				"Convert Effect Stream to SSE format with Stream.map to format as data: {...}\\n\\n",
-				"Use HttpServerResponse.stream for streaming response",
-				"Set headers: Content-Type: text/event-stream, Cache-Control: no-cache",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create Live and Test layer compositions (DI wiring)",
 			"steps": [
 				"Create `src/effect/layers/Live.ts`",

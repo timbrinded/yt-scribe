@@ -3653,3 +3653,39 @@ Layer.provide(Database.Live),
 - Auth handlers complete the API handler layer
 - All handler groups ready: videos, chat, auth
 - Layer composition will wire services and provide to HttpApi
+
+---
+
+### 2026-02-04 - Effect-TS SSE Endpoint for Video Status (Task Verification)
+
+**Completed:** [Effect-TS] Implement SSE endpoint for video status
+
+**What was verified:**
+- The SSE endpoint implementation was already complete in the codebase
+- Verified all PRD steps were implemented:
+  1. Status stream endpoint implemented in `src/effect/api/handlers/videos.ts` (videoStatusHandler, lines 336-373)
+  2. Progress.subscribe(videoId) used to get event stream (line 357)
+  3. Stream.map formats events as SSE `data: {...}\n\n` format (lines 358-361)
+  4. HttpServerResponse.stream used for streaming response (line 365)
+  5. Correct headers set: Content-Type: text/event-stream, Cache-Control: no-cache, Connection: keep-alive (lines 367-370)
+
+**Implementation details:**
+- Endpoint defined in `src/effect/api/groups/videos.ts` as GET /videos/:id/status
+- Handler validates video exists and belongs to authenticated user (403/404 handling)
+- Uses Progress service which provides PubSub-based real-time event streaming
+- Progress.Live layer in `src/effect/services/Progress.ts` manages PubSub lifecycle
+
+**Files involved:**
+- src/effect/api/groups/videos.ts - Endpoint schema definition (lines 227-232)
+- src/effect/api/handlers/videos.ts - Handler implementation (lines 336-373)
+- src/effect/services/Progress.ts - PubSub-based progress service
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Live and Test layer compositions (DI wiring)
+- All Effect-TS handlers and services are now complete
+- Layer composition is the next critical step to wire everything together
