@@ -727,5 +727,17 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create Database Effect service",
+		"steps": [
+			"Create `src/effect/services/Database.ts`",
+			"Define DatabaseService interface with db property",
+			"Implement Database.Live layer using Layer.scoped with acquireRelease for SQLite connection",
+			"Implement Database.Test layer with in-memory SQLite",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

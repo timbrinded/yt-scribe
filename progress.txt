@@ -2877,3 +2877,57 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The types.ts file provides interfaces that services will implement
 - Service definitions should import types from this file
 - Layer implementations (Live/Test) will use these interfaces
+
+---
+
+### 2026-02-04 - Effect-TS Database Effect Service
+
+**Completed:** [Effect-TS] Create Database Effect service
+
+**What was done:**
+- Created `src/effect/services/Database.ts` with Database Effect service
+- Implemented `Database` Context.Tag class following established conventions
+- Implemented `Database.Live` layer using Layer.scoped with acquireRelease:
+  - Reads DATABASE_URL from Config (optional, defaults to data/ytscribe.db)
+  - Opens SQLite connection with WAL mode enabled
+  - Enables foreign key constraints
+  - Properly closes connection on scope exit
+- Implemented `Database.Test` layer with in-memory SQLite:
+  - Creates fresh `:memory:` database for each test
+  - Manually creates schema matching Drizzle definitions
+  - Enables foreign key constraints for integrity testing
+- Added `makeDatabaseTestLayer(setup?)` factory function:
+  - Allows custom setup callback for seeding test data
+  - Useful for tests needing specific initial state
+- Created comprehensive tests in `tests/effect/services/Database.test.ts`:
+  - Test layer provides access to database (10 tests)
+  - Insert/retrieve operations
+  - Foreign key constraint enforcement
+  - Fresh database isolation between tests
+  - Factory function with custom setup
+  - Complex setup with videos and transcripts
+  - Scoped lifecycle and error handling
+  - Schema integration (all video statuses, chat sessions/messages)
+
+**Files created:**
+- src/effect/services/Database.ts
+- tests/effect/services/Database.test.ts
+
+**Technical notes:**
+- Uses Layer.scoped with Effect.acquireRelease for proper resource lifecycle
+- SQLite connection is acquired on layer construction and released on scope exit
+- Test layer creates schema manually using raw SQL to mirror Drizzle definitions
+- Factory pattern enables partial test setup without duplicating schema creation
+- Config.withDefault handles optional DATABASE_URL environment variable
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (177 pass, 5 skip, 10 new)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create OpenAI Effect service
+- The Database service is now available as a leaf dependency for Auth and Pipeline
+- Other services will depend on Database via `yield* Database` pattern
+- Layer composition will happen in src/effect/layers/Live.ts
