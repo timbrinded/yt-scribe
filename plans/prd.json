@@ -4,20 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Create Live and Test layer compositions (DI wiring)",
-			"steps": [
-				"Create `src/effect/layers/Live.ts`",
-				"Compose leaf services: Layer.mergeAll(Database.Live, OpenAI.Live, YouTube.Live, Progress.Live)",
-				"Compose dependent services: Transcription.Live, Chat.Live, Auth.Live with Layer.provide(LeafLayer)",
-				"Compose orchestration: Pipeline.Live.pipe(Layer.provide(Layer.merge(LeafLayer, DependentLayer)))",
-				"Export LiveLayer and AppRequirements type",
-				"Create `src/effect/layers/Test.ts` with makeTestLayer() factory accepting partial mocks",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create main entry point with BunRuntime",
 			"steps": [
 				"Create `src/effect/main.ts`",

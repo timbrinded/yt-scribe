@@ -3689,3 +3689,61 @@ Layer.provide(Database.Live),
 - Next priority: [Effect-TS] Create Live and Test layer compositions (DI wiring)
 - All Effect-TS handlers and services are now complete
 - Layer composition is the next critical step to wire everything together
+
+---
+
+### 2026-02-04 - Effect-TS Live and Test Layer Compositions
+
+**Completed:** [Effect-TS] Create Live and Test layer compositions (DI wiring)
+
+**What was done:**
+- Created `src/effect/layers/Live.ts` with:
+  - LeafLayer: Composes Database.Live, OpenAI.Live, YouTube.Live, Progress.Live using Layer.mergeAll
+  - DependentLayer: Composes Transcription.Live, Chat.Live, Auth.Live with their dependencies provided
+  - PipelineLayer: Orchestration layer with all dependencies provided
+  - LiveLayer: Full application layer merging all services
+  - AppRequirements type export for annotating effects needing full context
+  - All layers stored in constants to ensure memoization (services created once, shared)
+- Created `src/effect/layers/Test.ts` with:
+  - TestLeafLayer, TestDependentLayer for default test compositions
+  - TestLayer: Complete test layer with all services mocked
+  - makeTestLayer() factory accepting partial TestLayerOptions for custom mocks
+  - makeSeededTestLayer() for tests needing pre-seeded database
+  - makePipelineTestContext() for Pipeline service integration tests with progress event collection
+  - Re-exports all individual service test factories for convenience
+
+**Files created:**
+- src/effect/layers/Live.ts
+- src/effect/layers/Test.ts
+
+**Technical notes:**
+- Layer composition follows dependency order: leaf → dependent → orchestration
+- Memoization is critical: storing layers in constants ensures single instance creation
+- Layer.provide(Dependency.Live) wires dependencies without exposing them in output type
+- TestLayerOptions allows partial mocking - unspecified services get default test implementations
+- makePipelineTestContext returns both layer and getProgressEvents for verifying emitted events
+
+**Dependency graph wired:**
+```
+Leaf Layer (no deps):
+  - Database, OpenAI, YouTube, Progress
+
+Dependent Layer:
+  - Transcription → OpenAI
+  - Chat → OpenAI  
+  - Auth → Database
+
+Orchestration Layer:
+  - Pipeline → Database, YouTube, Transcription, Progress
+```
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create main entry point with BunRuntime
+- LiveLayer is ready to be provided to the HTTP server
+- TestLayer and makeTestLayer() ready for use in unit and integration tests
+- Layer composition enables true dependency injection for the entire Effect-TS stack
