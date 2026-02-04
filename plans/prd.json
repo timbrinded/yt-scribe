@@ -14,7 +14,7 @@
 				"Document pattern with comments: why Context.Tag, when to use Layer.effect vs Layer.scoped vs Layer.sync, how to depend on other services",
 				"Run `bun run typecheck`"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

@@ -675,5 +675,19 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Establish service definition pattern with Context.Tag",
+		"steps": [
+			"Create `src/effect/services/_template.ts` as a reference pattern",
+			"Define service interface type (what the service provides)",
+			"Create Context.Tag class extending interface with unique identifier @ytscribe/ServiceName",
+			"Add static Live property using Layer.effect() or Layer.scoped()",
+			"Add static Test property using Layer.succeed() for mock implementations",
+			"Document pattern with comments: why Context.Tag, when to use Layer.effect vs Layer.scoped vs Layer.sync, how to depend on other services",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

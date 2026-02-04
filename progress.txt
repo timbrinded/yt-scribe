@@ -2698,3 +2698,58 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - The error types are now available for use in Effect services
 - All errors integrate with HttpApi for automatic HTTP status code handling
 - The `_tag` field enables discriminated union pattern matching in error handlers
+
+---
+
+### 2026-02-04 - Effect-TS Service Definition Pattern with Context.Tag
+
+**Completed:** [Effect-TS] Establish service definition pattern with Context.Tag
+
+**What was done:**
+- Created `src/effect/services/_template.ts` as a comprehensive reference pattern for all Effect-TS services
+- Documented the service definition pattern with extensive comments explaining:
+  - Service interface definition best practices
+  - Context.Tag class creation with unique identifiers (@ytscribe/ServiceName)
+  - When to use each Layer constructor:
+    - `Layer.sync` for synchronous implementations without dependencies
+    - `Layer.succeed` for static values and test mocks
+    - `Layer.effect` for async operations or services with dependencies
+    - `Layer.scoped` for resources with lifecycle (database connections, etc.)
+  - Live and Test layer patterns
+  - Service dependency patterns (yielding from other services)
+  - Layer composition rules and memoization
+  - Partial mock factory pattern for testing
+- Template includes:
+  - `ExampleService` interface with effectful and pure methods
+  - `Example` Context.Tag class with `Live` and `Test` static layers
+  - `ResourceService` demonstrating Layer.scoped with acquireRelease
+  - `DependentService` showing how to depend on other services
+  - `makeExampleTestLayer()` factory for partial mocking in tests
+  - Usage examples in documentation comments
+
+**Files created:**
+- src/effect/services/_template.ts
+
+**Technical notes:**
+- The template uses `@ytscribe/ServiceName` naming convention for tag identifiers
+- Layer.sync used for the Example.Live since it has no dependencies (avoids lint warning)
+- Layer.scoped demonstrates Effect.acquireRelease for resource management
+- Dependent services use `yield* OtherService` pattern to declare dependencies
+- Layer composition should happen in src/effect/layers/ not in individual service files
+- Test layers use Layer.succeed for simple mocks or factory functions for partial mocking
+
+**Naming Conventions Established:**
+- `FooService`: TypeScript interface describing the service shape
+- `Foo`: Context.Tag class for dependency injection
+- `Foo.Live`: Layer providing production implementation
+- `Foo.Test`: Layer providing test/mock implementation
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create service dependency graph documentation (ARCHITECTURE.md)
+- The service template is now ready to guide creation of all Effect services
+- Consider using the template as a starting point when creating Database, OpenAI, YouTube services
