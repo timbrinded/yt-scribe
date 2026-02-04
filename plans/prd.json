@@ -13,7 +13,7 @@
 				"Apply Authorization middleware to protected groups",
 				"Run `bun run typecheck`"
 			],
-			"passes": false
+			"passes": true
 		},
 		{
 			"category": "functional",

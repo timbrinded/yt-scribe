@@ -870,5 +870,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Define HttpApi schema and groups",
+		"steps": [
+			"Create `src/effect/api/index.ts` with YTScribeApi = HttpApi.make('ytscribe')",
+			"Create `src/effect/api/groups/videos.ts` with POST /videos, GET /videos, GET /videos/:id, POST /videos/:id/retry, GET /videos/:id/status",
+			"Create `src/effect/api/groups/chat.ts` with POST /videos/:id/chat, GET /videos/:id/sessions",
+			"Create `src/effect/api/groups/auth.ts` with GET /auth/google, GET /auth/google/callback, POST /auth/logout",
+			"Apply Authorization middleware to protected groups",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]

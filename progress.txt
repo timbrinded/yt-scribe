@@ -3421,3 +3421,66 @@ Layer.provide(Database.Live),
 - Pipeline service is the last core service to implement
 - The HttpApi groups will use all services including Pipeline for video processing
 - Layer composition can now be done in src/effect/layers/Live.ts
+
+---
+
+### 2026-02-04 - Effect-TS HttpApi Schema and Groups
+
+**Completed:** [Effect-TS] Define HttpApi schema and groups
+
+**What was done:**
+- Created `src/effect/api/index.ts` with YTScribeApi definition:
+  - Uses HttpApi.make('ytscribe') following Effect chainable API
+  - Composes all endpoint groups (VideosGroup, ChatGroup, AuthGroup)
+  - Annotated with OpenAPI metadata (Title, Description, Version)
+- Created `src/effect/api/groups/videos.ts` with video endpoints:
+  - POST /videos - Create video for transcription (CreateVideoRequest → VideoResponse, status 201)
+  - GET /videos - List user's library (VideoListParams → VideoListResponse with pagination)
+  - GET /videos/:id - Get video details with transcript (VideoIdParam → VideoDetailResponse)
+  - POST /videos/:id/retry - Retry failed transcription (VideoIdParam → RetryVideoResponse)
+  - GET /videos/:id/status - SSE stream for processing status
+  - Applied Authorization middleware to entire group
+  - All schemas use Schema.Class or Schema.Struct with proper annotations
+- Created `src/effect/api/groups/chat.ts` with chat endpoints:
+  - POST /videos/:id/chat - Send message and receive AI response (ChatMessageRequest → ChatMessageResponse)
+  - GET /videos/:id/sessions - List chat sessions for video (ChatSessionsResponse)
+  - Applied Authorization middleware to entire group
+- Created `src/effect/api/groups/auth.ts` with auth endpoints:
+  - GET /auth/google - Initiate OAuth flow (GoogleAuthParams → RedirectResponse)
+  - GET /auth/google/callback - Handle OAuth callback (GoogleCallbackParams → RedirectResponse)
+  - POST /auth/logout - Log out (LogoutResponse) - requires Authorization
+  - GET /auth/me - Get current user (CurrentUserResponse) - requires Authorization
+  - Mixed public/protected endpoints (middleware applied per-endpoint)
+- Fixed Schema.optional usage for URL params:
+  - Changed from Schema.Class with .pipe(Schema.annotations()) pattern
+  - To Schema.Struct with Schema.optionalWith(..., { as: "Option" }) pattern
+  - URL params must encode to strings (Record<string, string | undefined>)
+- Fixed Schema.clamp replaced with Schema.between for limit validation
+
+**Files created:**
+- src/effect/api/index.ts
+- src/effect/api/groups/videos.ts
+- src/effect/api/groups/chat.ts
+- src/effect/api/groups/auth.ts
+
+**Technical notes:**
+- HttpApiGroup.make() creates named groups that compose into HttpApi
+- HttpApiEndpoint uses chainable API: .setPath(), .setPayload(), .setUrlParams(), .addSuccess(), .addError()
+- Authorization middleware applied via .middleware(Authorization) at group or endpoint level
+- OpenApi annotations (Summary, Description) generate API documentation
+- Schema.optionalWith with { as: "Option" } required for URL params to satisfy type constraints
+- Error classes from src/effect/errors integrate with HttpApi for automatic status codes
+- Path parameters use Schema.NumberFromString for type coercion from URL strings
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (306 pass, 7 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Implement video endpoint handlers
+- The API schema is now complete with all groups and endpoints defined
+- Handler implementations will use HttpApiBuilder.group() pattern
+- Services are wired via Layer composition in handlers
+- SSE endpoint will convert Progress.subscribe() Stream to SSE format
