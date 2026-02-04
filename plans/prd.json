@@ -3,18 +3,6 @@
 	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
 	"tasks": [
 		{
-			"category": "functional",
-			"description": "[Effect-TS] Create main entry point with BunRuntime",
-			"steps": [
-				"Create `src/effect/main.ts`",
-				"Build HTTP server layer with HttpApiBuilder.serve, middlewareCors, BunHttpServer.layer",
-				"Launch with BunRuntime.runMain(Layer.launch(HttpLive))",
-				"Run `bun run typecheck`",
-				"Test: `bun src/effect/main.ts` starts server on port 3001"
-			],
-			"passes": false
-		},
-		{
 			"category": "reliability",
 			"description": "[Effect-TS] Add graceful shutdown handling",
 			"steps": [

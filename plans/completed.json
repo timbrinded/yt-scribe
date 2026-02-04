@@ -163,7 +163,7 @@
 	},
 	{
 		"category": "functional",
-		"description": "Create video processing pipeline orchestrating download → transcribe → save",
+		"description": "Create video processing pipeline orchestrating download \u2192 transcribe \u2192 save",
 		"steps": [
 			"Create src/services/pipeline.ts",
 			"Add processVideo(videoId) function that: fetches video record, downloads audio, transcribes, saves transcript to DB, updates video status",
@@ -396,7 +396,7 @@
 		"description": "Create processing animation component showing pipeline progress",
 		"steps": [
 			"Create src/components/ProcessingAnimation.tsx",
-			"Show stages: Downloading → Extracting Audio → Transcribing → Complete",
+			"Show stages: Downloading \u2192 Extracting Audio \u2192 Transcribing \u2192 Complete",
 			"Animate progress between stages with Framer Motion",
 			"Add visual feedback for current stage (spinner, progress bar)",
 			"Accept currentStage prop to control animation state",
@@ -951,6 +951,18 @@
 			"Export LiveLayer and AppRequirements type",
 			"Create `src/effect/layers/Test.ts` with makeTestLayer() factory accepting partial mocks",
 			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create main entry point with BunRuntime",
+		"steps": [
+			"Create `src/effect/main.ts`",
+			"Build HTTP server layer with HttpApiBuilder.serve, middlewareCors, BunHttpServer.layer",
+			"Launch with BunRuntime.runMain(Layer.launch(HttpLive))",
+			"Run `bun run typecheck`",
+			"Test: `bun src/effect/main.ts` starts server on port 3001"
 		],
 		"completed_at": "2026-02-04"
 	}

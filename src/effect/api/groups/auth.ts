@@ -109,7 +109,7 @@ export class CurrentUserResponse extends Schema.Class<CurrentUserResponse>(
  *
  * Note: Returns 302 redirect, not JSON. Success schema is for documentation.
  */
-const googleAuth = HttpApiEndpoint.get("googleAuth", "/auth/google")
+const googleAuth = HttpApiEndpoint.get("googleAuth", "/google")
 	.setUrlParams(GoogleAuthParams)
 	.addSuccess(RedirectResponse, { status: 302 })
 	.annotate(OpenApi.Summary, "Initiate Google OAuth")
@@ -128,7 +128,7 @@ const googleAuth = HttpApiEndpoint.get("googleAuth", "/auth/google")
  */
 const googleCallback = HttpApiEndpoint.get(
 	"googleCallback",
-	"/auth/google/callback",
+	"/google/callback",
 )
 	.setUrlParams(GoogleCallbackParams)
 	.addSuccess(RedirectResponse, { status: 302 })
@@ -145,7 +145,7 @@ const googleCallback = HttpApiEndpoint.get(
  * Requires authentication. Deletes the current session from the database
  * and clears the session cookie.
  */
-const logout = HttpApiEndpoint.post("logout", "/auth/logout")
+const logout = HttpApiEndpoint.post("logout", "/logout")
 	.addSuccess(LogoutResponse)
 	.middleware(Authorization)
 	.annotate(OpenApi.Summary, "Log out")
@@ -160,7 +160,7 @@ const logout = HttpApiEndpoint.post("logout", "/auth/logout")
  * Returns the currently authenticated user's information.
  * Requires authentication.
  */
-const currentUser = HttpApiEndpoint.get("currentUser", "/auth/me")
+const currentUser = HttpApiEndpoint.get("currentUser", "/me")
 	.addSuccess(CurrentUserResponse)
 	.addError(UnauthorizedError)
 	.middleware(Authorization)
