@@ -4026,3 +4026,71 @@ Service test factories (per service):
 - The existing test files in tests/effect/services/ demonstrate proper usage patterns
 - Consider Task 4 (analytics tracking) if testing tasks prove too complex
 
+
+---
+
+### 2026-02-04 - Effect-TS Pipeline Service Unit Tests
+
+**Completed:** [Effect-TS] Add Pipeline service unit tests with mock DI
+
+**What was done:**
+- Created `tests/effect/services/Pipeline.test.ts` with 15 comprehensive tests
+- Created test-specific mock layers using existing factory functions:
+  - makeYouTubeTestLayer() for YouTube service mocking
+  - makeTranscriptionTestLayer() for Transcription service mocking
+  - makeProgressTestLayer() for Progress event collection
+  - makeDatabaseTestLayer() for seeded in-memory database
+- Composed full test layer for Pipeline.Live testing:
+  - Uses Layer.provide and Layer.merge to wire dependencies
+  - Pipeline.Live depends on Database, YouTube, Transcription, Progress
+  - All external services (yt-dlp, OpenAI) are fully mocked
+
+**Test coverage:**
+1. Pipeline.Test layer tests:
+   - Returns helpful error message indicating mock needed
+2. makePipelineTestLayer factory tests:
+   - Allows mocking processVideo response
+   - Allows mocking processVideo errors
+   - Tracks arguments passed to processVideo
+3. Pipeline.Live with mocked dependencies:
+   - processVideo succeeds with mocked services
+   - processVideo returns VideoNotFoundError for missing video
+   - processVideo marks video as failed on download error
+   - processVideo marks video as failed on transcription error
+   - processVideo updates video status to processing during execution
+   - processVideo saves transcript to database on success
+   - processVideo fetches and saves metadata when not present
+   - processVideo updates video status to completed on success
+4. makePipelineTestContext factory tests:
+   - Provides pre-configured test layer for Pipeline testing
+5. Service isolation tests:
+   - Each test layer is independent
+   - Database changes in one test don't affect another
+
+**Test patterns demonstrated:**
+- Effect.scoped for resources with lifecycle (Progress PubSub)
+- Effect.catchAll for error handling verification
+- Effect.provide for layer composition in tests
+- Database seeding via closure function
+- Progress event collection via getProgressEvents closure
+
+**Files created:**
+- tests/effect/services/Pipeline.test.ts
+
+**Technical notes:**
+- Tests verify video status transitions: pending → processing → completed/failed
+- Progress events verified in correct order: pending → downloading → extracting → transcribing → complete
+- Database isolation achieved through separate Layer instances per test
+- Error states properly set video status to "failed" via Effect.tapError in Pipeline.Live
+- Mock layers don't make real network calls or require external resources
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun test` - passes (169 pass, 2 skip)
+- `bun run lint` - passes (1 pre-existing Astro warning)
+
+**Notes for next task:**
+- Pipeline service is now fully tested with mock DI
+- Next priorities: Task 2 - API integration tests, Task 3 - Analytics tracking
+- The test patterns established here can be applied to API integration tests
+- Consider using makePipelineTestContext() for API tests that need full pipeline

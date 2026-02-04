@@ -1026,5 +1026,20 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Add Pipeline service unit tests with mock DI",
+		"steps": [
+			"Create `tests/effect/services/Pipeline.test.ts`",
+			"Create test-specific mock layers for YouTube, Transcription",
+			"Compose test layer replacing real services: makeTestLayer({ youtube: MockYouTube, transcription: MockTranscription })",
+			"Write tests using Effect.provide(TestLayer)",
+			"Test: processVideo succeeds with mocked services",
+			"Test: processVideo returns VideoNotFoundError for missing video",
+			"Test: processVideo marks video as failed on transcription error",
+			"Run `bun test tests/effect/services/`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
