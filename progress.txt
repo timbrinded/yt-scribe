@@ -2256,3 +2256,39 @@ frontend/
 - Clicking these timestamps scrolls the transcript panel to that segment and highlights it
 - Next priorities: Effect-TS migration, Docker setup, E2E testing, or bundle optimization
 
+---
+
+### 2026-02-04 - LazyMotion Bundle Optimization (Already Complete)
+
+**Completed:** Optimize Framer Motion bundle with LazyMotion
+
+**What was verified:**
+- The LazyMotion optimization was already implemented during the original Framer Motion setup
+- MotionWrapper.tsx (created earlier) provides the LazyMotion context with domAnimation features
+- All components correctly use `m` from framer-motion (not `motion`) for lazy-loaded animations
+- All components wrap their content in `<MotionWrapper>` which provides `<LazyMotion features={domAnimation} strict>`
+- No usage of `motion.div` or similar - all animations use `m.div` pattern
+
+**Bundle verification:**
+- MotionWrapper.IACTWAeY.js: 71.80 kB (25.30 kB gzipped) - this is the domAnimation bundle (~17kb base + dependencies)
+- Full `motion` export would be ~45kb, so we're seeing the expected savings
+- All animation-related chunks are appropriately sized
+
+**Technical notes:**
+- LazyMotion with domAnimation provides animations without gesture support (smaller bundle)
+- The `strict` prop on LazyMotion enforces that all `m.*` components are inside the provider
+- This pattern was established in the "Install and configure Framer Motion" task
+- MotionWrapper.tsx serves the same purpose as LazyMotionProvider.tsx mentioned in PRD
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (167 pass, 5 skip)
+- `bunx vitest run` (frontend) - passes (211 tests)
+- `bun run build` (frontend) - passes
+
+**Notes for next task:**
+- LazyMotion optimization was already complete - task marked as done
+- Next priorities: Effect-TS migration (large project), Docker setup, E2E testing
+- The Effect-TS migration is a significant undertaking with 28 interconnected tasks
+

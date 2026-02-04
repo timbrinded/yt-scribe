@@ -407,18 +407,6 @@
 			"passes": false
 		},
 		{
-			"category": "performance",
-			"description": "Optimize Framer Motion bundle with LazyMotion",
-			"steps": [
-				"Create src/components/LazyMotionProvider.tsx",
-				"Use domAnimation features for smaller bundle",
-				"Wrap app in LazyMotion provider",
-				"Run `bun run build` and check bundle size",
-				"Verify animations still work correctly"
-			],
-			"passes": false
-		},
-		{
 			"category": "functional",
 			"description": "Create Dockerfile for production deployment",
 			"steps": [

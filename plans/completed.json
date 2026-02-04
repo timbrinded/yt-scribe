@@ -564,5 +564,17 @@
 			"Highlight cited sections in transcript"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "performance",
+		"description": "Optimize Framer Motion bundle with LazyMotion",
+		"steps": [
+			"Create src/components/LazyMotionProvider.tsx",
+			"Use domAnimation features for smaller bundle",
+			"Wrap app in LazyMotion provider",
+			"Run `bun run build` and check bundle size",
+			"Verify animations still work correctly"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
