@@ -2,19 +2,6 @@
 	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
 	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
 	"tasks": [
-				{
-			"category": "functional",
-			"description": "[Effect-TS] Create YouTube Effect service",
-			"steps": [
-				"Create `src/effect/services/YouTube.ts`",
-				"Define YouTubeService interface: isValidUrl, extractVideoId, getMetadata, downloadAudio",
-				"Port existing URL validation logic from src/services/youtube.ts",
-				"Wrap Bun.spawn calls in Effect.tryPromise",
-				"Return typed errors (InvalidYouTubeUrlError, DownloadFailedError)",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
 		{
 			"category": "functional",
 			"description": "[Effect-TS] Create Progress Effect service with PubSub",

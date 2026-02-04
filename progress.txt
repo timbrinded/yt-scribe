@@ -2994,3 +2994,62 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - OpenAI service is now available as a leaf dependency for Transcription and Chat services
 - Follow the same pattern: FooService interface in types.ts, Foo Context.Tag, Foo.Live, Foo.Test
 - Use `yield* OpenAI` in dependent services to access the client
+
+---
+
+### 2026-02-04 - YouTube Effect Service
+
+**Completed:** [Effect-TS] Create YouTube Effect service
+
+**What was done:**
+- Created `src/effect/services/YouTube.ts` following the established Effect-TS service pattern:
+  - YouTube Context.Tag class with `@ytscribe/YouTube` identifier
+  - `isValidUrl(url)` - pure synchronous function validating YouTube URL formats
+  - `extractVideoId(url)` - pure synchronous function extracting 11-character video ID
+  - `getMetadata(url)` - effectful function returning `Effect<VideoMetadata, InvalidYouTubeUrlError | DownloadFailedError>`
+  - `downloadAudio(url, outputPath?)` - effectful function returning `Effect<string, InvalidYouTubeUrlError | DownloadFailedError>`
+- Implemented YouTube.Live layer using Layer.sync (no dependencies):
+  - Wraps Bun.spawn calls to yt-dlp in Effect.tryPromise
+  - Supports YT_COOKIES_BROWSER and YT_COOKIES_FILE environment variables
+  - Ensures output directory exists before download
+  - Verifies downloaded file exists after yt-dlp completes
+- Implemented YouTube.Test layer with mock implementations:
+  - URL validation works normally (pure functions)
+  - getMetadata and downloadAudio fail with helpful error messages indicating mock is not implemented
+- Created `makeYouTubeTestLayer()` factory function:
+  - Allows custom mock implementations for testing
+  - Preserves URL validation when not overridden
+  - Supports partial mocking (override only what's needed)
+- Created comprehensive tests in `tests/effect/services/YouTube.test.ts` (27 tests):
+  - URL validation tests for all supported formats (youtube.com/watch, youtu.be, /shorts/, /live/, /embed/)
+  - Video ID extraction tests
+  - Test layer behavior tests (mock failures with helpful messages)
+  - makeYouTubeTestLayer factory tests (custom implementations, error simulation)
+  - Layer isolation tests (independent services between layers)
+  - Integration tests for Live layer (skipped by default, require network + yt-dlp)
+
+**Files created:**
+- src/effect/services/YouTube.ts
+- tests/effect/services/YouTube.test.ts
+
+**Technical notes:**
+- Ported URL validation patterns from existing src/services/youtube.ts
+- Uses Effect.tryPromise for async operations (Bun.spawn, file checks)
+- Uses Effect.try for synchronous operations that may throw (JSON.parse)
+- Returns typed errors (InvalidYouTubeUrlError, DownloadFailedError) instead of throwing
+- Live layer is a leaf service (no Effect-TS service dependencies)
+- Test layer provides working pure functions but fails on effectful operations
+- makeYouTubeTestLayer enables targeted testing without network dependencies
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (213 pass, 7 skip, 25 new)
+- `bunx vitest run` (frontend) - passes (211 tests)
+- `bun run build` (frontend) - passes
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Progress Effect service with PubSub
+- YouTube service is now available as a leaf dependency for Pipeline service
+- The Progress service will use PubSub.unbounded and Stream.fromPubSub for real-time events
+- Layer composition will happen in src/effect/layers/Live.ts

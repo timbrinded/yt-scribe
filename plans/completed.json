@@ -751,5 +751,18 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create YouTube Effect service",
+		"steps": [
+			"Create `src/effect/services/YouTube.ts`",
+			"Define YouTubeService interface: isValidUrl, extractVideoId, getMetadata, downloadAudio",
+			"Port existing URL validation logic from src/services/youtube.ts",
+			"Wrap Bun.spawn calls in Effect.tryPromise",
+			"Return typed errors (InvalidYouTubeUrlError, DownloadFailedError)",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
