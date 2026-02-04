@@ -4,22 +4,6 @@
 	"tasks": [
 		{
 			"category": "functional",
-			"description": "[Effect-TS] Create Transcription Effect service (first with dependency)",
-			"steps": [
-				"Create `src/effect/services/Transcription.ts`",
-				"Define TranscriptionService interface with transcribe(filePath) method",
-				"Create Transcription Context.Tag class",
-				"Implement Transcription.Live using Layer.effect with yield* OpenAI dependency",
-				"Do NOT call Layer.provide(OpenAI.Live) inside file - happens in layer composition",
-				"Port file validation, compression, and Whisper API call logic",
-				"Use Effect.ensuring for temp file cleanup",
-				"Map OpenAI errors to TranscriptionFailedError",
-				"Run `bun run typecheck`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
 			"description": "[Effect-TS] Create Chat Effect service",
 			"steps": [
 				"Create `src/effect/services/Chat.ts`",
@@ -238,18 +222,6 @@
 				"Test: processVideo succeeds with mocked services",
 				"Test: processVideo returns VideoNotFoundError for missing video",
 				"Test: processVideo marks video as failed on transcription error",
-				"Run `bun test tests/effect/services/`"
-			],
-			"passes": false
-		},
-		{
-			"category": "functional",
-			"description": "[Effect-TS] Add Transcription service tests with OpenAI mock",
-			"steps": [
-				"Create `tests/effect/services/Transcription.test.ts`",
-				"Create mock OpenAI layer that returns canned Whisper response",
-				"Test: transcribe returns expected result with mock",
-				"Test: transcribe returns TranscriptionFailedError when mock throws",
 				"Run `bun test tests/effect/services/`"
 			],
 			"passes": false

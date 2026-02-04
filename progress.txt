@@ -3108,3 +3108,65 @@ Using `dispatchEvent("click")` instead of Playwright's `click()` method ensures 
 - Progress service is now available as a leaf dependency for Pipeline service
 - The service uses PubSub for real-time event broadcasting to multiple subscribers
 - Layer composition will happen in src/effect/layers/Live.ts
+
+---
+
+### 2026-02-04 - Effect-TS Transcription Service (First with Dependency)
+
+**Completed:** [Effect-TS] Create Transcription Effect service (first with dependency)
+
+**What was done:**
+- Created `src/effect/services/Transcription.ts` following established patterns:
+  - Transcription Context.Tag class with `@ytscribe/Transcription` identifier
+  - Transcription.Live layer using Layer.effect with `yield* OpenAI` dependency
+  - Transcription.Test layer with helpful error message for unmocked calls
+  - `makeTranscriptionTestLayer()` factory function for partial mocking
+- Ported transcription logic from src/services/transcription.ts:
+  - File existence validation
+  - Supported audio format validation (.mp3, .mp4, .mpeg, .mpga, .m4a, .wav, .webm)
+  - File size check with automatic compression for files >25MB
+  - Calls OpenAI Whisper API with verbose_json response format
+  - Parses response segments with timestamps
+- Effect-TS patterns demonstrated:
+  - Service dependency via `yield* OpenAI` in Layer.effect
+  - Effect.tryPromise for async operations (file checks, Whisper API)
+  - Effect.ensuring for guaranteed temp file cleanup
+  - Typed error handling with TranscriptionFailedError
+  - Layer composition: Transcription.Live depends on OpenAI, NOT Layer.provide
+- Error mapping:
+  - OpenAI 401 → "Invalid OpenAI API key"
+  - OpenAI 429 → "rate limit exceeded"
+  - Generic API errors → "OpenAI API error: ..."
+- Created comprehensive tests in `tests/effect/services/Transcription.test.ts`:
+  - 16 tests covering service, factory, live layer with mocked OpenAI
+  - Test layer error messages
+  - Factory function mocking
+  - Live layer with mocked Whisper responses
+  - Error mapping (401, 429, generic errors)
+  - Format validation (all supported formats)
+  - Missing fields handling (segments, language, duration)
+  - Service isolation between layers
+
+**Files created:**
+- src/effect/services/Transcription.ts
+- tests/effect/services/Transcription.test.ts
+
+**Technical notes:**
+- This is the first Effect-TS service with a dependency (depends on OpenAI)
+- Layer composition happens in src/effect/layers/Live.ts, NOT in the service file
+- Tests use `Layer.provide(Transcription.Live, openAITestLayer)` to compose layers
+- Effect.ensuring guarantees temp file cleanup even on API errors
+- Service defaults: language="en", duration=0, segments=[] when not provided
+
+**Quality gates verified:**
+- `bun run typecheck` - passes
+- `bun run lint` - passes (1 pre-existing Astro warning)
+- `bun test` (backend) - passes (245 pass, 7 skip, 16 new)
+- `bunx vitest run` (frontend) - passes (211 tests)
+- `bun run build` (frontend) - passes
+
+**Notes for next task:**
+- Next priority: [Effect-TS] Create Chat Effect service
+- Transcription service is now available for Pipeline service composition
+- The Chat service will follow the same dependency pattern (depends on OpenAI)
+- Layer composition for dependent services follows: `Layer.provide(Service.Live, DependencyLayer)`

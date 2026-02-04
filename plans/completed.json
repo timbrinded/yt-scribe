@@ -777,5 +777,33 @@
 			"Run `bun run typecheck`"
 		],
 		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Create Transcription Effect service (first with dependency)",
+		"steps": [
+			"Create `src/effect/services/Transcription.ts`",
+			"Define TranscriptionService interface with transcribe(filePath) method",
+			"Create Transcription Context.Tag class",
+			"Implement Transcription.Live using Layer.effect with yield* OpenAI dependency",
+			"Do NOT call Layer.provide(OpenAI.Live) inside file - happens in layer composition",
+			"Port file validation, compression, and Whisper API call logic",
+			"Use Effect.ensuring for temp file cleanup",
+			"Map OpenAI errors to TranscriptionFailedError",
+			"Run `bun run typecheck`"
+		],
+		"completed_at": "2026-02-04"
+	},
+	{
+		"category": "functional",
+		"description": "[Effect-TS] Add Transcription service tests with OpenAI mock",
+		"steps": [
+			"Create `tests/effect/services/Transcription.test.ts`",
+			"Create mock OpenAI layer that returns canned Whisper response",
+			"Test: transcribe returns expected result with mock",
+			"Test: transcribe returns TranscriptionFailedError when mock throws",
+			"Run `bun test tests/effect/services/`"
+		],
+		"completed_at": "2026-02-04"
 	}
 ]
