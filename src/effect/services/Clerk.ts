@@ -16,7 +16,10 @@
  */
 
 import { Context, Effect, Layer, Config } from "effect";
-import { createClerkClient, verifyToken as clerkVerifyToken } from "@clerk/backend";
+import {
+	createClerkClient,
+	verifyToken as clerkVerifyToken,
+} from "@clerk/backend";
 import { UnauthorizedError } from "../errors";
 
 // =============================================================================
@@ -78,7 +81,10 @@ export interface ClerkService {
 /**
  * Clerk service Context.Tag for dependency injection.
  */
-export class Clerk extends Context.Tag("@ytscribe/Clerk")<Clerk, ClerkService>() {
+export class Clerk extends Context.Tag("@ytscribe/Clerk")<
+	Clerk,
+	ClerkService
+>() {
 	// =========================================================================
 	// LIVE LAYER
 	// =========================================================================

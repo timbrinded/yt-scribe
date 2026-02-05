@@ -137,7 +137,10 @@ export interface YouTubeService {
 	 */
 	readonly getMetadata: (
 		url: string,
-	) => Effect.Effect<VideoMetadata, InvalidYouTubeUrlError | DownloadFailedError>;
+	) => Effect.Effect<
+		VideoMetadata,
+		InvalidYouTubeUrlError | DownloadFailedError
+	>;
 
 	/**
 	 * Downloads audio from a YouTube video.

@@ -166,10 +166,7 @@ function getEventsImpl(
 			conditions.push(eq(analytics.event, options.event));
 		}
 
-		const whereClause =
-			conditions.length > 0
-				? and(...conditions)
-				: undefined;
+		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
 		// Get total count
 		const totalResult = db

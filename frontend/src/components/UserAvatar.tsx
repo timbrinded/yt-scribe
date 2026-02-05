@@ -5,7 +5,12 @@
  * Shows a sign-in button when not authenticated.
  */
 
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/astro/react";
+import {
+	SignedIn,
+	SignedOut,
+	SignInButton,
+	UserButton,
+} from "@clerk/astro/react";
 
 interface UserAvatarProps {
 	/** Optional class name for the container */
@@ -26,7 +31,8 @@ export function UserAvatar({ className = "" }: UserAvatarProps) {
 					appearance={{
 						elements: {
 							avatarBox: "h-9 w-9",
-							userButtonTrigger: "ring-2 ring-transparent transition-all hover:ring-primary-200 focus:outline-none focus:ring-primary-300",
+							userButtonTrigger:
+								"ring-2 ring-transparent transition-all hover:ring-primary-200 focus:outline-none focus:ring-primary-300",
 						},
 					}}
 					userProfileUrl="/settings"

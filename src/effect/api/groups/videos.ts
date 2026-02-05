@@ -34,7 +34,8 @@ export class CreateVideoRequest extends Schema.Class<CreateVideoRequest>(
 )({
 	url: Schema.String.pipe(
 		Schema.annotations({
-			description: "YouTube video URL (supports youtube.com, youtu.be, shorts, etc.)",
+			description:
+				"YouTube video URL (supports youtube.com, youtu.be, shorts, etc.)",
 			examples: ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
 		}),
 	),
@@ -43,19 +44,39 @@ export class CreateVideoRequest extends Schema.Class<CreateVideoRequest>(
 /**
  * Response when a video is created.
  */
-export class VideoResponse extends Schema.Class<VideoResponse>("VideoResponse")({
-	id: Schema.Number.pipe(Schema.annotations({ description: "Video ID in the database" })),
-	youtubeUrl: Schema.String.pipe(Schema.annotations({ description: "Original YouTube URL" })),
-	youtubeId: Schema.String.pipe(Schema.annotations({ description: "YouTube video ID (11 characters)" })),
-	title: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: "Video title (null if not yet fetched)" })),
-	duration: Schema.NullOr(Schema.Number).pipe(Schema.annotations({ description: "Duration in seconds" })),
-	thumbnailUrl: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: "Thumbnail URL" })),
-	status: Schema.Literal("pending", "processing", "completed", "failed").pipe(
-		Schema.annotations({ description: "Processing status" }),
-	),
-	createdAt: Schema.String.pipe(Schema.annotations({ description: "ISO timestamp when video was added" })),
-	updatedAt: Schema.String.pipe(Schema.annotations({ description: "ISO timestamp of last update" })),
-}) {}
+export class VideoResponse extends Schema.Class<VideoResponse>("VideoResponse")(
+	{
+		id: Schema.Number.pipe(
+			Schema.annotations({ description: "Video ID in the database" }),
+		),
+		youtubeUrl: Schema.String.pipe(
+			Schema.annotations({ description: "Original YouTube URL" }),
+		),
+		youtubeId: Schema.String.pipe(
+			Schema.annotations({ description: "YouTube video ID (11 characters)" }),
+		),
+		title: Schema.NullOr(Schema.String).pipe(
+			Schema.annotations({
+				description: "Video title (null if not yet fetched)",
+			}),
+		),
+		duration: Schema.NullOr(Schema.Number).pipe(
+			Schema.annotations({ description: "Duration in seconds" }),
+		),
+		thumbnailUrl: Schema.NullOr(Schema.String).pipe(
+			Schema.annotations({ description: "Thumbnail URL" }),
+		),
+		status: Schema.Literal("pending", "processing", "completed", "failed").pipe(
+			Schema.annotations({ description: "Processing status" }),
+		),
+		createdAt: Schema.String.pipe(
+			Schema.annotations({ description: "ISO timestamp when video was added" }),
+		),
+		updatedAt: Schema.String.pipe(
+			Schema.annotations({ description: "ISO timestamp of last update" }),
+		),
+	},
+) {}
 
 /**
  * A segment of the transcript with timestamps.
@@ -63,9 +84,15 @@ export class VideoResponse extends Schema.Class<VideoResponse>("VideoResponse")(
 export class TranscriptSegmentSchema extends Schema.Class<TranscriptSegmentSchema>(
 	"TranscriptSegmentSchema",
 )({
-	start: Schema.Number.pipe(Schema.annotations({ description: "Start time in seconds" })),
-	end: Schema.Number.pipe(Schema.annotations({ description: "End time in seconds" })),
-	text: Schema.String.pipe(Schema.annotations({ description: "Transcribed text for this segment" })),
+	start: Schema.Number.pipe(
+		Schema.annotations({ description: "Start time in seconds" }),
+	),
+	end: Schema.Number.pipe(
+		Schema.annotations({ description: "End time in seconds" }),
+	),
+	text: Schema.String.pipe(
+		Schema.annotations({ description: "Transcribed text for this segment" }),
+	),
 }) {}
 
 /**
@@ -74,11 +101,15 @@ export class TranscriptSegmentSchema extends Schema.Class<TranscriptSegmentSchem
 export class TranscriptResponse extends Schema.Class<TranscriptResponse>(
 	"TranscriptResponse",
 )({
-	content: Schema.String.pipe(Schema.annotations({ description: "Full transcript text" })),
+	content: Schema.String.pipe(
+		Schema.annotations({ description: "Full transcript text" }),
+	),
 	segments: Schema.Array(TranscriptSegmentSchema).pipe(
 		Schema.annotations({ description: "Transcript segments with timestamps" }),
 	),
-	language: Schema.String.pipe(Schema.annotations({ description: "Detected language code" })),
+	language: Schema.String.pipe(
+		Schema.annotations({ description: "Detected language code" }),
+	),
 }) {}
 
 /**
@@ -97,7 +128,9 @@ export class VideoDetailResponse extends Schema.Class<VideoDetailResponse>(
 	createdAt: Schema.String,
 	updatedAt: Schema.String,
 	transcript: Schema.NullOr(TranscriptResponse).pipe(
-		Schema.annotations({ description: "Transcript data (null if not yet completed)" }),
+		Schema.annotations({
+			description: "Transcript data (null if not yet completed)",
+		}),
 	),
 }) {}
 
@@ -108,9 +141,15 @@ export class VideoListResponse extends Schema.Class<VideoListResponse>(
 	"VideoListResponse",
 )({
 	videos: Schema.Array(VideoResponse),
-	limit: Schema.Number.pipe(Schema.annotations({ description: "Maximum items per page" })),
-	offset: Schema.Number.pipe(Schema.annotations({ description: "Items skipped" })),
-	count: Schema.Number.pipe(Schema.annotations({ description: "Number of items returned" })),
+	limit: Schema.Number.pipe(
+		Schema.annotations({ description: "Maximum items per page" }),
+	),
+	offset: Schema.Number.pipe(
+		Schema.annotations({ description: "Items skipped" }),
+	),
+	count: Schema.Number.pipe(
+		Schema.annotations({ description: "Number of items returned" }),
+	),
 }) {}
 
 /**
@@ -134,7 +173,9 @@ export const VideoListParams = Schema.Struct({
 		Schema.NumberFromString.pipe(
 			Schema.int(),
 			Schema.between(1, 100),
-			Schema.annotations({ description: "Maximum items per page (1-100, default 20)" }),
+			Schema.annotations({
+				description: "Maximum items per page (1-100, default 20)",
+			}),
 		),
 		{ as: "Option" },
 	),
@@ -142,7 +183,9 @@ export const VideoListParams = Schema.Struct({
 		Schema.NumberFromString.pipe(
 			Schema.int(),
 			Schema.nonNegative(),
-			Schema.annotations({ description: "Number of items to skip (default 0)" }),
+			Schema.annotations({
+				description: "Number of items to skip (default 0)",
+			}),
 		),
 		{ as: "Option" },
 	),
@@ -189,7 +232,10 @@ const listVideos = HttpApiEndpoint.get("listVideos", "/videos")
 	.setUrlParams(VideoListParams)
 	.addSuccess(VideoListResponse)
 	.annotate(OpenApi.Summary, "List user's video library")
-	.annotate(OpenApi.Description, "Returns a paginated list of videos belonging to the authenticated user, ordered by creation date (newest first).");
+	.annotate(
+		OpenApi.Description,
+		"Returns a paginated list of videos belonging to the authenticated user, ordered by creation date (newest first).",
+	);
 
 /**
  * GET /videos/:id - Get video details with transcript.
@@ -202,7 +248,10 @@ const getVideo = HttpApiEndpoint.get("getVideo", "/videos/:id")
 	.addError(VideoNotFoundError)
 	.addError(ForbiddenError)
 	.annotate(OpenApi.Summary, "Get video details")
-	.annotate(OpenApi.Description, "Returns video metadata and transcript content. Transcript is null for non-completed videos.");
+	.annotate(
+		OpenApi.Description,
+		"Returns video metadata and transcript content. Transcript is null for non-completed videos.",
+	);
 
 /**
  * POST /videos/:id/retry - Retry failed transcription.
@@ -216,7 +265,10 @@ const retryVideo = HttpApiEndpoint.post("retryVideo", "/videos/:id/retry")
 	.addError(ForbiddenError)
 	.addError(BadRequestError)
 	.annotate(OpenApi.Summary, "Retry failed transcription")
-	.annotate(OpenApi.Description, "Resets a video in 'failed' state back to 'pending' and re-triggers the transcription pipeline. Returns 400 if video is not in failed state.");
+	.annotate(
+		OpenApi.Description,
+		"Resets a video in 'failed' state back to 'pending' and re-triggers the transcription pipeline. Returns 400 if video is not in failed state.",
+	);
 
 /**
  * GET /videos/:id/status - SSE stream for processing status.
@@ -229,7 +281,10 @@ const videoStatus = HttpApiEndpoint.get("videoStatus", "/videos/:id/status")
 	.addError(VideoNotFoundError)
 	.addError(ForbiddenError)
 	.annotate(OpenApi.Summary, "Stream video processing status")
-	.annotate(OpenApi.Description, "Server-Sent Events stream providing real-time updates during video processing. Events include stage changes (downloading, extracting, transcribing, complete, error) and progress percentages.");
+	.annotate(
+		OpenApi.Description,
+		"Server-Sent Events stream providing real-time updates during video processing. Events include stage changes (downloading, extracting, transcribing, complete, error) and progress percentages.",
+	);
 
 // =============================================================================
 // GROUP DEFINITION
@@ -250,4 +305,7 @@ export const VideosGroup = HttpApiGroup.make("videos")
 	.middleware(Authorization)
 	.prefix("/api")
 	.annotate(OpenApi.Title, "Videos")
-	.annotate(OpenApi.Description, "Video management and transcription endpoints");
+	.annotate(
+		OpenApi.Description,
+		"Video management and transcription endpoints",
+	);

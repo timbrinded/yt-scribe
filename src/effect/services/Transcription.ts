@@ -36,7 +36,11 @@ import { unlink } from "node:fs/promises";
 import type OpenAIClient from "openai";
 import { OpenAI } from "./OpenAI";
 import { TranscriptionFailedError } from "../errors";
-import type { TranscriptionService, TranscriptionResult, TranscriptSegment } from "./types";
+import type {
+	TranscriptionService,
+	TranscriptionResult,
+	TranscriptSegment,
+} from "./types";
 
 // =============================================================================
 // CONSTANTS

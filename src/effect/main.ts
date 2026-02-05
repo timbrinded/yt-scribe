@@ -149,7 +149,9 @@ const createFrontendFallback =
 const HttpLive = Layer.unwrapEffect(
 	Effect.gen(function* () {
 		const frontendService = yield* Frontend;
-		const withFrontendFallback = createFrontendFallback(frontendService.handler);
+		const withFrontendFallback = createFrontendFallback(
+			frontendService.handler,
+		);
 
 		return HttpApiBuilder.serve((httpApp) =>
 			pipe(httpApp, HttpMiddleware.logger, withFrontendFallback),

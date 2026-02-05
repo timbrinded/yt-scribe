@@ -20,7 +20,10 @@ const mockTranscript =
 	"This is a test transcript. It talks about various topics.";
 const mockMessages = [
 	{ role: "user" as const, content: "What is this video about?" },
-	{ role: "assistant" as const, content: "This video is about various topics." },
+	{
+		role: "assistant" as const,
+		content: "This video is about various topics.",
+	},
 ];
 
 /**
@@ -71,21 +74,25 @@ describe("Chat Effect Service", () => {
 			}).pipe(Effect.provide(Chat.Test)),
 		);
 
-		it.effect("chatComplete returns helpful error message indicating mock needed", () =>
-			Effect.gen(function* () {
-				const chat = yield* Chat;
-				const exit = yield* chat.chatComplete(mockTranscript, [], "Hello").pipe(Effect.exit);
+		it.effect(
+			"chatComplete returns helpful error message indicating mock needed",
+			() =>
+				Effect.gen(function* () {
+					const chat = yield* Chat;
+					const exit = yield* chat
+						.chatComplete(mockTranscript, [], "Hello")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-					expect(error).toBeInstanceOf(ChatApiError);
-					if (error instanceof ChatApiError) {
-						expect(error.reason).toContain("not mocked");
-						expect(error.reason).toContain("makeChatTestLayer");
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+						expect(error).toBeInstanceOf(ChatApiError);
+						if (error instanceof ChatApiError) {
+							expect(error.reason).toContain("not mocked");
+							expect(error.reason).toContain("makeChatTestLayer");
+						}
 					}
-				}
-			}).pipe(Effect.provide(Chat.Test)),
+				}).pipe(Effect.provide(Chat.Test)),
 		);
 	});
 
@@ -137,7 +144,9 @@ describe("Chat Effect Service", () => {
 				});
 
 				const chat = yield* Effect.provide(Chat, testLayer);
-				const exit = yield* chat.chatComplete(mockTranscript, [], "Hello").pipe(Effect.exit);
+				const exit = yield* chat
+					.chatComplete(mockTranscript, [], "Hello")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -284,17 +293,15 @@ describe("Chat Effect Service", () => {
 				const testLayer = Layer.provide(Chat.Live, openAITestLayer);
 
 				const chat = yield* Effect.provide(Chat, testLayer);
-				yield* chat.chatComplete(
-					mockTranscript,
-					mockMessages,
-					"New question",
-				);
+				yield* chat.chatComplete(mockTranscript, mockMessages, "New question");
 
 				// Should have: system prompt, 2 previous messages, new user message
 				expect(capturedMessages.length).toBe(4);
 				expect((capturedMessages[0] as { role: string }).role).toBe("system");
 				expect((capturedMessages[1] as { role: string }).role).toBe("user");
-				expect((capturedMessages[2] as { role: string }).role).toBe("assistant");
+				expect((capturedMessages[2] as { role: string }).role).toBe(
+					"assistant",
+				);
 				expect((capturedMessages[3] as { role: string }).role).toBe("user");
 				expect((capturedMessages[3] as { content: string }).content).toBe(
 					"New question",
@@ -361,7 +368,9 @@ describe("Chat Effect Service", () => {
 				);
 
 				const systemPrompt = capturedMessages[0]?.content ?? "";
-				expect(systemPrompt).toContain("This is the unique transcript content.");
+				expect(systemPrompt).toContain(
+					"This is the unique transcript content.",
+				);
 			}),
 		);
 
@@ -380,7 +389,9 @@ describe("Chat Effect Service", () => {
 				const testLayer = Layer.provide(Chat.Live, openAITestLayer);
 
 				const chat = yield* Effect.provide(Chat, testLayer);
-				const exit = yield* chat.chatComplete(mockTranscript, [], "Hello").pipe(Effect.exit);
+				const exit = yield* chat
+					.chatComplete(mockTranscript, [], "Hello")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -409,7 +420,9 @@ describe("Chat Effect Service", () => {
 				const testLayer = Layer.provide(Chat.Live, openAITestLayer);
 
 				const chat = yield* Effect.provide(Chat, testLayer);
-				const exit = yield* chat.chatComplete(mockTranscript, [], "Hello").pipe(Effect.exit);
+				const exit = yield* chat
+					.chatComplete(mockTranscript, [], "Hello")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -441,7 +454,9 @@ describe("Chat Effect Service", () => {
 				const testLayer = Layer.provide(Chat.Live, openAITestLayer);
 
 				const chat = yield* Effect.provide(Chat, testLayer);
-				const exit = yield* chat.chatComplete(mockTranscript, [], "Hello").pipe(Effect.exit);
+				const exit = yield* chat
+					.chatComplete(mockTranscript, [], "Hello")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -470,7 +485,9 @@ describe("Chat Effect Service", () => {
 				const testLayer = Layer.provide(Chat.Live, openAITestLayer);
 
 				const chat = yield* Effect.provide(Chat, testLayer);
-				const exit = yield* chat.chatComplete(mockTranscript, [], "Hello").pipe(Effect.exit);
+				const exit = yield* chat
+					.chatComplete(mockTranscript, [], "Hello")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {

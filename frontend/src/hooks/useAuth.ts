@@ -133,7 +133,9 @@ export { useClerkAuth };
  * Fetch current user data from the API with a token
  * Useful for one-off checks or server-side rendering
  */
-export async function fetchCurrentUser(token: string): Promise<AuthUser | null> {
+export async function fetchCurrentUser(
+	token: string,
+): Promise<AuthUser | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/auth/me`, {
 			headers: {

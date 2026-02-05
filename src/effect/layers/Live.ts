@@ -150,4 +150,8 @@ const PipelineLayer = Pipeline.Live.pipe(
  * )
  * ```
  */
-export const LiveLayer = Layer.mergeAll(LeafLayer, DependentLayer, PipelineLayer);
+export const LiveLayer = Layer.mergeAll(
+	LeafLayer,
+	DependentLayer,
+	PipelineLayer,
+);

@@ -33,10 +33,7 @@
 import { Context, Effect, Layer } from "effect";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import {
-	DownloadFailedError,
-	InvalidYouTubeUrlError,
-} from "../errors";
+import { DownloadFailedError, InvalidYouTubeUrlError } from "../errors";
 import type { YouTubeService, VideoMetadata } from "./types";
 
 // =============================================================================

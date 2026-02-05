@@ -41,7 +41,9 @@ const getAnalyticsHandler = ({
 		limit: Option.Option<number>;
 		offset: Option.Option<number>;
 		userId: Option.Option<number>;
-		event: Option.Option<"video_added" | "transcription_completed" | "chat_message_sent">;
+		event: Option.Option<
+			"video_added" | "transcription_completed" | "chat_message_sent"
+		>;
 	};
 }) =>
 	Effect.gen(function* () {
@@ -51,7 +53,9 @@ const getAnalyticsHandler = ({
 		const limit = Option.getOrUndefined(urlParams.limit);
 		const offset = Option.getOrUndefined(urlParams.offset);
 		const userId = Option.getOrUndefined(urlParams.userId);
-		const event = Option.getOrUndefined(urlParams.event) as AnalyticsEventType | undefined;
+		const event = Option.getOrUndefined(urlParams.event) as
+			| AnalyticsEventType
+			| undefined;
 
 		// Get events from analytics service
 		const result = yield* analyticsService.getEvents({
@@ -62,13 +66,15 @@ const getAnalyticsHandler = ({
 		});
 
 		// Map to response format
-		const events: typeof AnalyticsEventResponse.Type[] = result.items.map((item) => ({
-			id: item.id,
-			userId: item.userId,
-			event: item.event,
-			properties: item.properties,
-			createdAt: item.createdAt.toISOString(),
-		}));
+		const events: (typeof AnalyticsEventResponse.Type)[] = result.items.map(
+			(item) => ({
+				id: item.id,
+				userId: item.userId,
+				event: item.event,
+				properties: item.properties,
+				createdAt: item.createdAt.toISOString(),
+			}),
+		);
 
 		return {
 			events,

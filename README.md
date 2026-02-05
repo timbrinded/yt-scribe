@@ -90,22 +90,22 @@ ytscribe logout
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/auth/google` | Initiate Google OAuth |
-| GET | `/auth/google/callback` | OAuth callback |
-| GET | `/auth/me` | Get current user |
-| POST | `/auth/logout` | Logout |
-| DELETE | `/auth/account` | Delete account |
-| GET | `/api/videos` | List videos |
-| POST | `/api/videos` | Add new video |
-| GET | `/api/videos/:id` | Get video details |
-| POST | `/api/videos/:id/retry` | Retry failed video |
-| GET | `/api/videos/:id/status/stream` | SSE status updates |
-| POST | `/api/videos/:id/chat` | Send chat message |
-| GET | `/api/videos/:id/sessions` | List chat sessions |
-| GET | `/api/sessions/:id/messages` | Get session messages |
+| Method | Endpoint                        | Description           |
+| ------ | ------------------------------- | --------------------- |
+| GET    | `/health`                       | Health check          |
+| GET    | `/auth/google`                  | Initiate Google OAuth |
+| GET    | `/auth/google/callback`         | OAuth callback        |
+| GET    | `/auth/me`                      | Get current user      |
+| POST   | `/auth/logout`                  | Logout                |
+| DELETE | `/auth/account`                 | Delete account        |
+| GET    | `/api/videos`                   | List videos           |
+| POST   | `/api/videos`                   | Add new video         |
+| GET    | `/api/videos/:id`               | Get video details     |
+| POST   | `/api/videos/:id/retry`         | Retry failed video    |
+| GET    | `/api/videos/:id/status/stream` | SSE status updates    |
+| POST   | `/api/videos/:id/chat`          | Send chat message     |
+| GET    | `/api/videos/:id/sessions`      | List chat sessions    |
+| GET    | `/api/sessions/:id/messages`    | Get session messages  |
 
 ## Deployment
 
@@ -118,6 +118,7 @@ ytscribe logout
    - Select your ytscribe repository
 
 3. **Configure environment variables** in Railway dashboard:
+
    ```
    OPENAI_API_KEY=sk-your-api-key
    GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
@@ -150,18 +151,18 @@ The included `Dockerfile` works with any Docker-compatible platform:
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | Yes | - | OpenAI API key |
-| `GOOGLE_CLIENT_ID` | Yes | - | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Yes | - | Google OAuth client secret |
-| `PORT` | No | `3000` | Server port |
-| `DATABASE_URL` | No | `data/ytscribe.db` | SQLite database path |
-| `GOOGLE_REDIRECT_URI` | No | `http://localhost:3000/auth/google/callback` | OAuth redirect |
-| `FRONTEND_URL` | No | `http://localhost:4321` | Frontend URL for redirects |
-| `LOG_LEVEL` | No | `debug`/`info` | Logging level |
-| `NODE_ENV` | No | `development` | Environment mode |
-| `PUBLIC_API_URL` | No | `http://localhost:3000` | API URL for frontend |
+| Variable               | Required | Default                                      | Description                |
+| ---------------------- | -------- | -------------------------------------------- | -------------------------- |
+| `OPENAI_API_KEY`       | Yes      | -                                            | OpenAI API key             |
+| `GOOGLE_CLIENT_ID`     | Yes      | -                                            | Google OAuth client ID     |
+| `GOOGLE_CLIENT_SECRET` | Yes      | -                                            | Google OAuth client secret |
+| `PORT`                 | No       | `3000`                                       | Server port                |
+| `DATABASE_URL`         | No       | `data/ytscribe.db`                           | SQLite database path       |
+| `GOOGLE_REDIRECT_URI`  | No       | `http://localhost:3000/auth/google/callback` | OAuth redirect             |
+| `FRONTEND_URL`         | No       | `http://localhost:4321`                      | Frontend URL for redirects |
+| `LOG_LEVEL`            | No       | `debug`/`info`                               | Logging level              |
+| `NODE_ENV`             | No       | `development`                                | Environment mode           |
+| `PUBLIC_API_URL`       | No       | `http://localhost:3000`                      | API URL for frontend       |
 
 ## Development
 

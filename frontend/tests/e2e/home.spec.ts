@@ -9,12 +9,12 @@ test.describe("Landing Page", () => {
 
 		// Hero section should be visible
 		await expect(
-			page.getByRole("heading", { name: /Transform YouTube into Knowledge/i })
+			page.getByRole("heading", { name: /Transform YouTube into Knowledge/i }),
 		).toBeVisible();
 
 		// Subtitle should be visible
 		await expect(
-			page.getByText(/YTScribe transcribes your favorite videos/i)
+			page.getByText(/YTScribe transcribes your favorite videos/i),
 		).toBeVisible();
 	});
 
@@ -32,7 +32,9 @@ test.describe("Landing Page", () => {
 		const desktopNav = page.getByRole("navigation", {
 			name: "Main navigation",
 		});
-		await expect(desktopNav.getByRole("link", { name: "Features" })).toBeVisible();
+		await expect(
+			desktopNav.getByRole("link", { name: "Features" }),
+		).toBeVisible();
 		await expect(desktopNav.getByRole("link", { name: "About" })).toBeVisible();
 	});
 
@@ -61,13 +63,13 @@ test.describe("Landing Page", () => {
 		// Wait for features section heading to be visible after scroll
 		// Using role heading to be more specific
 		await expect(
-			page.getByRole("heading", { name: "Transcribe", exact: true })
+			page.getByRole("heading", { name: "Transcribe", exact: true }),
 		).toBeVisible({ timeout: 5000 });
 		await expect(
-			page.getByRole("heading", { name: "Search", exact: true })
+			page.getByRole("heading", { name: "Search", exact: true }),
 		).toBeVisible();
 		await expect(
-			page.getByRole("heading", { name: "Chat", exact: true })
+			page.getByRole("heading", { name: "Chat", exact: true }),
 		).toBeVisible();
 	});
 
@@ -89,7 +91,7 @@ test.describe("Landing Page", () => {
 
 		// Hero should still be visible
 		await expect(
-			page.getByRole("heading", { name: /Transform YouTube into Knowledge/i })
+			page.getByRole("heading", { name: /Transform YouTube into Knowledge/i }),
 		).toBeVisible();
 
 		// Mobile menu button should be visible
@@ -123,7 +125,9 @@ test.describe("Landing Page", () => {
 		const mobileNav = mobileMenu.getByRole("navigation", {
 			name: "Mobile navigation",
 		});
-		await expect(mobileNav.getByRole("link", { name: "Features" })).toBeVisible();
+		await expect(
+			mobileNav.getByRole("link", { name: "Features" }),
+		).toBeVisible();
 		await expect(mobileNav.getByRole("link", { name: "About" })).toBeVisible();
 	});
 });

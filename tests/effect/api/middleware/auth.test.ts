@@ -84,7 +84,9 @@ describe("CurrentUser", () => {
 			expect(typeof user.id).toBe("number");
 			expect(typeof user.email).toBe("string");
 			expect(user.name === null || typeof user.name === "string").toBe(true);
-			expect(user.avatarUrl === null || typeof user.avatarUrl === "string").toBe(true);
+			expect(
+				user.avatarUrl === null || typeof user.avatarUrl === "string",
+			).toBe(true);
 		}).pipe(Effect.provideService(CurrentUser, mockUser)),
 	);
 });
@@ -106,18 +108,27 @@ describe("Authorization", () => {
 
 	it("has security configuration", () => {
 		// The Authorization class should have security definitions
-		expect((Authorization as unknown as { security: unknown }).security).toBeDefined();
-		expect((Authorization as unknown as { security: { bearer: unknown } }).security.bearer).toBeDefined();
+		expect(
+			(Authorization as unknown as { security: unknown }).security,
+		).toBeDefined();
+		expect(
+			(Authorization as unknown as { security: { bearer: unknown } }).security
+				.bearer,
+		).toBeDefined();
 	});
 
 	it("provides CurrentUser context", () => {
 		// The Authorization middleware should indicate it provides CurrentUser
-		expect((Authorization as unknown as { provides: unknown }).provides).toBe(CurrentUser);
+		expect((Authorization as unknown as { provides: unknown }).provides).toBe(
+			CurrentUser,
+		);
 	});
 
 	it("declares UnauthorizedError as failure type", () => {
 		// The Authorization middleware should declare its error type
-		expect((Authorization as unknown as { failure: unknown }).failure).toBeDefined();
+		expect(
+			(Authorization as unknown as { failure: unknown }).failure,
+		).toBeDefined();
 	});
 });
 
@@ -156,7 +167,10 @@ describe("AuthorizationLive", () => {
 			// Verify the layer can be constructed and provides the Authorization service
 			const auth = yield* Effect.provide(
 				Authorization,
-				Layer.provide(AuthorizationLive, Layer.merge(clerkLayer, Database.Test)),
+				Layer.provide(
+					AuthorizationLive,
+					Layer.merge(clerkLayer, Database.Test),
+				),
 			);
 
 			// The authorization object should have a bearer handler
@@ -186,7 +200,10 @@ describe("AuthorizationLive", () => {
 
 			const authService = yield* Effect.provide(
 				Authorization,
-				Layer.provide(AuthorizationLive, Layer.merge(clerkLayer, Database.Test)),
+				Layer.provide(
+					AuthorizationLive,
+					Layer.merge(clerkLayer, Database.Test),
+				),
 			);
 
 			// Should have the bearer handler
@@ -236,8 +253,8 @@ describe("Token security", () => {
 describe("Module exports", () => {
 	it.effect("exports CurrentUser", () =>
 		Effect.gen(function* () {
-			const { CurrentUser: ExportedCurrentUser } = yield* Effect.promise(() =>
-				import("../../../../src/effect/api/middleware/auth"),
+			const { CurrentUser: ExportedCurrentUser } = yield* Effect.promise(
+				() => import("../../../../src/effect/api/middleware/auth"),
 			);
 			expect(ExportedCurrentUser).toBeDefined();
 			expect(ExportedCurrentUser.key).toBe("@ytscribe/CurrentUser");
@@ -246,8 +263,8 @@ describe("Module exports", () => {
 
 	it.effect("exports Authorization", () =>
 		Effect.gen(function* () {
-			const { Authorization: ExportedAuth } = yield* Effect.promise(() =>
-				import("../../../../src/effect/api/middleware/auth"),
+			const { Authorization: ExportedAuth } = yield* Effect.promise(
+				() => import("../../../../src/effect/api/middleware/auth"),
 			);
 			expect(ExportedAuth).toBeDefined();
 			expect(ExportedAuth.key).toBe("@ytscribe/Authorization");
@@ -256,8 +273,8 @@ describe("Module exports", () => {
 
 	it.effect("exports AuthorizationLive", () =>
 		Effect.gen(function* () {
-			const { AuthorizationLive: ExportedLive } = yield* Effect.promise(() =>
-				import("../../../../src/effect/api/middleware/auth"),
+			const { AuthorizationLive: ExportedLive } = yield* Effect.promise(
+				() => import("../../../../src/effect/api/middleware/auth"),
 			);
 			expect(ExportedLive).toBeDefined();
 			expect(Layer.isLayer(ExportedLive)).toBe(true);
@@ -266,8 +283,8 @@ describe("Module exports", () => {
 
 	it.effect("exports AuthorizationTest", () =>
 		Effect.gen(function* () {
-			const { AuthorizationTest: ExportedTest } = yield* Effect.promise(() =>
-				import("../../../../src/effect/api/middleware/auth"),
+			const { AuthorizationTest: ExportedTest } = yield* Effect.promise(
+				() => import("../../../../src/effect/api/middleware/auth"),
 			);
 			expect(ExportedTest).toBeDefined();
 			expect(Layer.isLayer(ExportedTest)).toBe(true);
@@ -276,9 +293,10 @@ describe("Module exports", () => {
 
 	it.effect("exports makeAuthorizationTestLayer", () =>
 		Effect.gen(function* () {
-			const { makeAuthorizationTestLayer: ExportedFactory } = yield* Effect.promise(() =>
-				import("../../../../src/effect/api/middleware/auth"),
-			);
+			const { makeAuthorizationTestLayer: ExportedFactory } =
+				yield* Effect.promise(
+					() => import("../../../../src/effect/api/middleware/auth"),
+				);
 			expect(ExportedFactory).toBeDefined();
 			expect(typeof ExportedFactory).toBe("function");
 		}),

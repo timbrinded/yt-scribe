@@ -26,7 +26,10 @@ import { AuthGroupLive } from "../../../src/effect/api/handlers/auth";
 import { AdminGroupLive } from "../../../src/effect/api/handlers/admin";
 import { HealthGroupLive } from "../../../src/effect/api/handlers/health";
 import { makeAuthorizationTestLayer } from "../../../src/effect/api/middleware/auth";
-import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
+import {
+	Database,
+	makeDatabaseTestLayer,
+} from "../../../src/effect/services/Database";
 import { makeYouTubeTestLayer } from "../../../src/effect/services/YouTube";
 import { makePipelineTestLayer } from "../../../src/effect/services/Pipeline";
 import {
@@ -106,10 +109,12 @@ const INVALID_YOUTUBE_URL = "https://invalid-url.com/video";
  * @param options.seedDatabase - Function to seed the database with test data
  * @returns A handler function and dispose callback
  */
-function createTestHandler(options: {
-	user?: typeof TEST_USER | null;
-	seedDatabase?: (db: ReturnType<typeof Database["of"]>["db"]) => void;
-} = {}) {
+function createTestHandler(
+	options: {
+		user?: typeof TEST_USER | null;
+		seedDatabase?: (db: ReturnType<(typeof Database)["of"]>["db"]) => void;
+	} = {},
+) {
 	const { user = TEST_USER, seedDatabase } = options;
 
 	// Create database layer with optional seed function
@@ -243,7 +248,9 @@ describe("POST /api/videos", () => {
 
 				expect(response.status).toBe(201);
 
-				const data = yield* Effect.promise(() => response.json() as Promise<VideoResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<VideoResponse>,
+				);
 				expect(data.id).toBeDefined();
 				expect(data.youtubeUrl).toBe(VALID_YOUTUBE_URL);
 				expect(data.youtubeId).toBe("dQw4w9WgXcQ");
@@ -301,7 +308,9 @@ describe("POST /api/videos", () => {
 				);
 
 				expect(response.status).toBe(409);
-				const data = yield* Effect.promise(() => response.json() as Promise<DuplicateErrorResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<DuplicateErrorResponse>,
+				);
 				expect(data.existingId).toBeDefined();
 			} finally {
 				yield* Effect.promise(() => dispose());
@@ -379,7 +388,9 @@ describe("GET /api/videos", () => {
 				);
 
 				expect(response.status).toBe(200);
-				const data = yield* Effect.promise(() => response.json() as Promise<VideoListResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<VideoListResponse>,
+				);
 				expect(data.videos).toEqual([]);
 				expect(data.count).toBe(0);
 			} finally {
@@ -423,7 +434,9 @@ describe("GET /api/videos", () => {
 				);
 
 				expect(response.status).toBe(200);
-				const data = yield* Effect.promise(() => response.json() as Promise<VideoListResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<VideoListResponse>,
+				);
 				expect(data.videos).toHaveLength(1);
 				expect(data.videos[0]!.youtubeId).toBe("user1video");
 			} finally {
@@ -460,7 +473,9 @@ describe("GET /api/videos", () => {
 				);
 
 				expect(response1.status).toBe(200);
-				const data1 = yield* Effect.promise(() => response1.json() as Promise<VideoListResponse>);
+				const data1 = yield* Effect.promise(
+					() => response1.json() as Promise<VideoListResponse>,
+				);
 				expect(data1.videos).toHaveLength(2);
 				expect(data1.limit).toBe(2);
 
@@ -473,7 +488,9 @@ describe("GET /api/videos", () => {
 				);
 
 				expect(response2.status).toBe(200);
-				const data2 = yield* Effect.promise(() => response2.json() as Promise<VideoListResponse>);
+				const data2 = yield* Effect.promise(
+					() => response2.json() as Promise<VideoListResponse>,
+				);
 				expect(data2.videos).toHaveLength(2); // 5 - 3 = 2
 				expect(data2.offset).toBe(3);
 			} finally {
@@ -534,7 +551,9 @@ describe("GET /api/videos/:id", () => {
 				);
 
 				expect(response.status).toBe(200);
-				const data = yield* Effect.promise(() => response.json() as Promise<VideoResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<VideoResponse>,
+				);
 				expect(data.id).toBe(1);
 				expect(data.title).toBe("Test Video");
 				expect(data.status).toBe("completed");
@@ -584,7 +603,9 @@ describe("GET /api/videos/:id", () => {
 				);
 
 				expect(response.status).toBe(200);
-				const data = yield* Effect.promise(() => response.json() as Promise<VideoResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<VideoResponse>,
+				);
 				expect(data.transcript).toBeDefined();
 				expect(data.transcript!.content).toBe("This is the transcript content");
 				expect(data.transcript!.segments).toHaveLength(2);
@@ -620,7 +641,9 @@ describe("GET /api/videos/:id", () => {
 				);
 
 				expect(response.status).toBe(200);
-				const data = yield* Effect.promise(() => response.json() as Promise<VideoResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<VideoResponse>,
+				);
 				expect(data.transcript).toBeNull();
 			} finally {
 				yield* Effect.promise(() => dispose());
@@ -730,7 +753,9 @@ describe("POST /api/videos/:id/retry", () => {
 				);
 
 				expect(response.status).toBe(200);
-				const data = yield* Effect.promise(() => response.json() as Promise<RetryResponse>);
+				const data = yield* Effect.promise(
+					() => response.json() as Promise<RetryResponse>,
+				);
 				expect(data.id).toBe(1);
 				expect(data.status).toBe("pending");
 				expect(data.message).toContain("retry");

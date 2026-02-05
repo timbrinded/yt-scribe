@@ -64,7 +64,7 @@ describe("extractCitations", () => {
 
 	it("extracts multiple citations", () => {
 		const citations = extractCitations(
-			"Start at [0:30], then see [2:15] and [1:00:00]"
+			"Start at [0:30], then see [2:15] and [1:00:00]",
 		);
 		expect(citations).toHaveLength(3);
 		expect(citations[0].seconds).toBe(30);

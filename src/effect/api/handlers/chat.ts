@@ -32,7 +32,12 @@ import {
 	ForbiddenError,
 	VideoNotFoundError,
 } from "../../errors";
-import { videos, transcripts, chatSessions, messages } from "../../../db/schema";
+import {
+	videos,
+	transcripts,
+	chatSessions,
+	messages,
+} from "../../../db/schema";
 import type {
 	ChatMessageResponse,
 	ChatSessionsResponse,
@@ -257,7 +262,7 @@ const listSessionsHandler = ({ path }: { path: { id: number } }) =>
 			.all();
 
 		// Map to response format
-		const sessionSummaries: typeof ChatSessionSummary.Type[] =
+		const sessionSummaries: (typeof ChatSessionSummary.Type)[] =
 			sessionsWithCounts.map((session) => ({
 				id: session.id,
 				title: session.title,

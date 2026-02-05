@@ -15,9 +15,13 @@ import { Schema } from "effect";
 /**
  * Response for health check endpoint.
  */
-export class HealthResponse extends Schema.Class<HealthResponse>("HealthResponse")({
+export class HealthResponse extends Schema.Class<HealthResponse>(
+	"HealthResponse",
+)({
 	status: Schema.Literal("ok"),
-	timestamp: Schema.String.pipe(Schema.annotations({ description: "ISO timestamp" })),
+	timestamp: Schema.String.pipe(
+		Schema.annotations({ description: "ISO timestamp" }),
+	),
 }) {}
 
 // =============================================================================

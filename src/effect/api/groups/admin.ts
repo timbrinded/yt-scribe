@@ -23,7 +23,9 @@ export const AnalyticsQueryParams = Schema.Struct({
 		Schema.NumberFromString.pipe(
 			Schema.int(),
 			Schema.between(1, 100),
-			Schema.annotations({ description: "Maximum items per page (1-100, default 20)" }),
+			Schema.annotations({
+				description: "Maximum items per page (1-100, default 20)",
+			}),
 		),
 		{ as: "Option" },
 	),
@@ -31,7 +33,9 @@ export const AnalyticsQueryParams = Schema.Struct({
 		Schema.NumberFromString.pipe(
 			Schema.int(),
 			Schema.nonNegative(),
-			Schema.annotations({ description: "Number of items to skip (default 0)" }),
+			Schema.annotations({
+				description: "Number of items to skip (default 0)",
+			}),
 		),
 		{ as: "Option" },
 	),
@@ -44,9 +48,11 @@ export const AnalyticsQueryParams = Schema.Struct({
 		{ as: "Option" },
 	),
 	event: Schema.optionalWith(
-		Schema.Literal("video_added", "transcription_completed", "chat_message_sent").pipe(
-			Schema.annotations({ description: "Filter by event type" }),
-		),
+		Schema.Literal(
+			"video_added",
+			"transcription_completed",
+			"chat_message_sent",
+		).pipe(Schema.annotations({ description: "Filter by event type" })),
 		{ as: "Option" },
 	),
 });
@@ -58,14 +64,20 @@ export class AnalyticsEventResponse extends Schema.Class<AnalyticsEventResponse>
 	"AnalyticsEventResponse",
 )({
 	id: Schema.Number.pipe(Schema.annotations({ description: "Event ID" })),
-	userId: Schema.Number.pipe(Schema.annotations({ description: "User ID who triggered the event" })),
-	event: Schema.Literal("video_added", "transcription_completed", "chat_message_sent").pipe(
-		Schema.annotations({ description: "Event type" }),
+	userId: Schema.Number.pipe(
+		Schema.annotations({ description: "User ID who triggered the event" }),
 	),
+	event: Schema.Literal(
+		"video_added",
+		"transcription_completed",
+		"chat_message_sent",
+	).pipe(Schema.annotations({ description: "Event type" })),
 	properties: Schema.NullOr(Schema.Unknown).pipe(
 		Schema.annotations({ description: "Event properties (JSON object)" }),
 	),
-	createdAt: Schema.String.pipe(Schema.annotations({ description: "ISO timestamp when event occurred" })),
+	createdAt: Schema.String.pipe(
+		Schema.annotations({ description: "ISO timestamp when event occurred" }),
+	),
 }) {}
 
 /**
@@ -75,9 +87,17 @@ export class AnalyticsListResponse extends Schema.Class<AnalyticsListResponse>(
 	"AnalyticsListResponse",
 )({
 	events: Schema.Array(AnalyticsEventResponse),
-	total: Schema.Number.pipe(Schema.annotations({ description: "Total number of events matching query" })),
-	limit: Schema.Number.pipe(Schema.annotations({ description: "Maximum items per page" })),
-	offset: Schema.Number.pipe(Schema.annotations({ description: "Items skipped" })),
+	total: Schema.Number.pipe(
+		Schema.annotations({
+			description: "Total number of events matching query",
+		}),
+	),
+	limit: Schema.Number.pipe(
+		Schema.annotations({ description: "Maximum items per page" }),
+	),
+	offset: Schema.Number.pipe(
+		Schema.annotations({ description: "Items skipped" }),
+	),
 }) {}
 
 // =============================================================================
@@ -114,4 +134,7 @@ export const AdminGroup = HttpApiGroup.make("admin")
 	.middleware(Authorization)
 	.prefix("/api/admin")
 	.annotate(OpenApi.Title, "Admin")
-	.annotate(OpenApi.Description, "Admin-only endpoints for analytics and monitoring");
+	.annotate(
+		OpenApi.Description,
+		"Admin-only endpoints for analytics and monitoring",
+	);

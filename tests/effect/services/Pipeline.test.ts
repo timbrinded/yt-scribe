@@ -16,7 +16,10 @@ import {
 	Pipeline,
 	makePipelineTestLayer,
 } from "../../../src/effect/services/Pipeline";
-import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
+import {
+	Database,
+	makeDatabaseTestLayer,
+} from "../../../src/effect/services/Database";
 import { makeYouTubeTestLayer } from "../../../src/effect/services/YouTube";
 import { makeTranscriptionTestLayer } from "../../../src/effect/services/Transcription";
 import { makeProgressTestLayer } from "../../../src/effect/services/Progress";
@@ -73,7 +76,7 @@ const TEST_TRANSCRIPTION = {
 /**
  * Seeds the database with a test user and video.
  */
-function seedTestData(db: ReturnType<typeof Database["of"]>["db"]) {
+function seedTestData(db: ReturnType<(typeof Database)["of"]>["db"]) {
 	db.insert(schema.users).values(TEST_USER).run();
 	db.insert(schema.videos).values(TEST_VIDEO).run();
 }
@@ -82,11 +85,13 @@ function seedTestData(db: ReturnType<typeof Database["of"]>["db"]) {
  * Creates a test layer with all dependencies mocked for Pipeline testing.
  * This composes: Database (seeded) + YouTube (mock) + Transcription (mock) + Progress (real)
  */
-function createPipelineTestLayer(options: {
-	youtubeOverrides?: Parameters<typeof makeYouTubeTestLayer>[0];
-	transcriptionOverrides?: Parameters<typeof makeTranscriptionTestLayer>[0];
-	progressOverrides?: ReturnType<typeof makeProgressTestLayer>["layer"];
-} = {}) {
+function createPipelineTestLayer(
+	options: {
+		youtubeOverrides?: Parameters<typeof makeYouTubeTestLayer>[0];
+		transcriptionOverrides?: Parameters<typeof makeTranscriptionTestLayer>[0];
+		progressOverrides?: ReturnType<typeof makeProgressTestLayer>["layer"];
+	} = {},
+) {
 	// Create progress layer with event collection
 	const { layer: progressLayer, getEvents } = makeProgressTestLayer();
 
@@ -124,7 +129,12 @@ function createPipelineTestLayer(options: {
 	);
 
 	// Final composed layer
-	const testLayer = Layer.mergeAll(leafLayer, transcriptionLayer, analyticsLayer, pipelineLayer);
+	const testLayer = Layer.mergeAll(
+		leafLayer,
+		transcriptionLayer,
+		analyticsLayer,
+		pipelineLayer,
+	);
 
 	return { layer: testLayer, getProgressEvents: getEvents };
 }
@@ -251,24 +261,27 @@ describe("Pipeline Effect Service", () => {
 			}).pipe(Effect.provide(layer));
 		});
 
-		it.scoped("processVideo returns VideoNotFoundError for missing video", () => {
-			const { layer } = createPipelineTestLayer();
+		it.scoped(
+			"processVideo returns VideoNotFoundError for missing video",
+			() => {
+				const { layer } = createPipelineTestLayer();
 
-			return Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				// Video ID 999 doesn't exist in seeded data
-				const exit = yield* pipeline.processVideo(999).pipe(Effect.exit);
+				return Effect.gen(function* () {
+					const pipeline = yield* Pipeline;
+					// Video ID 999 doesn't exist in seeded data
+					const exit = yield* pipeline.processVideo(999).pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-					expect(error).toBeInstanceOf(VideoNotFoundError);
-					if (error instanceof VideoNotFoundError) {
-						expect(error.videoId).toBe(999);
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+						expect(error).toBeInstanceOf(VideoNotFoundError);
+						if (error instanceof VideoNotFoundError) {
+							expect(error.videoId).toBe(999);
+						}
 					}
-				}
-			}).pipe(Effect.provide(layer));
-		});
+				}).pipe(Effect.provide(layer));
+			},
+		);
 
 		it.scoped("processVideo marks video as failed on download error", () => {
 			const { layer } = createPipelineTestLayer({
@@ -310,85 +323,91 @@ describe("Pipeline Effect Service", () => {
 			}).pipe(Effect.provide(layer));
 		});
 
-		it.scoped("processVideo marks video as failed on transcription error", () => {
-			const { layer, getProgressEvents } = createPipelineTestLayer({
-				transcriptionOverrides: {
-					transcribe: () =>
-						Effect.fail(
-							new TranscriptionFailedError({
-								videoId: 1,
-								reason: "API rate limit exceeded",
-							}),
-						),
-				},
-			});
-
-			return Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				const { db } = yield* Database;
-
-				// Process video (should fail)
-				const result = yield* pipeline.processVideo(1).pipe(
-					Effect.catchAll((error) => {
-						return Effect.succeed({ error });
-					}),
-				);
-
-				// Verify video status is 'failed' in database
-				const video = db
-					.select()
-					.from(schema.videos)
-					.where(eq(schema.videos.id, 1))
-					.get();
-
-				expect(video?.status).toBe("failed");
-				expect(result).toHaveProperty("error");
-				expect((result as { error: TranscriptionFailedError }).error).toBeInstanceOf(
-					TranscriptionFailedError,
-				);
-
-				// Verify error progress event was emitted
-				const events = yield* getProgressEvents;
-				const errorEvent = events.find((e) => e.stage === "error");
-				expect(errorEvent).toBeDefined();
-				expect(errorEvent?.error).toContain("Transcription failed");
-			}).pipe(Effect.provide(layer));
-		});
-
-		it.scoped("processVideo updates video status to processing during execution", () => {
-			// Track the status during download by using a closure
-			let downloadCalled = false;
-
-			// We need to access the database during download to check status
-			// But the mock signature doesn't provide Database access
-			// So we verify the video is in 'processing' state after a successful run
-			// by checking progress events which are emitted in order
-
-			const { layer, getProgressEvents } = createPipelineTestLayer({
-				youtubeOverrides: {
-					downloadAudio: () => {
-						downloadCalled = true;
-						return Effect.succeed("/tmp/test-audio.m4a");
+		it.scoped(
+			"processVideo marks video as failed on transcription error",
+			() => {
+				const { layer, getProgressEvents } = createPipelineTestLayer({
+					transcriptionOverrides: {
+						transcribe: () =>
+							Effect.fail(
+								new TranscriptionFailedError({
+									videoId: 1,
+									reason: "API rate limit exceeded",
+								}),
+							),
 					},
-				},
-			});
+				});
 
-			return Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				yield* pipeline.processVideo(1);
+				return Effect.gen(function* () {
+					const pipeline = yield* Pipeline;
+					const { db } = yield* Database;
 
-				expect(downloadCalled).toBe(true);
+					// Process video (should fail)
+					const result = yield* pipeline.processVideo(1).pipe(
+						Effect.catchAll((error) => {
+							return Effect.succeed({ error });
+						}),
+					);
 
-				// Verify that the 'pending' event (which emits after status update to 'processing')
-				// comes before the 'downloading' event
-				const events = yield* getProgressEvents;
-				const stages = events.map((e) => e.stage);
-				const pendingIdx = stages.indexOf("pending");
-				const downloadingIdx = stages.indexOf("downloading");
+					// Verify video status is 'failed' in database
+					const video = db
+						.select()
+						.from(schema.videos)
+						.where(eq(schema.videos.id, 1))
+						.get();
 
-				expect(pendingIdx).toBeLessThan(downloadingIdx);
-			}).pipe(Effect.provide(layer));
-		});
+					expect(video?.status).toBe("failed");
+					expect(result).toHaveProperty("error");
+					expect(
+						(result as { error: TranscriptionFailedError }).error,
+					).toBeInstanceOf(TranscriptionFailedError);
+
+					// Verify error progress event was emitted
+					const events = yield* getProgressEvents;
+					const errorEvent = events.find((e) => e.stage === "error");
+					expect(errorEvent).toBeDefined();
+					expect(errorEvent?.error).toContain("Transcription failed");
+				}).pipe(Effect.provide(layer));
+			},
+		);
+
+		it.scoped(
+			"processVideo updates video status to processing during execution",
+			() => {
+				// Track the status during download by using a closure
+				let downloadCalled = false;
+
+				// We need to access the database during download to check status
+				// But the mock signature doesn't provide Database access
+				// So we verify the video is in 'processing' state after a successful run
+				// by checking progress events which are emitted in order
+
+				const { layer, getProgressEvents } = createPipelineTestLayer({
+					youtubeOverrides: {
+						downloadAudio: () => {
+							downloadCalled = true;
+							return Effect.succeed("/tmp/test-audio.m4a");
+						},
+					},
+				});
+
+				return Effect.gen(function* () {
+					const pipeline = yield* Pipeline;
+					yield* pipeline.processVideo(1);
+
+					expect(downloadCalled).toBe(true);
+
+					// Verify that the 'pending' event (which emits after status update to 'processing')
+					// comes before the 'downloading' event
+					const events = yield* getProgressEvents;
+					const stages = events.map((e) => e.stage);
+					const pendingIdx = stages.indexOf("pending");
+					const downloadingIdx = stages.indexOf("downloading");
+
+					expect(pendingIdx).toBeLessThan(downloadingIdx);
+				}).pipe(Effect.provide(layer));
+			},
+		);
 
 		it.scoped("processVideo saves transcript to database on success", () => {
 			const { layer } = createPipelineTestLayer();
@@ -415,60 +434,66 @@ describe("Pipeline Effect Service", () => {
 			}).pipe(Effect.provide(layer));
 		});
 
-		it.scoped("processVideo fetches and saves metadata when not present", () => {
-			let metadataFetched = false;
+		it.scoped(
+			"processVideo fetches and saves metadata when not present",
+			() => {
+				let metadataFetched = false;
 
-			const { layer } = createPipelineTestLayer({
-				youtubeOverrides: {
-					getMetadata: () => {
-						metadataFetched = true;
-						return Effect.succeed(TEST_METADATA);
+				const { layer } = createPipelineTestLayer({
+					youtubeOverrides: {
+						getMetadata: () => {
+							metadataFetched = true;
+							return Effect.succeed(TEST_METADATA);
+						},
+						downloadAudio: () => Effect.succeed("/tmp/test-audio.m4a"),
 					},
-					downloadAudio: () => Effect.succeed("/tmp/test-audio.m4a"),
-				},
-			});
+				});
 
-			return Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				const { db } = yield* Database;
+				return Effect.gen(function* () {
+					const pipeline = yield* Pipeline;
+					const { db } = yield* Database;
 
-				// Process video
-				yield* pipeline.processVideo(1);
+					// Process video
+					yield* pipeline.processVideo(1);
 
-				// Verify metadata is in database
-				const video = db
-					.select()
-					.from(schema.videos)
-					.where(eq(schema.videos.id, 1))
-					.get();
+					// Verify metadata is in database
+					const video = db
+						.select()
+						.from(schema.videos)
+						.where(eq(schema.videos.id, 1))
+						.get();
 
-				expect(metadataFetched).toBe(true);
-				expect(video?.title).toBe(TEST_METADATA.title);
-				expect(video?.duration).toBe(TEST_METADATA.duration);
-				expect(video?.thumbnailUrl).toBe(TEST_METADATA.thumbnailUrl);
-			}).pipe(Effect.provide(layer));
-		});
+					expect(metadataFetched).toBe(true);
+					expect(video?.title).toBe(TEST_METADATA.title);
+					expect(video?.duration).toBe(TEST_METADATA.duration);
+					expect(video?.thumbnailUrl).toBe(TEST_METADATA.thumbnailUrl);
+				}).pipe(Effect.provide(layer));
+			},
+		);
 
-		it.scoped("processVideo updates video status to completed on success", () => {
-			const { layer } = createPipelineTestLayer();
+		it.scoped(
+			"processVideo updates video status to completed on success",
+			() => {
+				const { layer } = createPipelineTestLayer();
 
-			return Effect.gen(function* () {
-				const pipeline = yield* Pipeline;
-				const { db } = yield* Database;
+				return Effect.gen(function* () {
+					const pipeline = yield* Pipeline;
+					const { db } = yield* Database;
 
-				// Process video
-				yield* pipeline.processVideo(1);
+					// Process video
+					yield* pipeline.processVideo(1);
 
-				// Verify status is 'completed' in database
-				const video = db
-					.select()
-					.from(schema.videos)
-					.where(eq(schema.videos.id, 1))
-					.get();
+					// Verify status is 'completed' in database
+					const video = db
+						.select()
+						.from(schema.videos)
+						.where(eq(schema.videos.id, 1))
+						.get();
 
-				expect(video?.status).toBe("completed");
-			}).pipe(Effect.provide(layer));
-		});
+					expect(video?.status).toBe("completed");
+				}).pipe(Effect.provide(layer));
+			},
+		);
 	});
 
 	describe("makePipelineTestContext factory", () => {

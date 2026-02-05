@@ -27,12 +27,36 @@ The section on React starts at around three minutes.
 We'll wrap up with some best practices for modern web development.
 Thanks for watching this video on web development basics.`,
 	segments: [
-		{ start: 0, end: 30, text: "Welcome to this tutorial about building web applications." },
-		{ start: 30, end: 60, text: "At the beginning, we'll cover the basics of HTML and CSS." },
-		{ start: 60, end: 120, text: "Then at around two minutes in, we discuss JavaScript fundamentals." },
-		{ start: 120, end: 180, text: "The section on React starts at around three minutes." },
-		{ start: 180, end: 240, text: "We'll wrap up with some best practices for modern web development." },
-		{ start: 240, end: 300, text: "Thanks for watching this video on web development basics." },
+		{
+			start: 0,
+			end: 30,
+			text: "Welcome to this tutorial about building web applications.",
+		},
+		{
+			start: 30,
+			end: 60,
+			text: "At the beginning, we'll cover the basics of HTML and CSS.",
+		},
+		{
+			start: 60,
+			end: 120,
+			text: "Then at around two minutes in, we discuss JavaScript fundamentals.",
+		},
+		{
+			start: 120,
+			end: 180,
+			text: "The section on React starts at around three minutes.",
+		},
+		{
+			start: 180,
+			end: 240,
+			text: "We'll wrap up with some best practices for modern web development.",
+		},
+		{
+			start: 240,
+			end: 300,
+			text: "Thanks for watching this video on web development basics.",
+		},
 	],
 	language: "en",
 };
@@ -52,7 +76,11 @@ async function main() {
 			.get();
 
 		if (!user) {
-			console.error(JSON.stringify({ error: "E2E test user not found. Run create-test-session.ts first." }));
+			console.error(
+				JSON.stringify({
+					error: "E2E test user not found. Run create-test-session.ts first.",
+				}),
+			);
 			process.exit(1);
 		}
 
@@ -63,8 +91,8 @@ async function main() {
 			.where(
 				and(
 					eq(schema.videos.userId, user.id),
-					eq(schema.videos.youtubeId, TEST_VIDEO.youtubeId)
-				)
+					eq(schema.videos.youtubeId, TEST_VIDEO.youtubeId),
+				),
 			)
 			.get();
 
@@ -145,7 +173,7 @@ async function main() {
 					id: user.id,
 					email: user.email,
 				},
-			})
+			}),
 		);
 	} finally {
 		sqlite.close();

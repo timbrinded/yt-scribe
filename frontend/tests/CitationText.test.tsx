@@ -24,7 +24,7 @@ describe("CitationText", () => {
 	it("renders plain text without citations", () => {
 		render(<CitationText text="No timestamps here" />);
 		expect(screen.getByTestId("citation-text")).toHaveTextContent(
-			"No timestamps here"
+			"No timestamps here",
 		);
 	});
 
@@ -37,7 +37,7 @@ describe("CitationText", () => {
 
 	it("renders multiple citations", () => {
 		render(
-			<CitationText text="Start at [0:30], then [2:15], finally [1:00:00]" />
+			<CitationText text="Start at [0:30], then [2:15], finally [1:00:00]" />,
 		);
 		const links = screen.getAllByTestId("citation-link");
 		expect(links).toHaveLength(3);
@@ -55,7 +55,10 @@ describe("CitationText", () => {
 	it("calls onCitationClick when citation is clicked", () => {
 		const onCitationClick = vi.fn();
 		render(
-			<CitationText text="Click [1:00] here" onCitationClick={onCitationClick} />
+			<CitationText
+				text="Click [1:00] here"
+				onCitationClick={onCitationClick}
+			/>,
 		);
 		fireEvent.click(screen.getByTestId("citation-link"));
 		expect(onCitationClick).toHaveBeenCalledWith(60);
@@ -121,7 +124,7 @@ describe("CitationText with TimestampNavigationContext", () => {
 		render(
 			<TimestampNavigationProvider>
 				<TestComponent />
-			</TimestampNavigationProvider>
+			</TimestampNavigationProvider>,
 		);
 
 		// Initial state should be null

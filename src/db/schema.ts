@@ -123,7 +123,9 @@ export const analytics = sqliteTable("analytics", {
 		.notNull()
 		.references(() => users.id),
 	event: text("event", { enum: analyticsEventEnum }).notNull(),
-	properties: text("properties", { mode: "json" }).$type<Record<string, unknown>>(),
+	properties: text("properties", { mode: "json" }).$type<
+		Record<string, unknown>
+	>(),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),

@@ -137,7 +137,14 @@ export class Pipeline extends Context.Tag("@ytscribe/Pipeline")<
 
 			return {
 				processVideo: (videoId: number) =>
-					processVideoWithDeps(db, youtube, transcription, progress, analyticsService, videoId),
+					processVideoWithDeps(
+						db,
+						youtube,
+						transcription,
+						progress,
+						analyticsService,
+						videoId,
+					),
 			} satisfies PipelineService;
 		}),
 	);

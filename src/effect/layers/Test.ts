@@ -35,8 +35,15 @@ import { Effect, Layer } from "effect";
 import { Database, makeDatabaseTestLayer } from "../services/Database";
 import { OpenAI, makeOpenAITestLayer } from "../services/OpenAI";
 import { YouTube, makeYouTubeTestLayer } from "../services/YouTube";
-import { Progress, makeProgressTestLayer, makeProgressMockLayer } from "../services/Progress";
-import { Transcription, makeTranscriptionTestLayer } from "../services/Transcription";
+import {
+	Progress,
+	makeProgressTestLayer,
+	makeProgressMockLayer,
+} from "../services/Progress";
+import {
+	Transcription,
+	makeTranscriptionTestLayer,
+} from "../services/Transcription";
 import { Chat, makeChatTestLayer } from "../services/Chat";
 import { Clerk, makeClerkTestLayer } from "../services/Clerk";
 import { Pipeline, makePipelineTestLayer } from "../services/Pipeline";
@@ -304,10 +311,12 @@ export function makeSeededTestLayer(
  * expect(events).toHaveLength(5) // pending, downloading, extracting, transcribing, complete
  * ```
  */
-export function makePipelineTestContext(options: {
-	youtubeOverrides?: Parameters<typeof makeYouTubeTestLayer>[0];
-	transcriptionOverrides?: Parameters<typeof makeTranscriptionTestLayer>[0];
-} = {}): {
+export function makePipelineTestContext(
+	options: {
+		youtubeOverrides?: Parameters<typeof makeYouTubeTestLayer>[0];
+		transcriptionOverrides?: Parameters<typeof makeTranscriptionTestLayer>[0];
+	} = {},
+): {
 	layer: Layer.Layer<AppRequirements>;
 	getProgressEvents: ReturnType<typeof makeProgressTestLayer>["getEvents"];
 } {

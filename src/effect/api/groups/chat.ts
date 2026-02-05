@@ -38,7 +38,8 @@ export class ChatMessageRequest extends Schema.Class<ChatMessageRequest>(
 	sessionId: Schema.optionalWith(
 		Schema.Number.pipe(
 			Schema.annotations({
-				description: "Optional session ID to continue an existing conversation. If not provided, a new session is created.",
+				description:
+					"Optional session ID to continue an existing conversation. If not provided, a new session is created.",
 			}),
 		),
 		{ as: "Option" },
@@ -52,7 +53,9 @@ export class ChatMessageResponse extends Schema.Class<ChatMessageResponse>(
 	"ChatMessageResponse",
 )({
 	sessionId: Schema.Number.pipe(
-		Schema.annotations({ description: "Chat session ID (use for subsequent messages)" }),
+		Schema.annotations({
+			description: "Chat session ID (use for subsequent messages)",
+		}),
 	),
 	response: Schema.String.pipe(
 		Schema.annotations({ description: "The assistant's response" }),
@@ -73,7 +76,9 @@ export class ChatSessionSummary extends Schema.Class<ChatSessionSummary>(
 		Schema.annotations({ description: "Number of messages in the session" }),
 	),
 	createdAt: Schema.String.pipe(
-		Schema.annotations({ description: "ISO timestamp when session was created" }),
+		Schema.annotations({
+			description: "ISO timestamp when session was created",
+		}),
 	),
 	updatedAt: Schema.String.pipe(
 		Schema.annotations({ description: "ISO timestamp of last message" }),
@@ -157,4 +162,7 @@ export const ChatGroup = HttpApiGroup.make("chat")
 	.middleware(Authorization)
 	.prefix("/api")
 	.annotate(OpenApi.Title, "Chat")
-	.annotate(OpenApi.Description, "AI-powered chat endpoints for video conversations");
+	.annotate(
+		OpenApi.Description,
+		"AI-powered chat endpoints for video conversations",
+	);

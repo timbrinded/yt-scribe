@@ -263,14 +263,11 @@ export class Frontend extends Context.Tag("@ytscribe/Frontend")<
 	/**
 	 * Test implementation that returns a simple HTML response.
 	 */
-	static readonly Test = Layer.succeed(
-		Frontend,
-		{
-			handler: Effect.succeed(
-				HttpServerResponse.html("<html><body>Test Frontend</body></html>"),
-			),
-		} satisfies FrontendService,
-	);
+	static readonly Test = Layer.succeed(Frontend, {
+		handler: Effect.succeed(
+			HttpServerResponse.html("<html><body>Test Frontend</body></html>"),
+		),
+	} satisfies FrontendService);
 }
 
 // =============================================================================

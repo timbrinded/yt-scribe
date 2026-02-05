@@ -166,8 +166,7 @@ export class Example extends Context.Tag("@ytscribe/Example")<
 	 * For partial mocking, see makeTestLayer() factory pattern below.
 	 */
 	static readonly Test = Layer.succeed(Example, {
-		doSomething: (input: string) =>
-			Effect.succeed(`[Test] Mocked: ${input}`),
+		doSomething: (input: string) => Effect.succeed(`[Test] Mocked: ${input}`),
 
 		doSomethingThatMayFail: (input: string) =>
 			Effect.succeed(`[Test] Always succeeds: ${input}`),

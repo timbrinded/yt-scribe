@@ -120,11 +120,13 @@ const createVideoHandler = ({ payload }: { payload: { url: string } }) =>
 
 		// Trigger pipeline processing (fire-and-forget via forkDaemon)
 		yield* Effect.forkDaemon(
-			pipeline.processVideo(video.id).pipe(
-				Effect.catchAll((error) =>
-					Effect.logError(`Pipeline failed for video ${video.id}`, error),
+			pipeline
+				.processVideo(video.id)
+				.pipe(
+					Effect.catchAll((error) =>
+						Effect.logError(`Pipeline failed for video ${video.id}`, error),
+					),
 				),
-			),
 		);
 
 		// Return video record
@@ -318,11 +320,16 @@ const retryVideoHandler = ({ path }: { path: { id: number } }) =>
 
 		// Re-trigger pipeline processing (fire-and-forget via forkDaemon)
 		yield* Effect.forkDaemon(
-			pipeline.processVideo(videoId).pipe(
-				Effect.catchAll((error) =>
-					Effect.logError(`Pipeline retry failed for video ${videoId}`, error),
+			pipeline
+				.processVideo(videoId)
+				.pipe(
+					Effect.catchAll((error) =>
+						Effect.logError(
+							`Pipeline retry failed for video ${videoId}`,
+							error,
+						),
+					),
 				),
-			),
 		);
 
 		return {

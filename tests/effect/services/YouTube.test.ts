@@ -1,7 +1,10 @@
 import { describe, expect, beforeAll, afterAll } from "vitest";
 import { it } from "@effect/vitest";
 import { Effect, Exit, Cause } from "effect";
-import { YouTube, makeYouTubeTestLayer } from "../../../src/effect/services/YouTube";
+import {
+	YouTube,
+	makeYouTubeTestLayer,
+} from "../../../src/effect/services/YouTube";
 import {
 	InvalidYouTubeUrlError,
 	DownloadFailedError,
@@ -173,9 +176,7 @@ describe("YouTube Effect Service", () => {
 			Effect.gen(function* () {
 				const youtube = yield* YouTube;
 				const result = {
-					valid: youtube.isValidUrl(
-						"https://youtube.com/watch?v=dQw4w9WgXcQ",
-					),
+					valid: youtube.isValidUrl("https://youtube.com/watch?v=dQw4w9WgXcQ"),
 					invalid: youtube.isValidUrl("not-a-url"),
 				};
 				expect(result.valid).toBe(true);
@@ -183,81 +184,93 @@ describe("YouTube Effect Service", () => {
 			}).pipe(Effect.provide(YouTube.Test)),
 		);
 
-		it.effect("getMetadata fails with InvalidYouTubeUrlError for invalid URLs", () =>
-			Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				const exit = yield* youtube.getMetadata("not-a-valid-url").pipe(Effect.exit);
+		it.effect(
+			"getMetadata fails with InvalidYouTubeUrlError for invalid URLs",
+			() =>
+				Effect.gen(function* () {
+					const youtube = yield* YouTube;
+					const exit = yield* youtube
+						.getMetadata("not-a-valid-url")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = Cause.failureOption(exit.cause);
-					expect(error._tag).toBe("Some");
-					if (error._tag === "Some") {
-						expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
-						expect((error.value as InvalidYouTubeUrlError).url).toBe(
-							"not-a-valid-url",
-						);
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = Cause.failureOption(exit.cause);
+						expect(error._tag).toBe("Some");
+						if (error._tag === "Some") {
+							expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+							expect((error.value as InvalidYouTubeUrlError).url).toBe(
+								"not-a-valid-url",
+							);
+						}
 					}
-				}
-			}).pipe(Effect.provide(YouTube.Test)),
+				}).pipe(Effect.provide(YouTube.Test)),
 		);
 
-		it.effect("getMetadata fails with DownloadFailedError for valid URLs (mock not implemented)", () =>
-			Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				const exit = yield* youtube.getMetadata(
-					"https://youtube.com/watch?v=dQw4w9WgXcQ",
-				).pipe(Effect.exit);
+		it.effect(
+			"getMetadata fails with DownloadFailedError for valid URLs (mock not implemented)",
+			() =>
+				Effect.gen(function* () {
+					const youtube = yield* YouTube;
+					const exit = yield* youtube
+						.getMetadata("https://youtube.com/watch?v=dQw4w9WgXcQ")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = Cause.failureOption(exit.cause);
-					expect(error._tag).toBe("Some");
-					if (error._tag === "Some") {
-						expect(error.value).toBeInstanceOf(DownloadFailedError);
-						expect((error.value as DownloadFailedError).reason).toContain(
-							"Mock",
-						);
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = Cause.failureOption(exit.cause);
+						expect(error._tag).toBe("Some");
+						if (error._tag === "Some") {
+							expect(error.value).toBeInstanceOf(DownloadFailedError);
+							expect((error.value as DownloadFailedError).reason).toContain(
+								"Mock",
+							);
+						}
 					}
-				}
-			}).pipe(Effect.provide(YouTube.Test)),
+				}).pipe(Effect.provide(YouTube.Test)),
 		);
 
-		it.effect("downloadAudio fails with InvalidYouTubeUrlError for invalid URLs", () =>
-			Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				const exit = yield* youtube.downloadAudio("invalid-url").pipe(Effect.exit);
+		it.effect(
+			"downloadAudio fails with InvalidYouTubeUrlError for invalid URLs",
+			() =>
+				Effect.gen(function* () {
+					const youtube = yield* YouTube;
+					const exit = yield* youtube
+						.downloadAudio("invalid-url")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = Cause.failureOption(exit.cause);
-					expect(error._tag).toBe("Some");
-					if (error._tag === "Some") {
-						expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = Cause.failureOption(exit.cause);
+						expect(error._tag).toBe("Some");
+						if (error._tag === "Some") {
+							expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+						}
 					}
-				}
-			}).pipe(Effect.provide(YouTube.Test)),
+				}).pipe(Effect.provide(YouTube.Test)),
 		);
 
-		it.effect("downloadAudio fails with DownloadFailedError for valid URLs (mock not implemented)", () =>
-			Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				const exit = yield* youtube.downloadAudio(
-					"https://youtube.com/watch?v=dQw4w9WgXcQ",
-				).pipe(Effect.exit);
+		it.effect(
+			"downloadAudio fails with DownloadFailedError for valid URLs (mock not implemented)",
+			() =>
+				Effect.gen(function* () {
+					const youtube = yield* YouTube;
+					const exit = yield* youtube
+						.downloadAudio("https://youtube.com/watch?v=dQw4w9WgXcQ")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = Cause.failureOption(exit.cause);
-					expect(error._tag).toBe("Some");
-					if (error._tag === "Some") {
-						expect(error.value).toBeInstanceOf(DownloadFailedError);
-						expect((error.value as DownloadFailedError).reason).toContain(
-							"Mock",
-						);
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = Cause.failureOption(exit.cause);
+						expect(error._tag).toBe("Some");
+						if (error._tag === "Some") {
+							expect(error.value).toBeInstanceOf(DownloadFailedError);
+							expect((error.value as DownloadFailedError).reason).toContain(
+								"Mock",
+							);
+						}
 					}
-				}
-			}).pipe(Effect.provide(YouTube.Test)),
+				}).pipe(Effect.provide(YouTube.Test)),
 		);
 	});
 
@@ -358,13 +371,9 @@ describe("YouTube Effect Service", () => {
 
 				const youtube = yield* Effect.provide(YouTube, testLayer);
 				const result = {
-					valid: youtube.isValidUrl(
-						"https://youtube.com/watch?v=dQw4w9WgXcQ",
-					),
+					valid: youtube.isValidUrl("https://youtube.com/watch?v=dQw4w9WgXcQ"),
 					invalid: youtube.isValidUrl("not-valid"),
-					extractedId: youtube.extractVideoId(
-						"https://youtu.be/dQw4w9WgXcQ",
-					),
+					extractedId: youtube.extractVideoId("https://youtu.be/dQw4w9WgXcQ"),
 				};
 
 				expect(result.valid).toBe(true);
@@ -386,9 +395,9 @@ describe("YouTube Effect Service", () => {
 				});
 
 				const youtube = yield* Effect.provide(YouTube, testLayer);
-				const exit = yield* youtube.getMetadata(
-					"https://youtube.com/watch?v=dQw4w9WgXcQ",
-				).pipe(Effect.exit);
+				const exit = yield* youtube
+					.getMetadata("https://youtube.com/watch?v=dQw4w9WgXcQ")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -427,33 +436,40 @@ describe("YouTube Effect Service", () => {
 			}).pipe(Effect.provide(YouTube.Live)),
 		);
 
-		it.skip("downloadAudio downloads audio from real video", { timeout: 120000 }, () =>
-			Effect.gen(function* () {
-				// Skip: Requires network and yt-dlp installed
-				const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
+		it.skip(
+			"downloadAudio downloads audio from real video",
+			{ timeout: 120000 },
+			() =>
+				Effect.gen(function* () {
+					// Skip: Requires network and yt-dlp installed
+					const outputPath = join(TEST_DOWNLOADS_DIR, `${TEST_VIDEO_ID}.m4a`);
 
-				const youtube = yield* YouTube;
-				const result = yield* youtube.downloadAudio(TEST_URL, outputPath);
+					const youtube = yield* YouTube;
+					const result = yield* youtube.downloadAudio(TEST_URL, outputPath);
 
-				expect(result).toBe(outputPath);
-				expect(existsSync(outputPath)).toBe(true);
-			}).pipe(Effect.provide(YouTube.Live)),
+					expect(result).toBe(outputPath);
+					expect(existsSync(outputPath)).toBe(true);
+				}).pipe(Effect.provide(YouTube.Live)),
 		);
 
-		it.effect("Live layer returns InvalidYouTubeUrlError for invalid URLs", () =>
-			Effect.gen(function* () {
-				const youtube = yield* YouTube;
-				const exit = yield* youtube.getMetadata("not-a-youtube-url").pipe(Effect.exit);
+		it.effect(
+			"Live layer returns InvalidYouTubeUrlError for invalid URLs",
+			() =>
+				Effect.gen(function* () {
+					const youtube = yield* YouTube;
+					const exit = yield* youtube
+						.getMetadata("not-a-youtube-url")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = Cause.failureOption(exit.cause);
-					expect(error._tag).toBe("Some");
-					if (error._tag === "Some") {
-						expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = Cause.failureOption(exit.cause);
+						expect(error._tag).toBe("Some");
+						if (error._tag === "Some") {
+							expect(error.value).toBeInstanceOf(InvalidYouTubeUrlError);
+						}
 					}
-				}
-			}).pipe(Effect.provide(YouTube.Live)),
+				}).pipe(Effect.provide(YouTube.Live)),
 		);
 	});
 
@@ -490,7 +506,9 @@ describe("YouTube Effect Service", () => {
 				expect(Exit.isFailure(testExit)).toBe(true);
 
 				// Custom layer should succeed with mock data
-				const customResult = yield* testProgram.pipe(Effect.provide(customLayer));
+				const customResult = yield* testProgram.pipe(
+					Effect.provide(customLayer),
+				);
 				expect(customResult.id).toBe("custom-id");
 			}),
 		);

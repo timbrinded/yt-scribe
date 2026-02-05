@@ -371,8 +371,10 @@ describe("Progress Effect Service", () => {
 
 		it.effect("events are isolated between test layers", () =>
 			Effect.gen(function* () {
-				const { layer: layer1, getEvents: getEvents1 } = makeProgressTestLayer();
-				const { layer: layer2, getEvents: getEvents2 } = makeProgressTestLayer();
+				const { layer: layer1, getEvents: getEvents1 } =
+					makeProgressTestLayer();
+				const { layer: layer2, getEvents: getEvents2 } =
+					makeProgressTestLayer();
 
 				// Emit to layer1
 				const program1 = Effect.gen(function* () {
@@ -400,8 +402,12 @@ describe("Progress Effect Service", () => {
 					return yield* getEvents2;
 				});
 
-				const events1 = yield* Effect.scoped(program1.pipe(Effect.provide(layer1)));
-				const events2 = yield* Effect.scoped(program2.pipe(Effect.provide(layer2)));
+				const events1 = yield* Effect.scoped(
+					program1.pipe(Effect.provide(layer1)),
+				);
+				const events2 = yield* Effect.scoped(
+					program2.pipe(Effect.provide(layer2)),
+				);
 
 				expect(events1).toHaveLength(1);
 				expect(events1[0]?.videoId).toBe(1);
@@ -488,7 +494,9 @@ describe("Progress Effect Service", () => {
 
 				const layer = makeProgressMockLayer({
 					subscribe: (videoId) =>
-						Stream.fromIterable(mockEvents.filter((e) => e.videoId === videoId)),
+						Stream.fromIterable(
+							mockEvents.filter((e) => e.videoId === videoId),
+						),
 				});
 
 				const program = Effect.gen(function* () {

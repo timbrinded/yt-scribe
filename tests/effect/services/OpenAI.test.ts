@@ -56,24 +56,26 @@ describe("OpenAI Effect Service", () => {
 			}).pipe(Effect.provide(OpenAI.Test)),
 		);
 
-		it.effect("mock client throws helpful error when method called without mock", () =>
-			Effect.gen(function* () {
-				const { client } = yield* OpenAI;
-				// Wrap the async call in Effect.tryPromise
-				const exit = yield* Effect.tryPromise(() =>
-					client.chat.completions.create({
-						model: "gpt-4o",
-						messages: [],
-					}),
-				).pipe(Effect.exit);
+		it.effect(
+			"mock client throws helpful error when method called without mock",
+			() =>
+				Effect.gen(function* () {
+					const { client } = yield* OpenAI;
+					// Wrap the async call in Effect.tryPromise
+					const exit = yield* Effect.tryPromise(() =>
+						client.chat.completions.create({
+							model: "gpt-4o",
+							messages: [],
+						}),
+					).pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const errorMessage = extractErrorMessage(exit.cause);
-					expect(errorMessage).toContain("was called but not mocked");
-					expect(errorMessage).toContain("makeOpenAITestLayer");
-				}
-			}).pipe(Effect.provide(OpenAI.Test)),
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const errorMessage = extractErrorMessage(exit.cause);
+						expect(errorMessage).toContain("was called but not mocked");
+						expect(errorMessage).toContain("makeOpenAITestLayer");
+					}
+				}).pipe(Effect.provide(OpenAI.Test)),
 		);
 
 		it.effect("mock client throws for nested property access", () =>
@@ -149,7 +151,12 @@ describe("OpenAI Effect Service", () => {
 					duration: 120.5,
 					segments: [
 						{ id: 0, start: 0, end: 5, text: "This is a mocked" },
-						{ id: 1, start: 5, end: 10, text: "transcription of the audio file." },
+						{
+							id: 1,
+							start: 5,
+							end: 10,
+							text: "transcription of the audio file.",
+						},
 					],
 				};
 

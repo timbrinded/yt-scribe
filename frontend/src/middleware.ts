@@ -19,11 +19,10 @@ const isProtectedRoute = createRouteMatcher([
  * - Allows public access to all other routes
  */
 export const onRequest = clerkMiddleware((auth, context) => {
-	const { pathname } = context.url;
+	const { isAuthenticated, redirectToSignIn } = auth();
 
-	// Protect specific routes
-	if (isProtectedRoute(context.request)) {
-		// auth().protect() redirects to sign-in if not authenticated
-		auth().protect();
+	// Protect specific routes - redirect to sign-in if not authenticated
+	if (isProtectedRoute(context.request) && !isAuthenticated) {
+		return redirectToSignIn();
 	}
 });

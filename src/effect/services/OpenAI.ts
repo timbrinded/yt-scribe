@@ -120,11 +120,7 @@ function createMockOpenAIClient(): OpenAIClient {
 						// Also proxy property access for nested objects
 						return new Proxy(handler, {
 							get(_t, p) {
-								if (
-									p === "then" ||
-									p === "catch" ||
-									p === "finally"
-								) {
+								if (p === "then" || p === "catch" || p === "finally") {
 									return undefined;
 								}
 								if (typeof p === "string") {

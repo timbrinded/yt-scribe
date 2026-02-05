@@ -47,7 +47,14 @@ export function parseTimestampToSeconds(timestamp: string): number | null {
 	if (parts.length === 3) {
 		// HH:MM:SS format
 		const [hours, minutes, seconds] = parts;
-		if (hours < 0 || minutes < 0 || minutes >= 60 || seconds < 0 || seconds >= 60) return null;
+		if (
+			hours < 0 ||
+			minutes < 0 ||
+			minutes >= 60 ||
+			seconds < 0 ||
+			seconds >= 60
+		)
+			return null;
 		return hours * 3600 + minutes * 60 + seconds;
 	}
 

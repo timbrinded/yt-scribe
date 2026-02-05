@@ -44,15 +44,23 @@ test.describe("Chat Flow", () => {
 
 		// Wait for the page to load (video header with title should be visible)
 		// Use a more specific selector to avoid matching other elements
-		await expect(page.locator("h1").filter({ hasText: testVideo.title })).toBeVisible({
+		await expect(
+			page.locator("h1").filter({ hasText: testVideo.title }),
+		).toBeVisible({
 			timeout: 10000,
 		});
 	});
 
-	test("displays video detail page with transcript and chat panels", async ({ page }) => {
+	test("displays video detail page with transcript and chat panels", async ({
+		page,
+	}) => {
 		// Verify two-column layout - use exact match for headings
-		await expect(page.getByRole("heading", { name: "Transcript", exact: true })).toBeVisible();
-		await expect(page.getByRole("heading", { name: "Chat", exact: true })).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Transcript", exact: true }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Chat", exact: true }),
+		).toBeVisible();
 
 		// Verify transcript panel has segments
 		await expect(page.getByText(/segments/)).toBeVisible();
@@ -85,7 +93,7 @@ test.describe("Chat Flow", () => {
 		const chatPanel = page.locator('[class*="flex-col bg-white"]').filter({
 			has: page.getByPlaceholder(/Ask about this video/),
 		});
-		const sendButton = chatPanel.locator('button').last();
+		const sendButton = chatPanel.locator("button").last();
 		await expect(sendButton).toBeVisible();
 	});
 
@@ -119,13 +127,17 @@ test.describe("Chat Flow", () => {
 		// Wait for the assistant response to appear
 		// Assistant messages have a neutral background and an avatar
 		// Look for the message container with assistant styling
-		const assistantMessages = page.locator('[class*="rounded-2xl"][class*="rounded-tl-md"][class*="bg-neutral-100"]');
+		const assistantMessages = page.locator(
+			'[class*="rounded-2xl"][class*="rounded-tl-md"][class*="bg-neutral-100"]',
+		);
 
 		// Use a longer timeout for API response
 		await expect(assistantMessages.first()).toBeVisible({ timeout: 60000 });
 	});
 
-	test("clicking timestamp in transcript activates segment", async ({ page }) => {
+	test("clicking timestamp in transcript activates segment", async ({
+		page,
+	}) => {
 		// Get the transcript panel
 		const transcriptPanel = page.locator('[data-testid="transcript-panel"]');
 		await expect(transcriptPanel).toBeVisible();
@@ -148,7 +160,9 @@ test.describe("Chat Flow", () => {
 
 		// Wait for the segment to become active
 		// The click triggers: onClick -> handleTimestampClick -> setActiveIndex -> onActiveSegmentChange -> context update
-		await expect(firstSegment).toHaveAttribute("data-active", "true", { timeout: 5000 });
+		await expect(firstSegment).toHaveAttribute("data-active", "true", {
+			timeout: 5000,
+		});
 
 		// If there are multiple segments, clicking another should change the active one
 		if (count > 1) {
@@ -157,7 +171,9 @@ test.describe("Chat Flow", () => {
 			await secondButton.dispatchEvent("click");
 
 			// Now second segment should be active
-			await expect(secondSegment).toHaveAttribute("data-active", "true", { timeout: 5000 });
+			await expect(secondSegment).toHaveAttribute("data-active", "true", {
+				timeout: 5000,
+			});
 			// And first segment should no longer be active
 			await expect(firstSegment).toHaveAttribute("data-active", "false");
 		}
@@ -180,7 +196,9 @@ test.describe("Chat Flow", () => {
 		await expect(firstUserMessage).toBeVisible({ timeout: 5000 });
 
 		// Wait for assistant response (longer timeout for API)
-		const assistantMessages = page.locator('[class*="rounded-2xl"][class*="rounded-tl-md"][class*="bg-neutral-100"]');
+		const assistantMessages = page.locator(
+			'[class*="rounded-2xl"][class*="rounded-tl-md"][class*="bg-neutral-100"]',
+		);
 		await expect(assistantMessages.first()).toBeVisible({ timeout: 60000 });
 
 		// Send follow-up message
@@ -195,7 +213,7 @@ test.describe("Chat Flow", () => {
 
 		// Verify we now have multiple user messages
 		const userMessages = page.locator('[class*="bg-primary-600"]').filter({
-			has: page.locator('p'),
+			has: page.locator("p"),
 		});
 		await expect(userMessages).toHaveCount(2, { timeout: 60000 });
 	});
@@ -207,16 +225,24 @@ test.describe("Chat Flow", () => {
 		await backLink.click();
 
 		// Should be on library page
-		await expect(page.getByRole("heading", { name: "Your Library" })).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Your Library" }),
+		).toBeVisible();
 
 		// Navigate back to video
 		await page.goto(`/video/${testVideo.id}`);
 
 		// Video detail page should load correctly - use specific selectors
-		await expect(page.locator("h1").filter({ hasText: testVideo.title })).toBeVisible({
+		await expect(
+			page.locator("h1").filter({ hasText: testVideo.title }),
+		).toBeVisible({
 			timeout: 10000,
 		});
-		await expect(page.getByRole("heading", { name: "Transcript", exact: true })).toBeVisible();
-		await expect(page.getByRole("heading", { name: "Chat", exact: true })).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Transcript", exact: true }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Chat", exact: true }),
+		).toBeVisible();
 	});
 });

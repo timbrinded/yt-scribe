@@ -13,11 +13,14 @@ import { YTScribeApi } from "../index";
  *
  * Returns 200 OK with current timestamp.
  */
-export const HealthGroupLive = HttpApiBuilder.group(YTScribeApi, "health", (handlers) =>
-	handlers.handle("healthCheck", () =>
-		Effect.succeed({
-			status: "ok" as const,
-			timestamp: new Date().toISOString(),
-		}),
-	),
+export const HealthGroupLive = HttpApiBuilder.group(
+	YTScribeApi,
+	"health",
+	(handlers) =>
+		handlers.handle("healthCheck", () =>
+			Effect.succeed({
+				status: "ok" as const,
+				timestamp: new Date().toISOString(),
+			}),
+		),
 ).pipe(Layer.provide(Layer.empty));

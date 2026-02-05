@@ -5,7 +5,10 @@
 import { describe, expect } from "vitest";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
-import { Database, makeDatabaseTestLayer } from "../../../src/effect/services/Database";
+import {
+	Database,
+	makeDatabaseTestLayer,
+} from "../../../src/effect/services/Database";
 import * as schema from "../../../src/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -67,9 +70,7 @@ describe("Database Effect Service", () => {
 				// First program inserts a user
 				const program1 = Effect.gen(function* () {
 					const { db } = yield* Database;
-					db.insert(schema.users)
-						.values({ email: "user1@example.com" })
-						.run();
+					db.insert(schema.users).values({ email: "user1@example.com" }).run();
 					return db.select().from(schema.users).all();
 				});
 
@@ -198,7 +199,12 @@ describe("Database Effect Service", () => {
 			return Effect.gen(function* () {
 				const { db } = yield* Database;
 
-				const statuses = ["pending", "processing", "completed", "failed"] as const;
+				const statuses = [
+					"pending",
+					"processing",
+					"completed",
+					"failed",
+				] as const;
 
 				for (let i = 0; i < statuses.length; i++) {
 					db.insert(schema.videos)

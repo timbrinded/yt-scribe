@@ -56,21 +56,25 @@ const mockWhisperResponse = {
 
 describe("Transcription Effect Service", () => {
 	describe("Transcription.Test layer", () => {
-		itEffect.effect("returns helpful error message indicating mock needed", () =>
-			Effect.gen(function* () {
-				const transcription = yield* Transcription;
-				const exit = yield* transcription.transcribe("/path/to/audio.mp3").pipe(Effect.exit);
+		itEffect.effect(
+			"returns helpful error message indicating mock needed",
+			() =>
+				Effect.gen(function* () {
+					const transcription = yield* Transcription;
+					const exit = yield* transcription
+						.transcribe("/path/to/audio.mp3")
+						.pipe(Effect.exit);
 
-				expect(Exit.isFailure(exit)).toBe(true);
-				if (Exit.isFailure(exit)) {
-					const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
-					expect(error).toBeInstanceOf(TranscriptionFailedError);
-					if (error instanceof TranscriptionFailedError) {
-						expect(error.reason).toContain("not mocked");
-						expect(error.reason).toContain("makeTranscriptionTestLayer");
+					expect(Exit.isFailure(exit)).toBe(true);
+					if (Exit.isFailure(exit)) {
+						const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+						expect(error).toBeInstanceOf(TranscriptionFailedError);
+						if (error instanceof TranscriptionFailedError) {
+							expect(error.reason).toContain("not mocked");
+							expect(error.reason).toContain("makeTranscriptionTestLayer");
+						}
 					}
-				}
-			}).pipe(Effect.provide(Transcription.Test)),
+				}).pipe(Effect.provide(Transcription.Test)),
 		);
 	});
 
@@ -111,7 +115,9 @@ describe("Transcription Effect Service", () => {
 				});
 
 				const transcription = yield* Effect.provide(Transcription, testLayer);
-				const exit = yield* transcription.transcribe("/any/path.mp3").pipe(Effect.exit);
+				const exit = yield* transcription
+					.transcribe("/any/path.mp3")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -209,7 +215,9 @@ describe("Transcription Effect Service", () => {
 				const testLayer = Layer.provide(Transcription.Live, openAITestLayer);
 
 				const transcription = yield* Effect.provide(Transcription, testLayer);
-				const exit = yield* transcription.transcribe("/nonexistent/path/audio.mp3").pipe(Effect.exit);
+				const exit = yield* transcription
+					.transcribe("/nonexistent/path/audio.mp3")
+					.pipe(Effect.exit);
 
 				expect(Exit.isFailure(exit)).toBe(true);
 				if (Exit.isFailure(exit)) {
@@ -241,11 +249,14 @@ describe("Transcription Effect Service", () => {
 				Effect.scoped(
 					Effect.gen(function* () {
 						const transcription = yield* Transcription;
-						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
+						const exit = yield* transcription
+							.transcribe(localTestFilePath)
+							.pipe(Effect.exit);
 
 						expect(Exit.isFailure(exit)).toBe(true);
 						if (Exit.isFailure(exit)) {
-							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							const error =
+								exit.cause._tag === "Fail" ? exit.cause.error : null;
 							expect(error).toBeInstanceOf(TranscriptionFailedError);
 							if (error instanceof TranscriptionFailedError) {
 								expect(error.reason).toContain("Unsupported audio format");
@@ -320,11 +331,14 @@ describe("Transcription Effect Service", () => {
 				Effect.scoped(
 					Effect.gen(function* () {
 						const transcription = yield* Transcription;
-						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
+						const exit = yield* transcription
+							.transcribe(localTestFilePath)
+							.pipe(Effect.exit);
 
 						expect(Exit.isFailure(exit)).toBe(true);
 						if (Exit.isFailure(exit)) {
-							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							const error =
+								exit.cause._tag === "Fail" ? exit.cause.error : null;
 							expect(error).toBeInstanceOf(TranscriptionFailedError);
 							if (error instanceof TranscriptionFailedError) {
 								expect(error.reason).toContain("Invalid OpenAI API key");
@@ -355,11 +369,14 @@ describe("Transcription Effect Service", () => {
 				Effect.scoped(
 					Effect.gen(function* () {
 						const transcription = yield* Transcription;
-						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
+						const exit = yield* transcription
+							.transcribe(localTestFilePath)
+							.pipe(Effect.exit);
 
 						expect(Exit.isFailure(exit)).toBe(true);
 						if (Exit.isFailure(exit)) {
-							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							const error =
+								exit.cause._tag === "Fail" ? exit.cause.error : null;
 							expect(error).toBeInstanceOf(TranscriptionFailedError);
 							if (error instanceof TranscriptionFailedError) {
 								expect(error.reason).toContain("rate limit");
@@ -390,11 +407,14 @@ describe("Transcription Effect Service", () => {
 				Effect.scoped(
 					Effect.gen(function* () {
 						const transcription = yield* Transcription;
-						const exit = yield* transcription.transcribe(localTestFilePath).pipe(Effect.exit);
+						const exit = yield* transcription
+							.transcribe(localTestFilePath)
+							.pipe(Effect.exit);
 
 						expect(Exit.isFailure(exit)).toBe(true);
 						if (Exit.isFailure(exit)) {
-							const error = exit.cause._tag === "Fail" ? exit.cause.error : null;
+							const error =
+								exit.cause._tag === "Fail" ? exit.cause.error : null;
 							expect(error).toBeInstanceOf(TranscriptionFailedError);
 							if (error instanceof TranscriptionFailedError) {
 								expect(error.reason).toContain("OpenAI API error");
