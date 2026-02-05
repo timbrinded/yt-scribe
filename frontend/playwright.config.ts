@@ -70,10 +70,10 @@ export default defineConfig({
 	// Run both frontend and backend servers before starting tests
 	webServer: [
 		{
-			command: "bun src/server.ts",
-			url: "http://localhost:3000/health",
+			command: "bun src/effect/main.ts",
+			url: "http://localhost:3001/health",
 			reuseExistingServer: !process.env.CI,
-			timeout: 30 * 1000,
+			timeout: 60 * 1000,
 			cwd: "..",
 		},
 		{

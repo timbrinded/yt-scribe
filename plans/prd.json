@@ -10,19 +10,6 @@
   "tasks": [
     {
       "category": "functional",
-      "description": "Rewrite auth.setup.ts to use @clerk/testing instead of cookie-based auth",
-      "steps": [
-        "Import clerk and clerkSetup from @clerk/testing/playwright",
-        "Remove old cookie-based session logic",
-        "Use clerk.signIn with strategy: 'password', identifier from E2E_CLERK_USER_USERNAME, password from E2E_CLERK_USER_PASSWORD",
-        "Navigate to /library and verify heading visible after sign-in",
-        "Save storage state to .auth/user.json",
-        "Run `cd frontend && bunx playwright test --project=setup` to verify auth setup works"
-      ],
-      "passes": false
-    },
-    {
-      "category": "functional",
       "description": "Verify existing home.spec.ts tests pass (unauthenticated)",
       "steps": [
         "Run `cd frontend && bunx playwright test home.spec.ts`",

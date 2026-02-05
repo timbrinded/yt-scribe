@@ -33,3 +33,28 @@ These are pre-existing issues not related to this change.
 - Storage state path already correct at `.auth/user.json` (line 60)
 - Verified config parses: `bunx playwright test --list` shows all 25 tests in 4 files
 - Quality gates: typecheck passes, lint has warnings only (no errors)
+
+### Task 5: Rewrite auth.setup.ts to use @clerk/testing (COMPLETED)
+- Rewrote frontend/tests/e2e/auth.setup.ts to use @clerk/testing/playwright
+- Imports `clerk` from @clerk/testing/playwright for sign-in helper
+- Removed old cookie-based session logic (execSync, TestSession interface, manual cookie handling)
+- Uses `clerk.signIn()` with password strategy using E2E_CLERK_USER_* env vars
+- Navigates to /library and verifies heading is visible after sign-in
+- Saves storage state to .auth/user.json for authenticated tests
+- Updated global-setup.ts to:
+  - Load .env and .env.test via dotenv (ES module compatible)
+  - Pass publishableKey and secretKey explicitly to clerkSetup()
+  - Handle both CLERK_PUBLISHABLE_KEY and PUBLIC_CLERK_PUBLISHABLE_KEY (Astro convention)
+- Added health endpoint to backend:
+  - Created src/effect/api/groups/health.ts with GET /health endpoint
+  - Created src/effect/api/handlers/health.ts handler returning {status: "ok", timestamp}
+  - Added HealthGroup to YTScribeApi in src/effect/api/index.ts
+  - Added HealthGroupLive to HandlersLive in src/effect/main.ts
+  - Updated createFrontendFallback to route /health to API (not frontend)
+- Fixed playwright.config.ts webServer:
+  - Changed backend command from src/server.ts to src/effect/main.ts
+  - Changed health check URL from port 3000 to 3001/health
+- Updated tests/effect/api/videos.test.ts to include HealthGroupLive
+- Quality gates: typecheck passes, lint passes (warnings only, no errors)
+- Note: E2E test requires valid Clerk test user credentials - current test password
+  was rejected by Clerk as breached. User needs to update test user password in Clerk dashboard.

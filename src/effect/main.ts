@@ -36,6 +36,7 @@ import { VideosGroupLive } from "./api/handlers/videos";
 import { ChatGroupLive } from "./api/handlers/chat";
 import { AuthGroupLive } from "./api/handlers/auth";
 import { AdminGroupLive } from "./api/handlers/admin";
+import { HealthGroupLive } from "./api/handlers/health";
 import { AuthorizationLive } from "./api/middleware/auth";
 import { LiveLayer } from "./layers/Live";
 import { Frontend } from "./services/Frontend";
@@ -69,6 +70,7 @@ const HandlersLive = Layer.mergeAll(
 	ChatGroupLive,
 	AuthGroupLive,
 	AdminGroupLive,
+	HealthGroupLive,
 );
 
 /**
@@ -118,8 +120,12 @@ const createFrontendFallback =
 			// request.url is a relative path like "/auth/me", not a full URL
 			const pathname = request.url;
 
-			// API and auth routes are handled by the HttpApi router
-			if (pathname.startsWith("/api/") || pathname.startsWith("/auth/")) {
+			// API, auth, and health routes are handled by the HttpApi router
+			if (
+				pathname.startsWith("/api/") ||
+				pathname.startsWith("/auth/") ||
+				pathname.startsWith("/health")
+			) {
 				return yield* httpApp;
 			}
 

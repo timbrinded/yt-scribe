@@ -27,6 +27,7 @@ import { VideosGroup } from "./groups/videos";
 import { ChatGroup } from "./groups/chat";
 import { AuthGroup } from "./groups/auth";
 import { AdminGroup } from "./groups/admin";
+import { HealthGroup } from "./groups/health";
 
 /**
  * YTScribe API definition.
@@ -39,6 +40,7 @@ export const YTScribeApi = HttpApi.make("ytscribe")
 	.add(ChatGroup)
 	.add(AuthGroup)
 	.add(AdminGroup)
+	.add(HealthGroup)
 	.annotate(OpenApi.Title, "YTScribe API")
 	.annotate(
 		OpenApi.Description,
@@ -51,3 +53,4 @@ export { VideosGroup } from "./groups/videos";
 export { ChatGroup } from "./groups/chat";
 export { AuthGroup } from "./groups/auth";
 export { AdminGroup } from "./groups/admin";
+export { HealthGroup } from "./groups/health";
