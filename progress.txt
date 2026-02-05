@@ -7,6 +7,13 @@
 - Lockfile updated via bun install
 - Quality gates: typecheck passes, lint has warnings only (no errors)
 
+### Task 3: Create global-setup.ts for Clerk testing token initialization (COMPLETED)
+- Created frontend/tests/e2e/global-setup.ts
+- Imports clerkSetup from @clerk/testing/playwright
+- Exports default async function that calls await clerkSetup()
+- Typecheck passes, lint passes (no errors)
+- Playwright test --list confirms config parses correctly
+
 Note: Backend tests (`bun test`) and frontend tests (`bun test --cwd frontend`) have pre-existing failures:
 - Backend: @effect/vitest compatibility issue with `ctx?.onTestFinished is not a function`
 - Frontend: vitest is picking up Playwright e2e tests causing errors, also missing jsdom environment for component tests

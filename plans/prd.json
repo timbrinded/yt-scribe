@@ -10,17 +10,6 @@
   "tasks": [
     {
       "category": "functional",
-      "description": "Create global-setup.ts for Clerk testing token initialization",
-      "steps": [
-        "Create frontend/tests/e2e/global-setup.ts",
-        "Import clerkSetup from @clerk/testing/playwright",
-        "Export default async function that calls await clerkSetup()",
-        "Run `bun run typecheck` to verify no TypeScript errors"
-      ],
-      "passes": false
-    },
-    {
-      "category": "functional",
       "description": "Update playwright.config.ts to use Clerk global setup",
       "steps": [
         "Add globalSetup: require.resolve('./tests/e2e/global-setup.ts') to config",

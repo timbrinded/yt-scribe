@@ -18,5 +18,16 @@
       "Verify file is readable: `cat frontend/.env.test | grep E2E_CLERK`"
     ],
     "completed_at": "2026-02-05"
+  },
+  {
+    "category": "functional",
+    "description": "Create global-setup.ts for Clerk testing token initialization",
+    "steps": [
+      "Create frontend/tests/e2e/global-setup.ts",
+      "Import clerkSetup from @clerk/testing/playwright",
+      "Export default async function that calls await clerkSetup()",
+      "Run `bun run typecheck` to verify no TypeScript errors"
+    ],
+    "completed_at": "2026-02-05"
   }
 ]
