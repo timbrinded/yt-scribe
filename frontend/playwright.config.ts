@@ -67,6 +67,9 @@ export default defineConfig({
 		},
 	],
 
+	// Global teardown for explicit cleanup
+	globalTeardown: "./tests/e2e/global-teardown.ts",
+
 	// Run both frontend and backend servers before starting tests
 	webServer: [
 		{
