@@ -3,6 +3,7 @@ import { m, AnimatePresence } from "framer-motion";
 import { VideoGrid, type VideoItem } from "./VideoGrid";
 import { MotionWrapper } from "./MotionWrapper";
 import { AddVideoModal } from "./AddVideoModal";
+import { apiFetch } from "../lib/api";
 
 /**
  * API configuration
@@ -16,9 +17,7 @@ async function fetchVideos(): Promise<{
 	videos: VideoItem[];
 	pagination: { limit: number; offset: number; count: number };
 }> {
-	const response = await fetch(`${API_BASE_URL}/api/videos?limit=100`, {
-		credentials: "include",
-	});
+	const response = await apiFetch("/api/videos?limit=100");
 
 	if (response.status === 401) {
 		throw new Error("UNAUTHORIZED");

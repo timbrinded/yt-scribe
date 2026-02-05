@@ -29,7 +29,7 @@ import { YouTube } from "../services/YouTube";
 import { Progress } from "../services/Progress";
 import { Transcription } from "../services/Transcription";
 import { Chat } from "../services/Chat";
-import { Auth } from "../services/Auth";
+import { Clerk } from "../services/Clerk";
 import { Pipeline } from "../services/Pipeline";
 import { Analytics } from "../services/Analytics";
 
@@ -45,7 +45,7 @@ import { Analytics } from "../services/Analytics";
  * ```typescript
  * const program: Effect.Effect<void, Error, AppRequirements> = Effect.gen(function* () {
  *   const pipeline = yield* Pipeline
- *   const auth = yield* Auth
+ *   const clerk = yield* Clerk
  *   // ... use services
  * })
  * ```
@@ -57,7 +57,7 @@ export type AppRequirements =
 	| Progress
 	| Transcription
 	| Chat
-	| Auth
+	| Clerk
 	| Pipeline
 	| Analytics;
 
@@ -73,12 +73,14 @@ export type AppRequirements =
  * - OpenAI: OpenAI SDK client (reads OPENAI_API_KEY)
  * - YouTube: URL validation and yt-dlp wrapper
  * - Progress: PubSub for progress events (Layer.scoped for lifecycle)
+ * - Clerk: Clerk client for JWT verification (reads CLERK_SECRET_KEY)
  */
 export const LeafLayer = Layer.mergeAll(
 	Database.Live,
 	OpenAI.Live,
 	YouTube.Live,
 	Progress.Live,
+	Clerk.Live,
 );
 
 // =============================================================================
@@ -96,11 +98,6 @@ const TranscriptionLayer = Transcription.Live.pipe(Layer.provide(OpenAI.Live));
 const ChatLayer = Chat.Live.pipe(Layer.provide(OpenAI.Live));
 
 /**
- * Auth service depends on Database for session management.
- */
-const AuthLayer = Auth.Live.pipe(Layer.provide(Database.Live));
-
-/**
  * Analytics service depends on Database for event storage.
  */
 const AnalyticsLayer = Analytics.Live.pipe(Layer.provide(Database.Live));
@@ -112,7 +109,6 @@ const AnalyticsLayer = Analytics.Live.pipe(Layer.provide(Database.Live));
 export const DependentLayer = Layer.mergeAll(
 	TranscriptionLayer,
 	ChatLayer,
-	AuthLayer,
 	AnalyticsLayer,
 );
 
@@ -141,8 +137,8 @@ const PipelineLayer = Pipeline.Live.pipe(
  * The complete production layer with all services composed.
  *
  * This layer provides:
- * - All leaf services (Database, OpenAI, YouTube, Progress)
- * - All dependent services (Transcription, Chat, Auth)
+ * - All leaf services (Database, OpenAI, YouTube, Progress, Clerk)
+ * - All dependent services (Transcription, Chat, Analytics)
  * - Orchestration service (Pipeline)
  *
  * Usage:

@@ -11,11 +11,7 @@ import {
 import { MotionWrapper } from "./MotionWrapper";
 import { m } from "framer-motion";
 import { CitationText } from "./CitationText";
-
-/**
- * API configuration
- */
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+import { apiFetch } from "../lib/api";
 
 interface ChatInterfaceProps {
 	/** Video ID to chat about */
@@ -48,19 +44,15 @@ function createChatAdapter(
 				throw new Error("Expected text content in message");
 			}
 
-			const response = await fetch(
-				`${API_BASE_URL}/api/videos/${videoId}/chat`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-					body: JSON.stringify({
-						sessionId: sessionIdRef.current,
-						message: textContent.text,
-					}),
-					signal: abortSignal,
-				},
-			);
+			const response = await apiFetch(`/api/videos/${videoId}/chat`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					sessionId: sessionIdRef.current,
+					message: textContent.text,
+				}),
+				signal: abortSignal,
+			});
 
 			if (response.status === 401) {
 				throw new Error("Please sign in to chat about this video.");

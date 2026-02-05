@@ -16,6 +16,7 @@
 		"@assistant-ui/react": "^0.12.3",
 		"@astrojs/node": "^9.5.2",
 		"@astrojs/react": "^4.4.2",
+		"@clerk/astro": "^2.0.0",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/react": "^19.2.10",
 		"@types/react-dom": "^19.2.3",

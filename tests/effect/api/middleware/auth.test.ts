@@ -1,10 +1,10 @@
 /**
- * Tests for the Effect-TS Auth HttpApiMiddleware
+ * Tests for the Effect-TS Auth HttpApiMiddleware (Clerk)
  *
  * Note: The HttpApiMiddleware has internal context requirements (HttpRouter.Provided)
  * that are satisfied when integrated with the HttpApi system. These tests focus on:
  * 1. Type definitions and exports (CurrentUser context tag)
- * 2. AuthorizationLive layer construction with Auth service
+ * 2. AuthorizationLive layer construction with Clerk and Database services
  * 3. The middleware class is properly defined
  *
  * Full integration testing of the middleware will happen in the API handler tests
@@ -19,7 +19,8 @@ import {
 	AuthorizationLive,
 	CurrentUser,
 } from "../../../../src/effect/api/middleware/auth";
-import { makeAuthTestLayer } from "../../../../src/effect/services/Auth";
+import { makeClerkTestLayer } from "../../../../src/effect/services/Clerk";
+import { Database } from "../../../../src/effect/services/Database";
 import type { AuthUser } from "../../../../src/effect/services/types";
 
 // =============================================================================
@@ -131,22 +132,31 @@ describe("AuthorizationLive", () => {
 		expect(Layer.isLayer(AuthorizationLive)).toBe(true);
 	});
 
-	it.effect("can be constructed with Auth service", () =>
+	it.effect("can be constructed with Clerk and Database services", () =>
 		Effect.gen(function* () {
-			// Create a mock Auth service that returns a user for any token
-			const authLayer = makeAuthTestLayer({
-				validateSession: (token) =>
+			// Create a mock Clerk service that returns a valid JWT payload
+			const clerkLayer = makeClerkTestLayer({
+				verifyToken: (_token: string) =>
 					Effect.succeed({
-						token,
-						expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-						user: mockUser,
+						sub: "user_clerk123",
+						sid: "sess_123",
+						iat: Math.floor(Date.now() / 1000),
+						exp: Math.floor(Date.now() / 1000) + 3600,
+					}),
+				getUser: (_clerkUserId: string) =>
+					Effect.succeed({
+						id: "user_clerk123",
+						email: mockUser.email,
+						firstName: "Test",
+						lastName: "User",
+						imageUrl: mockUser.avatarUrl,
 					}),
 			});
 
 			// Verify the layer can be constructed and provides the Authorization service
 			const auth = yield* Effect.provide(
 				Authorization,
-				Layer.provide(AuthorizationLive, authLayer),
+				Layer.provide(AuthorizationLive, Layer.merge(clerkLayer, Database.Test)),
 			);
 
 			// The authorization object should have a bearer handler
@@ -156,18 +166,27 @@ describe("AuthorizationLive", () => {
 
 	it.effect("exposes bearer handler from the layer", () =>
 		Effect.gen(function* () {
-			const authLayer = makeAuthTestLayer({
-				validateSession: () =>
+			const clerkLayer = makeClerkTestLayer({
+				verifyToken: () =>
 					Effect.succeed({
-						token: "test",
-						expiresAt: new Date(),
-						user: mockUser,
+						sub: "user_clerk123",
+						sid: "sess_123",
+						iat: Math.floor(Date.now() / 1000),
+						exp: Math.floor(Date.now() / 1000) + 3600,
+					}),
+				getUser: () =>
+					Effect.succeed({
+						id: "user_clerk123",
+						email: "test@example.com",
+						firstName: "Test",
+						lastName: "User",
+						imageUrl: null,
 					}),
 			});
 
 			const authService = yield* Effect.provide(
 				Authorization,
-				Layer.provide(AuthorizationLive, authLayer),
+				Layer.provide(AuthorizationLive, Layer.merge(clerkLayer, Database.Test)),
 			);
 
 			// Should have the bearer handler
@@ -176,12 +195,12 @@ describe("AuthorizationLive", () => {
 		}),
 	);
 
-	it("requires Auth service dependency", () => {
-		// AuthorizationLive depends on Auth service
-		// Verify this by checking the layer requires Auth
-		// When used without Auth, the program will have unsatisfied requirements
+	it("requires Clerk and Database service dependencies", () => {
+		// AuthorizationLive depends on Clerk and Database services
+		// Verify this by checking the layer requires them
+		// When used without these, the program will have unsatisfied requirements
 		expect(Layer.isLayer(AuthorizationLive)).toBe(true);
-		// The layer is well-typed to require Auth - TypeScript enforces this at compile time
+		// The layer is well-typed to require Clerk and Database - TypeScript enforces this at compile time
 	});
 });
 

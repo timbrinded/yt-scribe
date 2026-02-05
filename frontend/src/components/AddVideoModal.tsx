@@ -1,8 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { MotionWrapper } from "./MotionWrapper";
-
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+import { apiFetch } from "../lib/api";
 
 /**
  * Validate YouTube URL format
@@ -133,12 +132,11 @@ export function AddVideoModal({
 		setError(null);
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/api/videos`, {
+			const response = await apiFetch("/api/videos", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				credentials: "include",
 				body: JSON.stringify({ url: trimmedUrl }),
 			});
 

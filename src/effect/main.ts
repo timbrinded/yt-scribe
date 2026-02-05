@@ -62,7 +62,7 @@ const ServerConfig = Config.all({
  * Each handler group implements a subset of the API:
  * - VideosGroupLive: Video CRUD, retry, status streaming
  * - ChatGroupLive: Chat messages, session listing
- * - AuthGroupLive: OAuth flow, logout, current user
+ * - AuthGroupLive: Current user endpoint (Clerk handles OAuth)
  */
 const HandlersLive = Layer.mergeAll(
 	VideosGroupLive,
@@ -84,8 +84,8 @@ const HandlersLive = Layer.mergeAll(
  * - LiveLayer: All business services
  */
 /**
- * Authorization layer with its Auth dependency satisfied.
- * AuthorizationLive depends on Auth service, which is in LiveLayer.
+ * Authorization layer with its dependencies satisfied.
+ * AuthorizationLive depends on Clerk and Database services, which are in LiveLayer.
  */
 const AuthorizationWithDeps = AuthorizationLive.pipe(Layer.provide(LiveLayer));
 

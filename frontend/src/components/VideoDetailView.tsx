@@ -9,12 +9,8 @@ import {
 	TimestampNavigationProvider,
 	useTimestampNavigation,
 } from "../contexts/TimestampNavigationContext";
+import { apiFetch } from "../lib/api";
 import type { TranscriptSegment } from "./TranscriptPanel";
-
-/**
- * API configuration
- */
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 /**
  * Video status type
@@ -388,9 +384,7 @@ export function VideoDetailView({ videoId }: VideoDetailViewProps) {
 		setError(null);
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/api/videos/${videoId}`, {
-				credentials: "include",
-			});
+			const response = await apiFetch(`/api/videos/${videoId}`);
 
 			if (response.status === 401) {
 				window.location.href = "/login";

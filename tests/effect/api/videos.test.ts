@@ -31,7 +31,6 @@ import { makePipelineTestLayer } from "../../../src/effect/services/Pipeline";
 import {
 	makeTestLayer,
 	makeChatTestLayer,
-	makeAuthTestLayer,
 } from "../../../src/effect/layers/Test";
 import { UnauthorizedError } from "../../../src/effect/errors";
 import * as schema from "../../../src/db/schema";
@@ -159,34 +158,14 @@ function createTestHandler(options: {
 		chatComplete: () => Effect.succeed("Mock chat response"),
 	});
 
-	// Create auth service mock layer (not authorization middleware)
-	const authServiceLayer = makeAuthTestLayer({
-		createSession: () =>
-			Effect.succeed({
-				token: "test-session-token",
-				expiresAt: new Date(Date.now() + 86400000),
-			}),
-		validateSession: () =>
-			Effect.succeed({
-				token: "test-session-token",
-				expiresAt: new Date(Date.now() + 86400000),
-				user: {
-					id: 1,
-					email: "test@example.com",
-					name: "Test User",
-					avatarUrl: null,
-				},
-			}),
-		deleteSession: () => Effect.succeed(undefined),
-	});
-
 	// Create test layer with all services
+	// Note: With Clerk auth, there's no Auth service to mock
+	// Authorization is handled by the authorizationLayer above
 	const testLayer = makeTestLayer({
 		database: databaseLayer,
 		youtube: youtubeLayer,
 		pipeline: pipelineLayer,
 		chat: chatLayer,
-		auth: authServiceLayer,
 	});
 
 	// All handler groups (YTScribeApi requires all four)

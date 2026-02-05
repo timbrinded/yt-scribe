@@ -429,7 +429,7 @@ describe("VideoDetailView", () => {
 			await waitFor(() => {
 				expect(mockFetch).toHaveBeenCalledWith(
 					expect.stringContaining("/api/videos/42"),
-					expect.objectContaining({ credentials: "include" }),
+					expect.any(Object),
 				);
 			});
 		});

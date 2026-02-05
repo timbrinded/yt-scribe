@@ -1,8 +1,16 @@
 #!/usr/bin/env bun
 /**
- * Creates a test user and session in the database.
+ * Creates a test user in the database for e2e testing with Clerk.
+ *
+ * With Clerk authentication, sessions are managed externally by Clerk.
+ * This helper creates the local user record that will be linked to
+ * a Clerk user during the JIT provisioning flow.
+ *
+ * For e2e tests, use Clerk's test mode tokens or the Clerk Testing SDK.
+ * See: https://clerk.com/docs/testing/overview
+ *
  * Run with: bun e2e/helpers/create-test-session.ts
- * Outputs JSON with the session token.
+ * Outputs JSON with the created user info.
  */
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
@@ -12,15 +20,9 @@ import * as schema from "../../src/db/schema";
 const TEST_USER = {
 	email: "e2e-test@example.com",
 	name: "E2E Test User",
+	// In real e2e tests, this would be set when the user authenticates via Clerk
+	clerkId: null as string | null,
 };
-
-function generateToken(): string {
-	const bytes = new Uint8Array(32);
-	crypto.getRandomValues(bytes);
-	return Array.from(bytes)
-		.map((b) => b.toString(16).padStart(2, "0"))
-		.join("");
-}
 
 async function main() {
 	const dbPath = process.env.DATABASE_URL ?? "data/ytscribe.db";
@@ -42,6 +44,7 @@ async function main() {
 				.values({
 					email: TEST_USER.email,
 					name: TEST_USER.name,
+					clerkId: TEST_USER.clerkId,
 				})
 				.returning()
 				.get();
@@ -52,32 +55,16 @@ async function main() {
 			process.exit(1);
 		}
 
-		// Create a fresh session token
-		const token = generateToken();
-		const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-		// Delete any existing sessions for this user (clean slate)
-		db.delete(schema.sessions).where(eq(schema.sessions.userId, user.id)).run();
-
-		// Create new session
-		db.insert(schema.sessions)
-			.values({
-				userId: user.id,
-				token,
-				expiresAt,
-			})
-			.run();
-
 		// Output the result as JSON
 		console.log(
 			JSON.stringify({
-				token,
 				user: {
 					id: user.id,
 					email: user.email,
 					name: user.name,
+					clerkId: user.clerkId,
 				},
-				expiresAt: expiresAt.toISOString(),
+				note: "With Clerk auth, use Clerk test tokens for e2e authentication. See https://clerk.com/docs/testing/overview",
 			}),
 		);
 	} finally {

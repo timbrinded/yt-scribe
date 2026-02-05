@@ -38,7 +38,7 @@ import { YouTube, makeYouTubeTestLayer } from "../services/YouTube";
 import { Progress, makeProgressTestLayer, makeProgressMockLayer } from "../services/Progress";
 import { Transcription, makeTranscriptionTestLayer } from "../services/Transcription";
 import { Chat, makeChatTestLayer } from "../services/Chat";
-import { Auth, makeAuthTestLayer } from "../services/Auth";
+import { Clerk, makeClerkTestLayer } from "../services/Clerk";
 import { Pipeline, makePipelineTestLayer } from "../services/Pipeline";
 import { Analytics, makeAnalyticsTestLayer } from "../services/Analytics";
 import type { AppRequirements } from "./Live";
@@ -56,7 +56,7 @@ export {
 	makeProgressMockLayer,
 	makeTranscriptionTestLayer,
 	makeChatTestLayer,
-	makeAuthTestLayer,
+	makeClerkTestLayer,
 	makePipelineTestLayer,
 	makeAnalyticsTestLayer,
 };
@@ -71,12 +71,14 @@ export {
  * - OpenAI: Mock client that throws helpful errors
  * - YouTube: URL validation works, download/metadata fail with helpful errors
  * - Progress: In-memory event collection
+ * - Clerk: Mock JWT verification
  */
 export const TestLeafLayer = Layer.mergeAll(
 	Database.Test,
 	OpenAI.Test,
 	YouTube.Test,
 	Progress.Test,
+	Clerk.Test,
 );
 
 /**
@@ -85,13 +87,11 @@ export const TestLeafLayer = Layer.mergeAll(
  */
 const TestTranscriptionLayer = Transcription.Test;
 const TestChatLayer = Chat.Test;
-const TestAuthLayer = Auth.Test;
 const TestAnalyticsLayer = Analytics.Test;
 
 export const TestDependentLayer = Layer.mergeAll(
 	TestTranscriptionLayer,
 	TestChatLayer,
-	TestAuthLayer,
 	TestAnalyticsLayer,
 );
 
@@ -142,8 +142,8 @@ export interface TestLayerOptions {
 	transcription?: Layer.Layer<Transcription>;
 	/** Override Chat service */
 	chat?: Layer.Layer<Chat>;
-	/** Override Auth service */
-	auth?: Layer.Layer<Auth>;
+	/** Override Clerk service */
+	clerk?: Layer.Layer<Clerk>;
 	/** Override Pipeline service */
 	pipeline?: Layer.Layer<Pipeline>;
 	/** Override Analytics service */
@@ -212,13 +212,13 @@ export function makeTestLayer(
 		options.openai ?? OpenAI.Test,
 		options.youtube ?? YouTube.Test,
 		options.progress ?? Progress.Test,
+		options.clerk ?? Clerk.Test,
 	);
 
 	// Dependent layer with overrides
 	const dependentLayer = Layer.mergeAll(
 		options.transcription ?? Transcription.Test,
 		options.chat ?? Chat.Test,
-		options.auth ?? Auth.Test,
 		options.analytics ?? Analytics.Test,
 	);
 

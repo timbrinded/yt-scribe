@@ -2,6 +2,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
+	clerkId: text("clerk_id").unique(),
 	email: text("email").notNull().unique(),
 	name: text("name"),
 	avatarUrl: text("avatar_url"),
@@ -107,21 +108,6 @@ export const messages = sqliteTable("messages", {
 
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
-
-export const sessions = sqliteTable("sessions", {
-	id: integer("id").primaryKey({ autoIncrement: true }),
-	userId: integer("user_id")
-		.notNull()
-		.references(() => users.id),
-	token: text("token").notNull().unique(),
-	expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
-});
-
-export type Session = typeof sessions.$inferSelect;
-export type NewSession = typeof sessions.$inferInsert;
 
 // Analytics events for tracking user activity
 export const analyticsEventEnum = [

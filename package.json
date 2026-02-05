@@ -21,9 +21,9 @@
 		"db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
+		"@clerk/backend": "^2.0.0",
 		"@effect/platform": "^0.94.2",
 		"@effect/platform-bun": "^0.87.1",
-		"arctic": "^3.7.0",
 		"cac": "^6.7.14",
 		"drizzle-orm": "^0.45.1",
 		"effect": "^3.19.15",
@@ -39,6 +39,6 @@
 		"oxfmt": "^0.28.0",
 		"oxlint": "^1.43.0",
 		"typescript": "^5.9.3",
-		"vitest": "^4.0.18"
+		"vitest": "^3.2.4"
 	}
 }

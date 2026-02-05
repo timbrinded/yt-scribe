@@ -23,6 +23,7 @@ describe("database schema", () => {
 		sqlite.exec(`
 			CREATE TABLE users (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				clerk_id TEXT UNIQUE,
 				email TEXT NOT NULL UNIQUE,
 				name TEXT,
 				avatar_url TEXT,

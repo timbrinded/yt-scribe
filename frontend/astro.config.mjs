@@ -2,7 +2,7 @@
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import node from "@astrojs/node";
-
+import clerk from "@clerk/astro";
 import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
@@ -13,7 +13,7 @@ export default defineConfig({
 		mode: "standalone",
 	}),
 
-	integrations: [react()],
+	integrations: [react(), clerk()],
 
 	vite: {
 		plugins: [tailwindcss()],

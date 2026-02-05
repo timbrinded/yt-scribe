@@ -126,6 +126,7 @@ export class Database extends Context.Tag("@ytscribe/Database")<
 			sqlite.exec(`
 				CREATE TABLE users (
 					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					clerk_id TEXT UNIQUE,
 					email TEXT NOT NULL UNIQUE,
 					name TEXT,
 					avatar_url TEXT,
@@ -152,14 +153,6 @@ export class Database extends Context.Tag("@ytscribe/Database")<
 					content TEXT NOT NULL,
 					segments TEXT,
 					language TEXT DEFAULT 'en',
-					created_at TEXT DEFAULT CURRENT_TIMESTAMP
-				);
-
-				CREATE TABLE sessions (
-					id INTEGER PRIMARY KEY AUTOINCREMENT,
-					user_id INTEGER NOT NULL REFERENCES users(id),
-					token TEXT NOT NULL UNIQUE,
-					expires_at TEXT NOT NULL,
 					created_at TEXT DEFAULT CURRENT_TIMESTAMP
 				);
 
@@ -236,6 +229,7 @@ export function makeDatabaseTestLayer(
 			sqlite.exec(`
 				CREATE TABLE users (
 					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					clerk_id TEXT UNIQUE,
 					email TEXT NOT NULL UNIQUE,
 					name TEXT,
 					avatar_url TEXT,
@@ -262,14 +256,6 @@ export function makeDatabaseTestLayer(
 					content TEXT NOT NULL,
 					segments TEXT,
 					language TEXT DEFAULT 'en',
-					created_at TEXT DEFAULT CURRENT_TIMESTAMP
-				);
-
-				CREATE TABLE sessions (
-					id INTEGER PRIMARY KEY AUTOINCREMENT,
-					user_id INTEGER NOT NULL REFERENCES users(id),
-					token TEXT NOT NULL UNIQUE,
-					expires_at TEXT NOT NULL,
 					created_at TEXT DEFAULT CURRENT_TIMESTAMP
 				);
 
