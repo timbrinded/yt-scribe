@@ -26,3 +26,10 @@ These are pre-existing issues not related to this change.
 - Included CLERK keys from existing .env file
 - Verified file is readable: `cat frontend/.env.test | grep E2E_CLERK` shows expected values
 - Quality gates: typecheck passes, lint has warnings only (no errors)
+
+### Task 4: Update playwright.config.ts to use Clerk global setup (COMPLETED)
+- Added `globalSetup: "./tests/e2e/global-setup.ts"` to playwright.config.ts (line 13)
+- Note: Used relative path string instead of `require.resolve()` since config is ES module
+- Storage state path already correct at `.auth/user.json` (line 60)
+- Verified config parses: `bunx playwright test --list` shows all 25 tests in 4 files
+- Quality gates: typecheck passes, lint has warnings only (no errors)

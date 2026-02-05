@@ -10,16 +10,6 @@
   "tasks": [
     {
       "category": "functional",
-      "description": "Update playwright.config.ts to use Clerk global setup",
-      "steps": [
-        "Add globalSetup: require.resolve('./tests/e2e/global-setup.ts') to config",
-        "Verify storage state path is correct for .auth/user.json",
-        "Run `cd frontend && bunx playwright test --list` to verify config parses correctly"
-      ],
-      "passes": false
-    },
-    {
-      "category": "functional",
       "description": "Rewrite auth.setup.ts to use @clerk/testing instead of cookie-based auth",
       "steps": [
         "Import clerk and clerkSetup from @clerk/testing/playwright",

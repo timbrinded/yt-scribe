@@ -8,6 +8,9 @@ import { defineConfig, devices } from "@playwright/test";
  * Tests are located in tests/e2e/ directory.
  */
 export default defineConfig({
+	// Global setup for Clerk testing - initializes Clerk testing tokens
+	globalSetup: "./tests/e2e/global-setup.ts",
+
 	// Look for test files in tests/e2e directory
 	testDir: "./tests/e2e",
 

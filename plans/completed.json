@@ -29,5 +29,15 @@
       "Run `bun run typecheck` to verify no TypeScript errors"
     ],
     "completed_at": "2026-02-05"
+  },
+  {
+    "category": "functional",
+    "description": "Update playwright.config.ts to use Clerk global setup",
+    "steps": [
+      "Add globalSetup: require.resolve('./tests/e2e/global-setup.ts') to config",
+      "Verify storage state path is correct for .auth/user.json",
+      "Run `cd frontend && bunx playwright test --list` to verify config parses correctly"
+    ],
+    "completed_at": "2026-02-05"
   }
 ]
