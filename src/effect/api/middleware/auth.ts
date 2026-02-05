@@ -25,11 +25,7 @@
  * ```
  */
 
-import {
-	HttpApiMiddleware,
-	HttpApiSecurity,
-	OpenApi,
-} from "@effect/platform";
+import { HttpApiMiddleware, HttpApiSecurity, OpenApi } from "@effect/platform";
 import { Context, Effect, Layer, Redacted } from "effect";
 import { eq, isNull, and } from "drizzle-orm";
 import { UnauthorizedError } from "../../errors";
@@ -127,7 +123,9 @@ export const AuthorizationLive = Layer.effect(
 						const existingByEmail = db
 							.select()
 							.from(users)
-							.where(and(eq(users.email, clerkUser.email), isNull(users.deletedAt)))
+							.where(
+								and(eq(users.email, clerkUser.email), isNull(users.deletedAt)),
+							)
 							.get();
 
 						if (existingByEmail) {
@@ -135,9 +133,10 @@ export const AuthorizationLive = Layer.effect(
 							db.update(users)
 								.set({
 									clerkId: clerkUserId,
-									name: clerkUser.firstName && clerkUser.lastName
-										? `${clerkUser.firstName} ${clerkUser.lastName}`
-										: clerkUser.firstName ?? existingByEmail.name,
+									name:
+										clerkUser.firstName && clerkUser.lastName
+											? `${clerkUser.firstName} ${clerkUser.lastName}`
+											: (clerkUser.firstName ?? existingByEmail.name),
 									avatarUrl: clerkUser.imageUrl ?? existingByEmail.avatarUrl,
 								})
 								.where(eq(users.id, existingByEmail.id))
@@ -146,16 +145,18 @@ export const AuthorizationLive = Layer.effect(
 							user = {
 								id: existingByEmail.id,
 								email: existingByEmail.email,
-								name: clerkUser.firstName && clerkUser.lastName
-									? `${clerkUser.firstName} ${clerkUser.lastName}`
-									: clerkUser.firstName ?? existingByEmail.name,
+								name:
+									clerkUser.firstName && clerkUser.lastName
+										? `${clerkUser.firstName} ${clerkUser.lastName}`
+										: (clerkUser.firstName ?? existingByEmail.name),
 								avatarUrl: clerkUser.imageUrl ?? existingByEmail.avatarUrl,
 							};
 						} else {
 							// Create new user
-							const fullName = clerkUser.firstName && clerkUser.lastName
-								? `${clerkUser.firstName} ${clerkUser.lastName}`
-								: clerkUser.firstName;
+							const fullName =
+								clerkUser.firstName && clerkUser.lastName
+									? `${clerkUser.firstName} ${clerkUser.lastName}`
+									: clerkUser.firstName;
 
 							const newUser = db
 								.insert(users)

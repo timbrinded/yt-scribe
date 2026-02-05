@@ -1,20 +1,99 @@
 import { test, expect } from "@playwright/test";
+import { createClerkClient } from "@clerk/backend";
 
 /**
  * E2E tests for the video add flow.
  *
  * These tests run with authentication (*.auth.spec.ts pattern)
  * and test the complete flow of adding a video to the library.
+ *
+ * Note: Each test signs in fresh because Clerk's storageState doesn't
+ * properly restore the client-side session needed for API token retrieval.
  */
 test.describe("Add Video Flow", () => {
 	test.beforeEach(async ({ page }) => {
+		const username = process.env.E2E_CLERK_USER_USERNAME;
+		const secretKey = process.env.CLERK_SECRET_KEY;
+
+		if (!username || !secretKey) {
+			throw new Error(
+				"E2E_CLERK_USER_USERNAME and CLERK_SECRET_KEY must be set",
+			);
+		}
+
+		// Create a fresh sign-in token for this test
+		const clerk = createClerkClient({ secretKey });
+		const users = await clerk.users.getUserList({ emailAddress: [username] });
+		if (users.data.length === 0) {
+			throw new Error(`Test user ${username} not found`);
+		}
+		const signInToken = await clerk.signInTokens.createSignInToken({
+			userId: users.data[0].id,
+			expiresInSeconds: 300,
+		});
+
+		// Navigate to app and wait for Clerk to load
+		await page.goto("/");
+		await page.waitForLoadState("networkidle");
+
+		// Sign in using the token via Clerk's client-side method
+		// and verify session is established
+		const sessionEstablished = await page.evaluate(
+			async ({ token }) => {
+				const waitForClerk = () =>
+					new Promise<any>((resolve) => {
+						const check = () => {
+							if ((window as any).Clerk?.client) {
+								resolve((window as any).Clerk);
+							} else {
+								setTimeout(check, 100);
+							}
+						};
+						check();
+					});
+
+				const clerk = await waitForClerk();
+				const signIn = await clerk.client.signIn.create({
+					strategy: "ticket",
+					ticket: token,
+				});
+				await clerk.setActive({ session: signIn.createdSessionId });
+
+				// Wait for session to be fully established
+				const maxWait = 5000;
+				const interval = 100;
+				let waited = 0;
+				while (waited < maxWait) {
+					if (clerk.session?.getToken) {
+						try {
+							const testToken = await clerk.session.getToken();
+							if (testToken) {
+								return true;
+							}
+						} catch {
+							// Token not ready yet
+						}
+					}
+					await new Promise((resolve) => setTimeout(resolve, interval));
+					waited += interval;
+				}
+				return false;
+			},
+			{ token: signInToken.token },
+		);
+
+		if (!sessionEstablished) {
+			throw new Error("Failed to establish Clerk session");
+		}
+
 		// Navigate to library page
 		await page.goto("/library");
+		await page.waitForLoadState("networkidle");
 
 		// Wait for the page to load (library header should be visible)
 		await expect(
 			page.getByRole("heading", { name: "Your Library" }),
-		).toBeVisible();
+		).toBeVisible({ timeout: 15000 });
 	});
 
 	test("opens add video modal when clicking Add Video button", async ({

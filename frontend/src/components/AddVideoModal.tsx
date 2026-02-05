@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
+import { useAuth } from "@clerk/astro/react";
 import { MotionWrapper } from "./MotionWrapper";
-import { apiFetch } from "../lib/api";
+
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3001";
 
 /**
  * Validate YouTube URL format
@@ -59,6 +61,7 @@ export function AddVideoModal({
 	onClose,
 	onSuccess,
 }: AddVideoModalProps) {
+	const { getToken } = useAuth();
 	const [url, setUrl] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,11 +135,17 @@ export function AddVideoModal({
 		setError(null);
 
 		try {
-			const response = await apiFetch("/api/videos", {
+			const token = await getToken();
+			const headers: HeadersInit = {
+				"Content-Type": "application/json",
+			};
+			if (token) {
+				headers["Authorization"] = `Bearer ${token}`;
+			}
+
+			const response = await fetch(`${API_BASE_URL}/api/videos`, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers,
 				body: JSON.stringify({ url: trimmedUrl }),
 			});
 

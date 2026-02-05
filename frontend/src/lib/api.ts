@@ -4,7 +4,7 @@
  * Provides authenticated fetch functions using Clerk's session tokens.
  */
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3001";
 
 /**
  * Custom fetch error with status code
@@ -21,20 +21,68 @@ export class ApiError extends Error {
 
 /**
  * Get the Clerk session token for authenticated API calls.
- * Uses the Clerk JavaScript SDK's global method.
+ * Tries multiple methods to get the token from Clerk.
  */
 async function getClerkToken(): Promise<string | null> {
-	// Access Clerk's session token from the global Clerk object
-	// This is set by @clerk/astro when running in the browser
-	if (typeof window !== "undefined" && window.Clerk) {
-		try {
-			const session = window.Clerk.session;
-			if (session) {
-				return await session.getToken();
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	// Wait for Clerk to be fully loaded with an active session (max 15 seconds)
+	const waitForClerkSession = async (): Promise<any> => {
+		const maxWait = 15000;
+		const interval = 100;
+		let waited = 0;
+
+		while (waited < maxWait) {
+			const clerk = (window as any).Clerk;
+			// Wait until Clerk is loaded AND has a session
+			if (clerk?.loaded && clerk?.session) {
+				return clerk;
 			}
-		} catch {
+			await new Promise((resolve) => setTimeout(resolve, interval));
+			waited += interval;
+		}
+		return (window as any).Clerk ?? null;
+	};
+
+	try {
+		const clerk = await waitForClerkSession();
+		if (!clerk) {
+			console.warn("[getClerkToken] Clerk not available");
 			return null;
 		}
+
+		// Method 1: Try window.Clerk.session.getToken() (primary method)
+		if (clerk.session?.getToken) {
+			const token = await clerk.session.getToken();
+			if (token) return token;
+		}
+
+		// Method 2: Try to get session from clerk.client.sessions
+		if (clerk.client?.sessions) {
+			const sessions = clerk.client.sessions;
+			for (const session of sessions) {
+				if (session.status === "active" && session.getToken) {
+					const token = await session.getToken();
+					if (token) return token;
+				}
+			}
+		}
+
+		// Method 3: If user exists, try to get any active session
+		if (clerk.user && clerk.client?.activeSessions) {
+			for (const session of clerk.client.activeSessions) {
+				if (session.getToken) {
+					const token = await session.getToken();
+					if (token) return token;
+				}
+			}
+		}
+
+		console.warn("[getClerkToken] No token found despite Clerk being loaded");
+	} catch (e) {
+		console.error("Error getting Clerk token:", e);
 	}
 	return null;
 }
@@ -91,10 +139,7 @@ export async function apiFetchJson<T>(
 	const response = await apiFetch(path, options);
 
 	if (!response.ok) {
-		throw new ApiError(
-			`API error: ${response.statusText}`,
-			response.status,
-		);
+		throw new ApiError(`API error: ${response.statusText}`, response.status);
 	}
 
 	return response.json() as Promise<T>;

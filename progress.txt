@@ -65,3 +65,28 @@ These are pre-existing issues not related to this change.
 - Tests work without auth state as expected
 - Tests run in ~11.5s using 6 workers on chromium
 - Quality gates: typecheck passes, lint has warnings only (no errors)
+
+### PRD Task 2: Verify add-video.auth.spec.ts tests pass (COMPLETED)
+- Fixed critical database schema issue: `clerk_id` column was missing from `users` table
+  - Added column via: `ALTER TABLE users ADD COLUMN clerk_id TEXT; CREATE UNIQUE INDEX users_clerk_id_unique ON users (clerk_id);`
+  - Also created missing `analytics` table
+- Fixed frontend components to use Clerk React hooks (`useAuth`) for token retrieval:
+  - Updated `LibraryView.tsx` to use `useAuth` hook and wait for `isLoaded && isSignedIn` before fetching
+  - Updated `AddVideoModal.tsx` to use `useAuth` hook for getting auth token
+  - Components now use `getToken()` from the hook instead of global `window.Clerk.session`
+- Fixed auth.setup.ts to use sign-in token approach instead of password:
+  - Creates Clerk sign-in token via backend API
+  - Uses `clerk.client.signIn.create({ strategy: "ticket", ticket: token })`
+  - Verifies session is established before proceeding
+- Fixed API base URL in frontend components to use port 3001
+- All 11 add-video.auth.spec.ts tests pass:
+  - opens add video modal when clicking Add Video button
+  - shows validation error for invalid YouTube URL
+  - accepts valid YouTube URL and shows validation indicator
+  - closes modal when clicking Cancel button
+  - closes modal when clicking backdrop
+  - closes modal when pressing Escape key
+  - successfully adds video and shows it in library
+  - shows error for duplicate video
+  - video card shows YouTube thumbnail
+- Quality gates: typecheck passes, lint passes (warnings only), 168 backend tests pass

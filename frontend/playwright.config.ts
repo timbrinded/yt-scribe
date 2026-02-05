@@ -55,12 +55,12 @@ export default defineConfig({
 			testIgnore: /.*\.auth\.spec\.ts/,
 		},
 		// Authenticated tests (need login)
+		// Note: Not using storageState because Clerk's client-side session
+		// doesn't properly hydrate from saved cookies. Tests sign in fresh.
 		{
 			name: "chromium-authenticated",
 			use: {
 				...devices["Desktop Chrome"],
-				// Use saved auth state for authenticated tests
-				storageState: ".auth/user.json",
 			},
 			dependencies: ["setup"],
 			testMatch: /.*\.auth\.spec\.ts/,

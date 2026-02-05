@@ -1,23 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
+import { useAuth } from "@clerk/astro/react";
 import { VideoGrid, type VideoItem } from "./VideoGrid";
 import { MotionWrapper } from "./MotionWrapper";
 import { AddVideoModal } from "./AddVideoModal";
-import { apiFetch } from "../lib/api";
 
 /**
  * API configuration
  */
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3001";
 
 /**
- * Fetch videos from the API
+ * Fetch videos from the API with provided token
  */
-async function fetchVideos(): Promise<{
+async function fetchVideos(token: string | null): Promise<{
 	videos: VideoItem[];
 	pagination: { limit: number; offset: number; count: number };
 }> {
-	const response = await apiFetch("/api/videos?limit=100");
+	const headers: HeadersInit = {};
+	if (token) {
+		headers["Authorization"] = `Bearer ${token}`;
+	}
+
+	const response = await fetch(`${API_BASE_URL}/api/videos?limit=100`, {
+		headers,
+	});
 
 	if (response.status === 401) {
 		throw new Error("UNAUTHORIZED");
@@ -102,6 +109,7 @@ interface LibraryViewProps {
  * Handles fetching videos, displaying grid, and navigation
  */
 export function LibraryView({ initialVideos }: LibraryViewProps) {
+	const { isLoaded, isSignedIn, getToken } = useAuth();
 	const [videos, setVideos] = useState<VideoItem[]>(initialVideos || []);
 	const [isLoading, setIsLoading] = useState(!initialVideos);
 	const [error, setError] = useState<string | null>(null);
@@ -112,7 +120,8 @@ export function LibraryView({ initialVideos }: LibraryViewProps) {
 		try {
 			setIsLoading(true);
 			setError(null);
-			const data = await fetchVideos();
+			const token = await getToken();
+			const data = await fetchVideos(token);
 			setVideos(data.videos);
 		} catch (err) {
 			if (err instanceof Error && err.message === "UNAUTHORIZED") {
@@ -123,13 +132,17 @@ export function LibraryView({ initialVideos }: LibraryViewProps) {
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	}, [getToken]);
 
+	// Only fetch videos once Clerk is loaded and user is signed in
 	useEffect(() => {
-		if (!initialVideos) {
+		if (!initialVideos && isLoaded && isSignedIn) {
 			loadVideos();
+		} else if (isLoaded && !isSignedIn) {
+			setIsUnauthorized(true);
+			setIsLoading(false);
 		}
-	}, [initialVideos, loadVideos]);
+	}, [initialVideos, isLoaded, isSignedIn, loadVideos]);
 
 	// Monitor processing videos for real-time updates
 	useProcessingVideoMonitor(videos, loadVideos);

@@ -1,66 +1,78 @@
 [
-  {
-    "category": "functional",
-    "description": "Install @clerk/testing package in frontend for Playwright E2E auth support",
-    "steps": [
-      "Run `cd frontend && bun add -D @clerk/testing`",
-      "Verify @clerk/testing appears in frontend/package.json devDependencies",
-      "Run `cd frontend && bun install` to ensure lockfile is updated"
-    ],
-    "completed_at": "2026-02-05"
-  },
-  {
-    "category": "functional",
-    "description": "Create .env.test file with test credentials (test@testee.com / testtest)",
-    "steps": [
-      "Create frontend/.env.test with E2E_CLERK_USER_USERNAME=test@testee.com and E2E_CLERK_USER_PASSWORD=testtest",
-      "Also include existing CLERK keys from .env (PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)",
-      "Verify file is readable: `cat frontend/.env.test | grep E2E_CLERK`"
-    ],
-    "completed_at": "2026-02-05"
-  },
-  {
-    "category": "functional",
-    "description": "Create global-setup.ts for Clerk testing token initialization",
-    "steps": [
-      "Create frontend/tests/e2e/global-setup.ts",
-      "Import clerkSetup from @clerk/testing/playwright",
-      "Export default async function that calls await clerkSetup()",
-      "Run `bun run typecheck` to verify no TypeScript errors"
-    ],
-    "completed_at": "2026-02-05"
-  },
-  {
-    "category": "functional",
-    "description": "Update playwright.config.ts to use Clerk global setup",
-    "steps": [
-      "Add globalSetup: require.resolve('./tests/e2e/global-setup.ts') to config",
-      "Verify storage state path is correct for .auth/user.json",
-      "Run `cd frontend && bunx playwright test --list` to verify config parses correctly"
-    ],
-    "completed_at": "2026-02-05"
-  },
-  {
-    "category": "functional",
-    "description": "Rewrite auth.setup.ts to use @clerk/testing instead of cookie-based auth",
-    "steps": [
-      "Import clerk and clerkSetup from @clerk/testing/playwright",
-      "Remove old cookie-based session logic",
-      "Use clerk.signIn with strategy: 'password', identifier from E2E_CLERK_USER_USERNAME, password from E2E_CLERK_USER_PASSWORD",
-      "Navigate to /library and verify heading visible after sign-in",
-      "Save storage state to .auth/user.json",
-      "Run `cd frontend && bunx playwright test --project=setup` to verify auth setup works"
-    ],
-    "completed_at": "2026-02-05"
-  },
-  {
-    "category": "functional",
-    "description": "Verify existing home.spec.ts tests pass (unauthenticated)",
-    "steps": [
-      "Run `cd frontend && bunx playwright test home.spec.ts`",
-      "Verify all 7 landing page tests pass",
-      "Tests should work without auth state"
-    ],
-    "completed_at": "2026-02-05"
-  }
+	{
+		"category": "functional",
+		"description": "Install @clerk/testing package in frontend for Playwright E2E auth support",
+		"steps": [
+			"Run `cd frontend && bun add -D @clerk/testing`",
+			"Verify @clerk/testing appears in frontend/package.json devDependencies",
+			"Run `cd frontend && bun install` to ensure lockfile is updated"
+		],
+		"completed_at": "2026-02-05"
+	},
+	{
+		"category": "functional",
+		"description": "Create .env.test file with test credentials (test@testee.com / testtest)",
+		"steps": [
+			"Create frontend/.env.test with E2E_CLERK_USER_USERNAME=test@testee.com and E2E_CLERK_USER_PASSWORD=testtest",
+			"Also include existing CLERK keys from .env (PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)",
+			"Verify file is readable: `cat frontend/.env.test | grep E2E_CLERK`"
+		],
+		"completed_at": "2026-02-05"
+	},
+	{
+		"category": "functional",
+		"description": "Create global-setup.ts for Clerk testing token initialization",
+		"steps": [
+			"Create frontend/tests/e2e/global-setup.ts",
+			"Import clerkSetup from @clerk/testing/playwright",
+			"Export default async function that calls await clerkSetup()",
+			"Run `bun run typecheck` to verify no TypeScript errors"
+		],
+		"completed_at": "2026-02-05"
+	},
+	{
+		"category": "functional",
+		"description": "Update playwright.config.ts to use Clerk global setup",
+		"steps": [
+			"Add globalSetup: require.resolve('./tests/e2e/global-setup.ts') to config",
+			"Verify storage state path is correct for .auth/user.json",
+			"Run `cd frontend && bunx playwright test --list` to verify config parses correctly"
+		],
+		"completed_at": "2026-02-05"
+	},
+	{
+		"category": "functional",
+		"description": "Rewrite auth.setup.ts to use @clerk/testing instead of cookie-based auth",
+		"steps": [
+			"Import clerk and clerkSetup from @clerk/testing/playwright",
+			"Remove old cookie-based session logic",
+			"Use clerk.signIn with strategy: 'password', identifier from E2E_CLERK_USER_USERNAME, password from E2E_CLERK_USER_PASSWORD",
+			"Navigate to /library and verify heading visible after sign-in",
+			"Save storage state to .auth/user.json",
+			"Run `cd frontend && bunx playwright test --project=setup` to verify auth setup works"
+		],
+		"completed_at": "2026-02-05"
+	},
+	{
+		"category": "functional",
+		"description": "Verify existing home.spec.ts tests pass (unauthenticated)",
+		"steps": [
+			"Run `cd frontend && bunx playwright test home.spec.ts`",
+			"Verify all 7 landing page tests pass",
+			"Tests should work without auth state"
+		],
+		"completed_at": "2026-02-05"
+	},
+	{
+		"category": "functional",
+		"description": "Verify add-video.auth.spec.ts tests pass with new Clerk auth",
+		"steps": [
+			"Run `cd frontend && bunx playwright test add-video.auth.spec.ts`",
+			"All 11 video addition tests pass",
+			"Fixed database migration (added clerk_id column to users table)",
+			"Fixed frontend components to use Clerk React hooks for token retrieval",
+			"Auth setup uses sign-in token approach for Clerk authentication"
+		],
+		"completed_at": "2026-02-05"
+	}
 ]
