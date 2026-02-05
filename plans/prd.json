@@ -1,5 +1,229 @@
 {
-	"name": "YTScribe - YouTube Video Knowledge Base with LLM Chat",
-	"quality_gates": ["bun run typecheck", "bun test", "bun run lint"],
-	"tasks": []
+  "name": "YTScribe Final Sprint: E2E Testing & Launch Readiness",
+  "quality_gates": [
+    "cd frontend && bunx playwright test",
+    "bun test",
+    "cd frontend && bun test",
+    "bun run typecheck",
+    "bun run lint"
+  ],
+  "tasks": [
+    {
+      "category": "functional",
+      "description": "Install @clerk/testing package in frontend for Playwright E2E auth support",
+      "steps": [
+        "Run `cd frontend && bun add -D @clerk/testing`",
+        "Verify @clerk/testing appears in frontend/package.json devDependencies",
+        "Run `cd frontend && bun install` to ensure lockfile is updated"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create .env.test file with test credentials (test@testee.com / testtest)",
+      "steps": [
+        "Create frontend/.env.test with E2E_CLERK_USER_USERNAME=test@testee.com and E2E_CLERK_USER_PASSWORD=testtest",
+        "Also include existing CLERK keys from .env (PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)",
+        "Verify file is readable: `cat frontend/.env.test | grep E2E_CLERK`"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create global-setup.ts for Clerk testing token initialization",
+      "steps": [
+        "Create frontend/tests/e2e/global-setup.ts",
+        "Import clerkSetup from @clerk/testing/playwright",
+        "Export default async function that calls await clerkSetup()",
+        "Run `bun run typecheck` to verify no TypeScript errors"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Update playwright.config.ts to use Clerk global setup",
+      "steps": [
+        "Add globalSetup: require.resolve('./tests/e2e/global-setup.ts') to config",
+        "Verify storage state path is correct for .auth/user.json",
+        "Run `cd frontend && bunx playwright test --list` to verify config parses correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Rewrite auth.setup.ts to use @clerk/testing instead of cookie-based auth",
+      "steps": [
+        "Import clerk and clerkSetup from @clerk/testing/playwright",
+        "Remove old cookie-based session logic",
+        "Use clerk.signIn with strategy: 'password', identifier from E2E_CLERK_USER_USERNAME, password from E2E_CLERK_USER_PASSWORD",
+        "Navigate to /library and verify heading visible after sign-in",
+        "Save storage state to .auth/user.json",
+        "Run `cd frontend && bunx playwright test --project=setup` to verify auth setup works"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Verify existing home.spec.ts tests pass (unauthenticated)",
+      "steps": [
+        "Run `cd frontend && bunx playwright test home.spec.ts`",
+        "Verify all 8 landing page tests pass",
+        "Tests should work without auth state"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Verify add-video.auth.spec.ts tests pass with new Clerk auth",
+      "steps": [
+        "Run `cd frontend && bunx playwright test add-video.auth.spec.ts`",
+        "Verify all 9 video addition tests pass",
+        "Auth state should be loaded from .auth/user.json"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Verify chat.auth.spec.ts tests pass with new Clerk auth (requires OPENAI_API_KEY)",
+      "steps": [
+        "Ensure OPENAI_API_KEY is set in environment",
+        "Run `cd frontend && bunx playwright test chat.auth.spec.ts`",
+        "Verify chat/transcript tests pass",
+        "If OPENAI_API_KEY not set, tests should skip gracefully"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create auth-flow.spec.ts for login/logout E2E flow testing",
+      "steps": [
+        "Create frontend/tests/e2e/auth-flow.spec.ts",
+        "Test: Navigate to /login, verify Clerk sign-in form loads",
+        "Test: After sign-in, verify redirect to /library",
+        "Test: Verify user avatar/name displayed in header",
+        "Test: Click sign out, verify redirect to home page",
+        "Run `cd frontend && bunx playwright test auth-flow.spec.ts`"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create settings.auth.spec.ts for settings page E2E testing",
+      "steps": [
+        "Create frontend/tests/e2e/settings.auth.spec.ts",
+        "Test: Navigate to /settings, verify page loads",
+        "Test: Verify Clerk UserProfile component renders",
+        "Test: Verify danger zone section is visible",
+        "Test: Click delete account, verify confirmation modal appears (don't confirm)",
+        "Run `cd frontend && bunx playwright test settings.auth.spec.ts`"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create error-scenarios.auth.spec.ts for error handling E2E tests",
+      "steps": [
+        "Create frontend/tests/e2e/error-scenarios.auth.spec.ts",
+        "Test: Submit invalid YouTube URL, verify error message shown",
+        "Test: Navigate to /video/99999 (non-existent), verify 404 state shown",
+        "Test: Navigate to /video/invalid-id, verify error handling",
+        "Run `cd frontend && bunx playwright test error-scenarios.auth.spec.ts`"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Review LibraryView.tsx error states and enhance messaging",
+      "steps": [
+        "Open frontend/src/components/LibraryView.tsx",
+        "Verify error state shows user-friendly message with retry option",
+        "Verify unauthorized state redirects or shows clear auth message",
+        "Add specific error messages for network failures vs server errors if not present",
+        "Run `bun run typecheck` to verify no errors"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Review VideoDetailView.tsx error states for 404/403/processing failures",
+      "steps": [
+        "Open frontend/src/components/VideoDetailView.tsx",
+        "Verify 404 state shows 'Video not found' with link back to library",
+        "Verify 403 state shows 'Access denied' message",
+        "Verify processing failed state shows retry button",
+        "Run `bun run typecheck` to verify no errors"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Enhance LibraryView empty state for first-time users",
+      "steps": [
+        "Open frontend/src/components/LibraryView.tsx",
+        "Find the empty state rendering (when videos array is empty)",
+        "Add welcoming message: 'Welcome! Add your first video to get started'",
+        "Ensure Add Video button is prominent in empty state",
+        "Run `bun run typecheck` to verify no errors"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Add consistent auth error component for session expired states",
+      "steps": [
+        "Create frontend/src/components/AuthError.tsx if not exists",
+        "Component should show 'Session expired' message with sign-in link",
+        "Export component for use in LibraryView and VideoDetailView",
+        "Run `bun run typecheck` to verify no errors"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Update .gitignore to exclude E2E test artifacts",
+      "steps": [
+        "Add frontend/.auth/ to .gitignore (auth state files)",
+        "Add frontend/.env.test to .gitignore (test credentials)",
+        "Add frontend/test-results/ to .gitignore (Playwright artifacts)",
+        "Verify with `git status` that these paths are ignored"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create .env.test.example as template for test environment",
+      "steps": [
+        "Create .env.test.example in project root",
+        "Include E2E_CLERK_USER_USERNAME=your-email+clerk_test@example.com",
+        "Include E2E_CLERK_USER_PASSWORD=your-test-password",
+        "Include placeholder for CLERK keys and OPENAI_API_KEY",
+        "Verify file exists: `cat .env.test.example`"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Run full E2E test suite and verify all tests pass",
+      "steps": [
+        "Start backend server: `bun src/effect/main.ts &`",
+        "Start frontend server: `cd frontend && bun run dev &`",
+        "Run full E2E suite: `cd frontend && bunx playwright test`",
+        "Verify all tests pass (home, auth-flow, add-video, chat, settings, error-scenarios)",
+        "Stop servers after tests complete"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Run all quality gates and verify passing",
+      "steps": [
+        "Run `bun test` (backend unit tests)",
+        "Run `cd frontend && bun test` (frontend unit tests)",
+        "Run `bun run typecheck` (TypeScript check)",
+        "Run `bun run lint` (linting)",
+        "Verify all commands exit with code 0"
+      ],
+      "passes": false
+    }
+  ]
 }
