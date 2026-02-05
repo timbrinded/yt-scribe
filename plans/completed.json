@@ -52,5 +52,15 @@
       "Run `cd frontend && bunx playwright test --project=setup` to verify auth setup works"
     ],
     "completed_at": "2026-02-05"
+  },
+  {
+    "category": "functional",
+    "description": "Verify existing home.spec.ts tests pass (unauthenticated)",
+    "steps": [
+      "Run `cd frontend && bunx playwright test home.spec.ts`",
+      "Verify all 7 landing page tests pass",
+      "Tests should work without auth state"
+    ],
+    "completed_at": "2026-02-05"
   }
 ]

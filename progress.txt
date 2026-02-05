@@ -58,3 +58,10 @@ These are pre-existing issues not related to this change.
 - Quality gates: typecheck passes, lint passes (warnings only, no errors)
 - Note: E2E test requires valid Clerk test user credentials - current test password
   was rejected by Clerk as breached. User needs to update test user password in Clerk dashboard.
+
+### PRD Task 1: Verify home.spec.ts tests pass (COMPLETED)
+- Ran `cd frontend && bunx playwright test home.spec.ts`
+- All 7 landing page tests passed (PRD incorrectly stated 8, corrected to 7)
+- Tests work without auth state as expected
+- Tests run in ~11.5s using 6 workers on chromium
+- Quality gates: typecheck passes, lint has warnings only (no errors)

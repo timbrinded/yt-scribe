@@ -10,16 +10,6 @@
   "tasks": [
     {
       "category": "functional",
-      "description": "Verify existing home.spec.ts tests pass (unauthenticated)",
-      "steps": [
-        "Run `cd frontend && bunx playwright test home.spec.ts`",
-        "Verify all 8 landing page tests pass",
-        "Tests should work without auth state"
-      ],
-      "passes": false
-    },
-    {
-      "category": "functional",
       "description": "Verify add-video.auth.spec.ts tests pass with new Clerk auth",
       "steps": [
         "Run `cd frontend && bunx playwright test add-video.auth.spec.ts`",
