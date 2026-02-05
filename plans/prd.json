@@ -10,16 +10,6 @@
   "tasks": [
     {
       "category": "functional",
-      "description": "Create .env.test file with test credentials (test@testee.com / testtest)",
-      "steps": [
-        "Create frontend/.env.test with E2E_CLERK_USER_USERNAME=test@testee.com and E2E_CLERK_USER_PASSWORD=testtest",
-        "Also include existing CLERK keys from .env (PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)",
-        "Verify file is readable: `cat frontend/.env.test | grep E2E_CLERK`"
-      ],
-      "passes": false
-    },
-    {
-      "category": "functional",
       "description": "Create global-setup.ts for Clerk testing token initialization",
       "steps": [
         "Create frontend/tests/e2e/global-setup.ts",

@@ -11,3 +11,11 @@ Note: Backend tests (`bun test`) and frontend tests (`bun test --cwd frontend`) 
 - Backend: @effect/vitest compatibility issue with `ctx?.onTestFinished is not a function`
 - Frontend: vitest is picking up Playwright e2e tests causing errors, also missing jsdom environment for component tests
 These are pre-existing issues not related to this change.
+
+### Task 2: Create .env.test file with test credentials (COMPLETED)
+- Created frontend/.env.test with E2E test credentials:
+  - E2E_CLERK_USER_USERNAME=test@testee.com
+  - E2E_CLERK_USER_PASSWORD=testtest
+- Included CLERK keys from existing .env file
+- Verified file is readable: `cat frontend/.env.test | grep E2E_CLERK` shows expected values
+- Quality gates: typecheck passes, lint has warnings only (no errors)

@@ -8,5 +8,15 @@
       "Run `cd frontend && bun install` to ensure lockfile is updated"
     ],
     "completed_at": "2026-02-05"
+  },
+  {
+    "category": "functional",
+    "description": "Create .env.test file with test credentials (test@testee.com / testtest)",
+    "steps": [
+      "Create frontend/.env.test with E2E_CLERK_USER_USERNAME=test@testee.com and E2E_CLERK_USER_PASSWORD=testtest",
+      "Also include existing CLERK keys from .env (PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)",
+      "Verify file is readable: `cat frontend/.env.test | grep E2E_CLERK`"
+    ],
+    "completed_at": "2026-02-05"
   }
 ]
