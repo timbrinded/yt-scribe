@@ -27,6 +27,7 @@
 		"tailwindcss": "^4.1.18"
 	},
 	"devDependencies": {
+		"@clerk/testing": "^1.13.35",
 		"@playwright/test": "^1.58.1",
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/jest-dom": "^6.9.1",

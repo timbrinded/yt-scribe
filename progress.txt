@@ -1,0 +1,13 @@
+# Progress Log
+
+## 2026-02-05
+### Task 1: Install @clerk/testing package (COMPLETED)
+- Installed @clerk/testing@1.13.35 as dev dependency in frontend
+- Verified it appears in frontend/package.json devDependencies at line 30
+- Lockfile updated via bun install
+- Quality gates: typecheck passes, lint has warnings only (no errors)
+
+Note: Backend tests (`bun test`) and frontend tests (`bun test --cwd frontend`) have pre-existing failures:
+- Backend: @effect/vitest compatibility issue with `ctx?.onTestFinished is not a function`
+- Frontend: vitest is picking up Playwright e2e tests causing errors, also missing jsdom environment for component tests
+These are pre-existing issues not related to this change.

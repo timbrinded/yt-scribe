@@ -1,0 +1,12 @@
+[
+  {
+    "category": "functional",
+    "description": "Install @clerk/testing package in frontend for Playwright E2E auth support",
+    "steps": [
+      "Run `cd frontend && bun add -D @clerk/testing`",
+      "Verify @clerk/testing appears in frontend/package.json devDependencies",
+      "Run `cd frontend && bun install` to ensure lockfile is updated"
+    ],
+    "completed_at": "2026-02-05"
+  }
+]

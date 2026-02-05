@@ -10,16 +10,6 @@
   "tasks": [
     {
       "category": "functional",
-      "description": "Install @clerk/testing package in frontend for Playwright E2E auth support",
-      "steps": [
-        "Run `cd frontend && bun add -D @clerk/testing`",
-        "Verify @clerk/testing appears in frontend/package.json devDependencies",
-        "Run `cd frontend && bun install` to ensure lockfile is updated"
-      ],
-      "passes": false
-    },
-    {
-      "category": "functional",
       "description": "Create .env.test file with test credentials (test@testee.com / testtest)",
       "steps": [
         "Create frontend/.env.test with E2E_CLERK_USER_USERNAME=test@testee.com and E2E_CLERK_USER_PASSWORD=testtest",
