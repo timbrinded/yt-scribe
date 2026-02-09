@@ -167,8 +167,8 @@ The included `Dockerfile` works with any Docker-compatible platform:
 ## Development
 
 ```bash
-# Run tests
-bun test                    # Backend tests
+# Run tests (IMPORTANT: use 'bun run test', not 'bun test')
+bun run test                # Backend tests (vitest)
 cd frontend && bun test     # Frontend tests
 
 # Type checking

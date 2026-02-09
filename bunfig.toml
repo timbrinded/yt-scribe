@@ -1,3 +1,6 @@
 [test]
-# Only run tests from the tests/ directory (excludes frontend/tests/)
+# Guard against accidental 'bun test' usage.
+# This project uses vitest + @effect/vitest — Bun's native runner is NOT supported.
+# Always use 'bun run test' instead.
+preload = ["./tests/bun-test-guard.ts"]
 root = "./tests"
